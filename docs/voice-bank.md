@@ -171,3 +171,20 @@ xcrun swiftc -O Screendrop/VoiceProfile.swift Screendrop/RecordingVoiceAnalysis.
   -o build/check-voice-profile
 build/check-voice-profile build/voice-bank/variants
 ```
+
+## Voice tools check
+
+Studio's audio inspector shows what the voice chain is doing while the project plays:
+
+- **Meters** (`Screendrop/VoiceMetersView.swift`): input and output peak with a 20 dB/s fall, gain reduction for the expander, compressor, de-esser, and limiter, and short-term loudness (EBU R128, 3 s) against the profile's target. The voice tap publishes after every buffer through atomics (`RecordingAudioMeters`); the view samples at 30 Hz and goes quiet when playback stops.
+- **Channel strip** (`Screendrop/VoiceChannelStripView.swift`): every stage of the chain by hand, with the static EQ's response curve computed from the coefficients the chain runs. The first edit makes the chain custom (the profile's mic, character, intensity, and match controls pause; the loudness target keeps working); Reset to Profile hands control back.
+- **Microphone check** (Check Microphone… in the recording bar's microphone menu): 2.5 s of room, then 6 s of reading a line, through the same AVCapture path the recorder uses. It reports level (peaks should sit between -12 and -6 dBFS), clipping, room noise, voice-to-noise distance, and mains hum, with plain advice. Nothing is written to disk.
+
+`scripts/check-voice-tools.swift` checks the curve against the chain's measured response (they agree to 0.000 dB from 60 Hz to 12 kHz), the live loudness meter against the offline one (-23.00 vs -23.00 LUFS), the gain reduction the chain reports, the custom chain, and the microphone check's advice for seven takes with known problems (good, quiet, clipping, hot, noisy room, hum, muted).
+
+```bash
+xcrun swiftc -O Screendrop/VoiceChain.swift Screendrop/RecordingAudioProcessing.swift \
+  Screendrop/VoiceProfile.swift Screendrop/VoiceMeasurement.swift Screendrop/MicrophoneCheckAnalyzer.swift \
+  scripts/check-voice-tools.swift -o build/check-voice-tools
+build/check-voice-tools build/voice-bank/variants
+```
