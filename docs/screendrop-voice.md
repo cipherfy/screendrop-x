@@ -86,7 +86,7 @@ Hasta 3 minutos analiza la narración completa; en grabaciones más largas toma 
 Broadcast se calibró con dos locuciones de referencia: su curva objetivo es el promedio de ambas, y su EQ y su dinámica se ajustaron para acercarse a ellas. Para comparar los caracteres sobre una grabación propia, a -14 LUFS y en tu Mac:
 
 ```bash
-build/render-voice-ab "RUTA/AL/PROYECTO.screendroprec" "RUTA/DE/SALIDA"
+swift run -c release --package-path Packages/VoiceKit render-voice-ab "RUTA/AL/PROYECTO.screendroprec" "RUTA/DE/SALIDA"
 ```
 
 Genera tres WAV: Clear, Broadcast y la versión anterior de Broadcast. No modifica el proyecto.
@@ -137,21 +137,37 @@ Se recuerda el último perfil (carácter, intensidad, loudness) usado con cada m
 
 Ambas apps pueden estar instaladas a la vez sin compartir grabaciones, credenciales ni preferencias.
 
-## 7. Verificación
+## 7. Estructura del código
 
-El proyecto no tiene target de tests, así que el fork incluye un **banco de voz** con voces sintéticas en español y variantes con problemas conocidos (ruido, zumbido, teclado, habitación, dureza, delgadez, proximidad, nivel bajo, saturación y condensador en escritorio), además de scripts que comprueban cada pieza con resultados esperados conocidos:
+El fork separa el motor de audio de la app para que fusionar cambios del Screendrop original toque el menor código posible:
 
-| Script | Comprueba |
+| Dónde | Qué hay |
 |---|---|
-| `scripts/voice-bank/generate.sh` | Banco, medición y comparación con la línea base |
-| `check-microphone-capture` | Captura sin pérdida y lectura en Studio |
-| `check-audio-processing` | Ganancias por pista, limitación y cambios sin clics |
-| `check-voice-chain` | Cada etapa de la cadena, aliasing, true peak y A/B |
-| `check-voice-isolation` | Alineación, reducción de ruido y renders en caché |
-| `check-voice-profile` | Perfiles, pitch, match EQ, normalización y pipeline completo |
-| `check-voice-tools` | Curva de EQ, medidores y consejos de la prueba de micrófono |
+| `Packages/VoiceKit` | Paquete Swift local sin UI ni dependencias de la app: cadena de voz, medición de loudness y espectro, perfiles, taps de procesamiento por pista, análisis de la toma, aislamiento de voz y el análisis de la prueba de micrófono. La app enlaza solo la librería `VoiceKit` |
+| `Screendrop/RecordingVoiceController.swift` | Estado de la voz en Studio (faders, cadena, aislamiento, perfil, análisis, medidores). `RecordingStudioModel` lo posee y solo le reenvía lo que necesita |
+| `Screendrop/VoiceAudioControls.swift`, `VoiceChannelStripView.swift`, `VoiceMetersView.swift`, `MicrophoneCheck.swift`, `InspectorValueFormat+Audio.swift` | La UI propia del fork |
 
-El medidor de loudness está validado contra EBU Tech 3341 y contra el filtro `ebur128` de ffmpeg. Los detalles y comandos están en [voice-bank.md](voice-bank.md).
+Los archivos del original solo llevan los puntos de enganche: el controlador en el modelo, los ajustes de audio en el documento del proyecto, la mezcla y el limitador en los exports, la captura sin pérdida, la identidad de la app y el menú de la prueba de micrófono. El aislamiento no conoce `RecordingSession`: el controlador le inyecta la regla que reconoce un paquete de proyecto.
+
+## 8. Verificación
+
+La app no tiene target de tests. El motor se verifica con los **tests del paquete** y con un **banco de voz** de voces sintéticas en español y variantes con problemas conocidos (ruido, zumbido, teclado, habitación, dureza, delgadez, proximidad, nivel bajo, saturación y condensador en escritorio):
+
+```bash
+scripts/voice-bank/generate.sh                           # banco, medición y comparación con la línea base
+swift test -c release --package-path Packages/VoiceKit   # unos 30 s
+```
+
+| Suite | Comprueba |
+|---|---|
+| `MicrophoneCaptureTests` | Captura sin pérdida y lectura en Studio |
+| `AudioProcessingTests` | Ganancias por pista, limitación y cambios sin clics |
+| `VoiceChainTests` | Cada etapa de la cadena, aliasing, true peak y A/B |
+| `VoiceIsolationTests` | Alineación, reducción de ruido, renders en caché y la regla inyectada |
+| `VoiceProfileTests` | Perfiles, pitch, match EQ, normalización y pipeline completo |
+| `VoiceToolsTests` | Curva de EQ, medidores y consejos de la prueba de micrófono |
+
+Los tests que necesitan narración leen `build/voice-bank/variants`; si el banco no está generado, se omiten con un aviso. La línea base (`scripts/voice-bank/baseline.json`) guarda solo métricas resumidas y bandas por archivo. El medidor de loudness está validado contra EBU Tech 3341 y contra el filtro `ebur128` de ffmpeg. Los detalles y comandos están en [voice-bank.md](voice-bank.md).
 
 ## Pendiente
 
