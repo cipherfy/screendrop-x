@@ -545,9 +545,12 @@ nonisolated final class RecordingStudioExporter: @unchecked Sendable {
 
         // The per-track taps keep each track under the ceiling; this guards
         // their sum, which only exists here. Its look-ahead adds 3 ms to the
-        // taps' 3 ms: audio lands 6 ms after the picture, far below what
-        // anyone can perceive (sound travels about 2 m in that time).
-        var limiter = PeakLimiter(sampleRate: 48_000, channelCount: 2, ceilingDB: RecordingAudioProcessing.ceilingDB)
+        // taps' 3.25 ms: audio lands about 6 ms after the picture, far below
+        // what anyone can perceive (sound travels about 2 m in that time).
+        var limiter = PeakLimiter(
+            sampleRate: 48_000, channelCount: 2,
+            ceilingDB: RecordingAudioProcessing.ceilingDB, detectsTruePeak: true
+        )
         while let sampleBuffer = output.copyNextSampleBuffer() {
             if cancelFlag.isCancelled { throw ExportError.cancelled }
             let limited = try RecordingAudioProcessing.limitMix(sampleBuffer, with: &limiter)

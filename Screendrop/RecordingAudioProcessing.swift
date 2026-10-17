@@ -33,11 +33,32 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
     /// Off leaves the voice with its gain alone, the "before" side of an
     /// A/B comparison. Exports follow it, so they match what was heard.
     var voiceProcessingEnabled: Bool = true
+    var voiceChain = VoiceChainSettings()
 
-    init(voiceGainDB: Double = 0, systemGainDB: Double = 0, voiceProcessingEnabled: Bool = true) {
+    init(
+        voiceGainDB: Double = 0,
+        systemGainDB: Double = 0,
+        voiceProcessingEnabled: Bool = true,
+        voiceChain: VoiceChainSettings = VoiceChainSettings()
+    ) {
         self.voiceGainDB = voiceGainDB
         self.systemGainDB = systemGainDB
         self.voiceProcessingEnabled = voiceProcessingEnabled
+        self.voiceChain = voiceChain
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case voiceGainDB, systemGainDB, voiceProcessingEnabled, voiceChain
+    }
+
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            voiceGainDB: c.value(.voiceGainDB, default: 0),
+            systemGainDB: c.value(.systemGainDB, default: 0),
+            voiceProcessingEnabled: c.value(.voiceProcessingEnabled, default: true),
+            voiceChain: c.value(.voiceChain, default: VoiceChainSettings())
+        )
     }
 
     /// Projects saved with one linear volume (0...2) for everything.
@@ -50,7 +71,8 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
         Self(
             voiceGainDB: Self.clamp(voiceGainDB, to: Self.voiceGainRange),
             systemGainDB: Self.clamp(systemGainDB, to: Self.systemGainRange),
-            voiceProcessingEnabled: voiceProcessingEnabled
+            voiceProcessingEnabled: voiceProcessingEnabled,
+            voiceChain: voiceChain
         )
     }
 
@@ -75,12 +97,17 @@ nonisolated final class RecordingAudioParameters: Sendable {
     private let voiceGain: Atomic<UInt32>
     private let systemGain: Atomic<UInt32>
     private let processing: Atomic<Bool>
+    /// The chain is too large for an atomic, so it sits behind a mutex the
+    /// render thread only ever tries: if Studio holds it that instant, the
+    /// tap keeps its current settings for one more buffer.
+    private let chain: Mutex<(settings: VoiceChainSettings, version: Int)>
 
     init(_ settings: RecordingAudioSettings = RecordingAudioSettings()) {
         let normalized = settings.normalized
         voiceGain = Atomic(normalized.linearGain(for: .voice).bitPattern)
         systemGain = Atomic(normalized.linearGain(for: .system).bitPattern)
         processing = Atomic(normalized.voiceProcessingEnabled)
+        chain = Mutex((normalized.voiceChain, 0))
     }
 
     func update(_ settings: RecordingAudioSettings) {
@@ -88,6 +115,16 @@ nonisolated final class RecordingAudioParameters: Sendable {
         voiceGain.store(normalized.linearGain(for: .voice).bitPattern, ordering: .relaxed)
         systemGain.store(normalized.linearGain(for: .system).bitPattern, ordering: .relaxed)
         processing.store(normalized.voiceProcessingEnabled, ordering: .relaxed)
+        chain.withLock { current in
+            if current.settings != normalized.voiceChain {
+                current = (normalized.voiceChain, current.version + 1)
+            }
+        }
+    }
+
+    /// Nil when Studio is writing at this instant; never blocks.
+    func voiceChainIfAvailable() -> (settings: VoiceChainSettings, version: Int)? {
+        chain.withLockIfAvailable { $0 }
     }
 
     func gain(for role: RecordingAudioRole) -> Float {
@@ -105,6 +142,13 @@ nonisolated final class RecordingAudioParameters: Sendable {
 nonisolated enum RecordingAudioProcessing {
     /// Ceiling for every limiter: 1 dB under full scale.
     static let ceilingDB = -1.0
+
+    /// Frames every tap delays its track by: the voice chain's oversampling
+    /// plus the limiter's look-ahead. System audio is delayed the same, so
+    /// the tracks stay aligned.
+    static func tapLatency(sampleRate: Double) -> Int {
+        VoiceChainProcessor.latency + PeakLimiter.lookaheadFrames(sampleRate: sampleRate)
+    }
 
     // MARK: Roles
 
@@ -186,7 +230,7 @@ nonisolated enum RecordingAudioProcessing {
             try check(CMBlockBufferCopyDataBytes(source, atOffset: 0, dataLength: length, destination: bytes.baseAddress!))
         }
         samples.withUnsafeMutableBufferPointer { pointer in
-            limiter.process(interleaved: pointer.baseAddress!, frameCount: frameCount, limiting: true)
+            limiter.process(interleaved: pointer.baseAddress!, frameCount: frameCount)
         }
 
         var block: CMBlockBuffer?
@@ -224,6 +268,8 @@ nonisolated enum RecordingAudioProcessing {
         var currentGain: Float
         var gainSmoothing: Float = 0
         var limiter: PeakLimiter?
+        var chain: VoiceChainProcessor?
+        var systemDelay: DelayLine?
 
         init(role: RecordingAudioRole, parameters: RecordingAudioParameters) {
             self.role = role
@@ -247,14 +293,29 @@ nonisolated enum RecordingAudioProcessing {
                 let description = format.pointee
                 context.format = description
                 context.gainSmoothing = Float(exp(-1 / (0.02 * description.mSampleRate)))
+                let channels = Int(description.mChannelsPerFrame)
                 context.limiter = PeakLimiter(
                     sampleRate: description.mSampleRate,
-                    channelCount: Int(description.mChannelsPerFrame),
-                    ceilingDB: RecordingAudioProcessing.ceilingDB
+                    channelCount: channels,
+                    ceilingDB: RecordingAudioProcessing.ceilingDB,
+                    detectsTruePeak: true
                 )
+                switch context.role {
+                case .voice:
+                    var chain = VoiceChainProcessor(sampleRate: description.mSampleRate, channelCount: channels)
+                    if let current = context.parameters.voiceChainIfAvailable() {
+                        chain.apply(current.settings, version: current.version)
+                    }
+                    context.chain = chain
+                case .system:
+                    context.systemDelay = DelayLine(frames: VoiceChainProcessor.latency, channels: channels)
+                }
             },
             unprepare: { tap in
-                Unmanaged<TapContext>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue().limiter = nil
+                let context = Unmanaged<TapContext>.fromOpaque(MTAudioProcessingTapGetStorage(tap)).takeUnretainedValue()
+                context.limiter = nil
+                context.chain = nil
+                context.systemDelay = nil
             },
             process: { tap, frames, _, buffers, framesOut, flagsOut in
                 let status = MTAudioProcessingTapGetSourceAudio(tap, frames, buffers, flagsOut, nil, framesOut)
@@ -298,35 +359,57 @@ nonisolated enum RecordingAudioProcessing {
             return
         }
 
-        // Glide toward the target gain per frame, identically on every
-        // channel so the stereo image holds.
         let isInterleaved = format.mFormatFlags & kAudioFormatFlagIsNonInterleaved == 0
         let channels = Int(format.mChannelsPerFrame)
+        guard frameCount > 0,
+              isInterleaved ? buffers.count >= 1 : buffers.count >= channels else { return }
+        let interleavedData = buffers[0].mData?.assumingMemoryBound(to: Float.self)
+
+        @inline(__always) func read(_ frame: Int, _ channel: Int) -> Float {
+            if isInterleaved { return interleavedData?[frame * channels + channel] ?? 0 }
+            return buffers[channel].mData?.assumingMemoryBound(to: Float.self)[frame] ?? 0
+        }
+        @inline(__always) func write(_ frame: Int, _ channel: Int, _ value: Float) {
+            if isInterleaved { interleavedData?[frame * channels + channel] = value; return }
+            buffers[channel].mData?.assumingMemoryBound(to: Float.self)[frame] = value
+        }
+
+        // 1. The voice chain, or for system audio an equal delay.
+        switch context.role {
+        case .voice:
+            if let current = context.parameters.voiceChainIfAvailable() {
+                context.chain?.apply(current.settings, version: current.version)
+            }
+            context.chain?.process(
+                frameCount: frameCount,
+                enabled: context.parameters.isVoiceProcessingEnabled,
+                read: read,
+                write: write
+            )
+        case .system:
+            if context.systemDelay != nil {
+                for frame in 0..<frameCount {
+                    for channel in 0..<channels {
+                        write(frame, channel, context.systemDelay!.push(read(frame, channel), channel: channel))
+                    }
+                    context.systemDelay!.advance()
+                }
+            }
+        }
+
+        // 2. The fader, gliding toward its target identically on every
+        // channel so the stereo image holds.
         var gain = context.currentGain
         let smoothing = context.gainSmoothing
         for frame in 0..<frameCount {
             gain = target + (gain - target) * smoothing
-            if isInterleaved {
-                guard let data = buffers[0].mData?.assumingMemoryBound(to: Float.self) else { break }
-                for channel in 0..<channels { data[frame * channels + channel] *= gain }
-            } else {
-                for buffer in buffers {
-                    buffer.mData?.assumingMemoryBound(to: Float.self)[frame] *= gain
-                }
-            }
+            for channel in 0..<channels { write(frame, channel, read(frame, channel) * gain) }
         }
         context.currentGain = gain
 
-        // The voice chain. System audio is limited too, so a boosted track
-        // never clips on its own; the export limiter then guards the sum.
-        let limiting = context.role == .system || context.parameters.isVoiceProcessingEnabled
-        if isInterleaved {
-            if let data = buffers[0].mData?.assumingMemoryBound(to: Float.self) {
-                context.limiter?.process(interleaved: data, frameCount: frameCount, limiting: limiting)
-            }
-        } else {
-            context.limiter?.process(planar: buffers, frameCount: frameCount, limiting: limiting)
-        }
+        // 3. The true-peak limiter, on every track, so nothing clips on its
+        // own; the export limiter then guards the sum.
+        context.limiter?.process(frameCount: frameCount, read: read, write: write)
     }
 
     private static func applyGainToIntegerSamples(
@@ -353,40 +436,65 @@ nonisolated enum RecordingAudioProcessing {
     }
 }
 
-/// Look-ahead peak limiter, linked across channels. Gain reduction starts
-/// before a peak arrives (the signal is delayed by the look-ahead) and
-/// recovers smoothly, instead of flattening the waveform the way the old
-/// hard clip at full scale did. A final clamp at the ceiling catches the
-/// rare sample the envelope does not fully reach.
+/// Look-ahead true-peak limiter, linked across channels. Gain reduction
+/// starts before a peak arrives (the signal is delayed by the look-ahead)
+/// and recovers smoothly, instead of flattening the waveform the way the
+/// old hard clip at full scale did. With `detectsTruePeak` it also sees the
+/// peaks between samples, through 4x interpolation with a passband nearly
+/// to Nyquist (wider than the saturation oversampler needs). A final clamp at the ceiling catches the rare
+/// sample the envelope does not fully reach.
 ///
 /// The look-ahead delays the track by 3 ms whether or not it is limiting,
-/// so switching processing on and off never shifts timing.
+/// so nothing shifts in time when settings change.
 nonisolated struct PeakLimiter {
     let ceiling: Float
+    /// The envelope aims 0.1 dB under the ceiling, so it lands before the
+    /// clamp has to act; a clamped sample would itself overshoot between
+    /// samples.
+    private let target: Float
     private let channelCount: Int
     private let lookahead: Int
     private let attack: Float
     private let release: Float
+    private let detectsTruePeak: Bool
     private var delay: [Float]
     private var position = 0
+    /// Recent input per channel, for inter-sample peak interpolation.
+    private var history: [Float]
+    private var historyPosition = 0
+    private let historyLength: Int
     private var heldGain: Float = 1
     private var holdRemaining = 0
     private var gain: Float = 1
+
+    /// Interpolates up to 22 kHz at 48 kHz, so high-frequency inter-sample
+    /// peaks are not underestimated.
+    static let detectionKernel = Oversampler.makeKernel(length: 97, cutoff: 0.92)
+
+    static func lookaheadFrames(sampleRate: Double, milliseconds: Double = 3) -> Int {
+        max(1, Int(sampleRate * milliseconds / 1_000))
+    }
 
     init(
         sampleRate: Double,
         channelCount: Int,
         ceilingDB: Double = -1,
+        detectsTruePeak: Bool = false,
         lookaheadMilliseconds: Double = 3,
         releaseMilliseconds: Double = 80
     ) {
         ceiling = Float(pow(10, ceilingDB / 20))
+        target = Float(pow(10, (ceilingDB - 0.1) / 20))
         self.channelCount = max(1, channelCount)
-        lookahead = max(1, Int(sampleRate * lookaheadMilliseconds / 1_000))
-        // Settles within the look-ahead window.
-        attack = Float(exp(-3 / Double(lookahead)))
+        self.detectsTruePeak = detectsTruePeak
+        lookahead = Self.lookaheadFrames(sampleRate: sampleRate, milliseconds: lookaheadMilliseconds)
+        // Settles fully (to 0.1%) within the look-ahead window, less the
+        // dozen frames true-peak detection runs behind.
+        attack = Float(exp(-7 / Double(lookahead)))
         release = Float(exp(-1 / (sampleRate * releaseMilliseconds / 1_000)))
         delay = [Float](repeating: 0, count: lookahead * self.channelCount)
+        historyLength = (Self.detectionKernel.count + Oversampler.factor - 1) / Oversampler.factor
+        history = [Float](repeating: 0, count: historyLength * self.channelCount)
     }
 
     /// Current gain reduction, in dB (zero or negative).
@@ -394,38 +502,40 @@ nonisolated struct PeakLimiter {
 
     mutating func reset() {
         for index in delay.indices { delay[index] = 0 }
+        for index in history.indices { history[index] = 0 }
         position = 0
+        historyPosition = 0
         heldGain = 1
         holdRemaining = 0
         gain = 1
     }
 
-    mutating func process(interleaved samples: UnsafeMutablePointer<Float>, frameCount: Int, limiting: Bool) {
+    mutating func process(interleaved samples: UnsafeMutablePointer<Float>, frameCount: Int) {
         let channels = channelCount
-        run(frameCount: frameCount, limiting: limiting,
-            read: { frame, channel in samples[frame * channels + channel] },
-            write: { frame, channel, value in samples[frame * channels + channel] = value })
+        process(frameCount: frameCount,
+                read: { frame, channel in samples[frame * channels + channel] },
+                write: { frame, channel, value in samples[frame * channels + channel] = value })
     }
 
-    mutating func process(planar buffers: UnsafeMutableAudioBufferListPointer, frameCount: Int, limiting: Bool) {
-        guard buffers.count >= channelCount else { return }
-        run(frameCount: frameCount, limiting: limiting,
-            read: { frame, channel in buffers[channel].mData?.assumingMemoryBound(to: Float.self)[frame] ?? 0 },
-            write: { frame, channel, value in buffers[channel].mData?.assumingMemoryBound(to: Float.self)[frame] = value })
-    }
-
-    private mutating func run(
+    mutating func process(
         frameCount: Int,
-        limiting: Bool,
         read: (Int, Int) -> Float,
         write: (Int, Int, Float) -> Void
     ) {
         for frame in 0..<frameCount {
             var peak: Float = 0
             for channel in 0..<channelCount {
-                peak = max(peak, abs(read(frame, channel)))
+                let x = read(frame, channel)
+                peak = max(peak, abs(x))
+                if detectsTruePeak {
+                    peak = max(peak, interSamplePeak(adding: x, channel: channel))
+                }
             }
-            let required: Float = limiting && peak > ceiling ? ceiling / peak : 1
+            if detectsTruePeak {
+                historyPosition += 1
+                if historyPosition == historyLength { historyPosition = 0 }
+            }
+            let required: Float = peak > target ? target / peak : 1
 
             // Hold the deepest reduction for the look-ahead span so the
             // gain is already down when the peak leaves the delay line.
@@ -443,14 +553,33 @@ nonisolated struct PeakLimiter {
             for channel in 0..<channelCount {
                 let delayed = delay[offset + channel]
                 delay[offset + channel] = read(frame, channel)
-                var output = delayed * gain
-                if limiting {
-                    output = min(ceiling, max(-ceiling, output))
-                }
-                write(frame, channel, output)
+                write(frame, channel, min(ceiling, max(-ceiling, delayed * gain)))
             }
             position += 1
             if position == lookahead { position = 0 }
         }
+    }
+
+    /// Largest magnitude of the three points interpolated between this
+    /// sample and the previous ones (about twelve samples back, well inside
+    /// the look-ahead).
+    private mutating func interSamplePeak(adding x: Float, channel: Int) -> Float {
+        let kernel = Self.detectionKernel
+        let factor = Oversampler.factor
+        history[historyPosition * channelCount + channel] = x
+        var peak: Float = 0
+        for phase in 1..<factor {
+            var sum = 0.0
+            var k = 0
+            var tap = phase
+            while tap < kernel.count {
+                let index = (historyPosition - k + historyLength) % historyLength
+                sum += kernel[tap] * Double(history[index * channelCount + channel])
+                k += 1
+                tap += factor
+            }
+            peak = max(peak, abs(Float(sum * Double(factor))))
+        }
+        return peak
     }
 }

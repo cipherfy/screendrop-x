@@ -165,7 +165,10 @@ nonisolated final class RecordingAudioExporter: @unchecked Sendable {
         writer.startSession(atSourceTime: .zero)
 
         // Guards the sum of the tracks, as the video export does.
-        var limiter = PeakLimiter(sampleRate: 48_000, channelCount: 2, ceilingDB: RecordingAudioProcessing.ceilingDB)
+        var limiter = PeakLimiter(
+            sampleRate: 48_000, channelCount: 2,
+            ceilingDB: RecordingAudioProcessing.ceilingDB, detectsTruePeak: true
+        )
         do {
             while let sampleBuffer = output.copyNextSampleBuffer() {
                 try Task.checkCancellation()

@@ -1039,7 +1039,21 @@ struct StudioInspector: View {
             }
             if model.hasVoiceAudio {
                 InspectorToggleRow("Voice Processing", isOn: $model.voiceProcessingEnabled)
-                    .help("Turn off to hear the voice without processing, then back on to compare")
+                    .help("Turn off to hear the voice without processing, at the same loudness, then back on to compare")
+
+                InspectorSegmented(
+                    options: VoiceChainSettings.Preset.allCases,
+                    isSelected: { $0 == model.voiceChainPreset },
+                    onTap: { preset in model.voiceChainPreset = preset },
+                    label: { preset in
+                        Text(preset.title)
+                            .font(.inspectorSegment)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .help(preset.help)
+                    }
+                )
+                .disabled(!model.voiceProcessingEnabled)
             }
 
             HStack(spacing: InspectorMetrics.rowSpacing) {

@@ -224,6 +224,16 @@ final class RecordingStudioModel {
     var voiceProcessingEnabled = true {
         didSet { audioSettingsDidChange() }
     }
+    /// The narration channel strip.
+    var voiceChain = VoiceChainSettings() {
+        didSet { audioSettingsDidChange() }
+    }
+
+    /// Nil once the chain has been edited away from every preset.
+    var voiceChainPreset: VoiceChainSettings.Preset? {
+        get { voiceChain.matchingPreset }
+        set { if let newValue { voiceChain = newValue.settings } }
+    }
     /// What the recording's own tracks carry, for the inspector.
     private(set) var recordedAudioRoles: Set<RecordingAudioRole> = []
     /// Read by the playback taps on the audio thread.
@@ -233,7 +243,8 @@ final class RecordingStudioModel {
         RecordingAudioSettings(
             voiceGainDB: Double(voiceGainDB),
             systemGainDB: Double(systemGainDB),
-            voiceProcessingEnabled: voiceProcessingEnabled
+            voiceProcessingEnabled: voiceProcessingEnabled,
+            voiceChain: voiceChain
         )
     }
 
@@ -534,6 +545,7 @@ final class RecordingStudioModel {
         voiceGainDB = CGFloat(audio.voiceGainDB)
         systemGainDB = CGFloat(audio.systemGainDB)
         voiceProcessingEnabled = audio.voiceProcessingEnabled
+        voiceChain = audio.voiceChain
     }
 
     func teardown() {
