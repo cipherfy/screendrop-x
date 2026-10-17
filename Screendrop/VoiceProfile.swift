@@ -103,23 +103,28 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
     var intensity = 0.6
     var matchesTarget = true
     var loudnessTarget: LoudnessTarget = .podcast
+    /// A chain edited by hand in the channel strip. While set, it stands in
+    /// for the resolved chain; the loudness target still applies.
+    var customChain: VoiceChainSettings?
 
     init(
         microphone: Microphone = .generic,
         character: Character = .clear,
         intensity: Double = 0.6,
         matchesTarget: Bool = true,
-        loudnessTarget: LoudnessTarget = .podcast
+        loudnessTarget: LoudnessTarget = .podcast,
+        customChain: VoiceChainSettings? = nil
     ) {
         self.microphone = microphone
         self.character = character
         self.intensity = min(1, max(0, intensity))
         self.matchesTarget = matchesTarget
         self.loudnessTarget = loudnessTarget
+        self.customChain = customChain
     }
 
     private enum CodingKeys: String, CodingKey {
-        case microphone, character, intensity, matchesTarget, loudnessTarget
+        case microphone, character, intensity, matchesTarget, loudnessTarget, customChain
     }
 
     init(from decoder: any Decoder) throws {
@@ -130,7 +135,8 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
             character: c.value(.character, default: d.character),
             intensity: c.value(.intensity, default: d.intensity),
             matchesTarget: c.value(.matchesTarget, default: d.matchesTarget),
-            loudnessTarget: c.value(.loudnessTarget, default: d.loudnessTarget)
+            loudnessTarget: c.value(.loudnessTarget, default: d.loudnessTarget),
+            customChain: c.value(.customChain, default: nil)
         )
     }
 }
@@ -243,6 +249,7 @@ nonisolated enum VoiceProfileResolver {
 
     /// The chain for a profile and (when there is one) an analysis.
     static func chain(for profile: VoiceProfileSettings, analysis: VoiceAnalysisResult?) -> VoiceChainSettings {
+        if let custom = profile.customChain { return custom }
         var chain = VoiceChainSettings()
         let intensity = min(1, max(0, profile.intensity))
         let matching = profile.matchesTarget && analysis != nil

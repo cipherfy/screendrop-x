@@ -51,6 +51,7 @@ struct StudioInspector: View {
     @State private var stylePresetStore = RecordingStudioStylePresetStore.shared
     @State private var transcriptTab: StudioTranscriptTab = .captions
     @State private var isAudioExportOptionsPresented = false
+    @State private var isChannelStripPresented = false
     @State private var page: StudioInspectorPage?
     @Environment(\.colorScheme) private var colorScheme
 
@@ -1012,6 +1013,7 @@ struct StudioInspector: View {
     /// profile the chain is resolved from.
     private var voiceProfileControls: some View {
         VStack(alignment: .leading, spacing: InspectorMetrics.rowSpacing) {
+            Group {
             InspectorRow("Mic") {
                 InspectorSegmented(
                     options: VoiceProfileSettings.Microphone.allCases,
@@ -1049,6 +1051,9 @@ struct StudioInspector: View {
                 )
             )
             .help("Measures the voice's balance and gently corrects it toward a reference narration curve")
+            }
+            .disabled(model.isVoiceChainCustom)
+
             InspectorRow("Loudness") {
                 InspectorSegmented(
                     options: VoiceProfileSettings.LoudnessTarget.allCases,
@@ -1062,6 +1067,20 @@ struct StudioInspector: View {
             if let status = model.voiceProfileStatus {
                 InspectorHint(status)
             }
+            if model.isVoiceChainCustom {
+                InspectorHint("Custom chain: the profile above is on hold", tint: .orange)
+            }
+
+            InspectorActionButton("Channel Strip…", systemImage: "slider.vertical.3") {
+                isChannelStripPresented = true
+            }
+            .help("Every stage of the voice chain, with live meters and the EQ curve")
+            .popover(isPresented: $isChannelStripPresented, arrowEdge: .leading) {
+                VoiceChannelStripView(model: model)
+            }
+
+            VoiceMetersView(meters: model.voiceMeters, targetLUFS: model.voiceProfile.loudnessTarget.lufs)
+                .padding(.top, 2)
         }
     }
 

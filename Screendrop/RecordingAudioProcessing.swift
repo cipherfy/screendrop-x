@@ -139,6 +139,8 @@ nonisolated final class RecordingAudioParameters: Sendable {
     /// render thread only ever tries: if Studio holds it that instant, the
     /// tap keeps its current settings for one more buffer.
     private let chain: Mutex<(settings: VoiceChainSettings, version: Int)>
+    /// Filled by the voice tap during playback; exports ignore it.
+    let meters = RecordingAudioMeters()
 
     init(_ settings: RecordingAudioSettings = RecordingAudioSettings()) {
         let normalized = settings.normalized
@@ -174,6 +176,107 @@ nonisolated final class RecordingAudioParameters: Sendable {
 
     var isVoiceProcessingEnabled: Bool {
         processing.load(ordering: .relaxed)
+    }
+}
+
+/// What the voice tap is doing, for Studio's meters. The tap stores after
+/// every buffer; Studio reads at display rate. Plain atomics, no locks.
+nonisolated final class RecordingAudioMeters: Sendable {
+    struct Snapshot: Equatable, Sendable {
+        var inputPeakDB = -120.0
+        var outputPeakDB = -120.0
+        var expanderDB = 0.0
+        var compressorDB = 0.0
+        var deEsserDB = 0.0
+        var limiterDB = 0.0
+        var shortTermLUFS: Double?
+        /// Changes with every buffer, so a reader can tell playback stopped.
+        var sequence: UInt32 = 0
+    }
+
+    private let inputPeak = Atomic<UInt32>(0)
+    private let outputPeak = Atomic<UInt32>(0)
+    private let expander = Atomic<UInt32>(0)
+    private let compressor = Atomic<UInt32>(0)
+    private let deEsser = Atomic<UInt32>(0)
+    private let limiter = Atomic<UInt32>(0)
+    private let loudness = Atomic<UInt32>(Float.nan.bitPattern)
+    private let sequence = Atomic<UInt32>(0)
+
+    func store(
+        inputPeak: Float, outputPeak: Float,
+        expanderDB: Float, compressorDB: Float, deEsserDB: Float, limiterDB: Float,
+        shortTermLUFS: Float?
+    ) {
+        self.inputPeak.store(inputPeak.bitPattern, ordering: .relaxed)
+        self.outputPeak.store(outputPeak.bitPattern, ordering: .relaxed)
+        expander.store(expanderDB.bitPattern, ordering: .relaxed)
+        compressor.store(compressorDB.bitPattern, ordering: .relaxed)
+        deEsser.store(deEsserDB.bitPattern, ordering: .relaxed)
+        limiter.store(limiterDB.bitPattern, ordering: .relaxed)
+        loudness.store((shortTermLUFS ?? .nan).bitPattern, ordering: .relaxed)
+        sequence.add(1, ordering: .relaxed)
+    }
+
+    func snapshot() -> Snapshot {
+        func value(_ atomic: borrowing Atomic<UInt32>) -> Double {
+            Double(Float(bitPattern: atomic.load(ordering: .relaxed)))
+        }
+        func decibels(_ linear: Double) -> Double { linear > 0 ? max(-120, 20 * log10(linear)) : -120 }
+        let lufs = value(loudness)
+        return Snapshot(
+            inputPeakDB: decibels(value(inputPeak)),
+            outputPeakDB: decibels(value(outputPeak)),
+            expanderDB: value(expander),
+            compressorDB: value(compressor),
+            deEsserDB: value(deEsser),
+            limiterDB: value(limiter),
+            shortTermLUFS: lufs.isNaN ? nil : lufs,
+            sequence: sequence.load(ordering: .relaxed)
+        )
+    }
+}
+
+/// Short-term loudness (EBU R128: K-weighted, 3 s window) for the render
+/// thread: fixed buffers, updated every 100 ms.
+nonisolated struct ShortTermLoudness {
+    private var filters: [KWeightingFilter]
+    private var segments: [Double]
+    private let segmentLength: Int
+    private var segmentIndex = 0
+    private var filledSegments = 0
+    private var accumulated = 0.0
+    private var accumulatedFrames = 0
+    private(set) var lufs: Double?
+
+    init(sampleRate: Double, channelCount: Int) {
+        filters = Array(repeating: KWeightingFilter(sampleRate: sampleRate), count: max(1, channelCount))
+        segments = [Double](repeating: 0, count: 30)
+        segmentLength = max(1, Int(sampleRate * 0.1))
+    }
+
+    mutating func process(frameCount: Int, read: (Int, Int) -> Float) {
+        for frame in 0..<frameCount {
+            for channel in filters.indices {
+                let y = filters[channel].process(Double(read(frame, channel)))
+                accumulated += y * y
+            }
+            accumulatedFrames += 1
+            if accumulatedFrames == segmentLength {
+                segments[segmentIndex] = accumulated
+                segmentIndex = (segmentIndex + 1) % segments.count
+                filledSegments = min(segments.count, filledSegments + 1)
+                accumulated = 0
+                accumulatedFrames = 0
+                // Reported once the window holds at least 400 ms.
+                if filledSegments >= 4 {
+                    var sum = 0.0
+                    for index in 0..<filledSegments { sum += segments[index] }
+                    let meanSquare = sum / Double(filledSegments * segmentLength)
+                    lufs = meanSquare > 0 ? -0.691 + 10 * log10(meanSquare) : nil
+                }
+            }
+        }
     }
 }
 
@@ -308,6 +411,7 @@ nonisolated enum RecordingAudioProcessing {
         var limiter: PeakLimiter?
         var chain: VoiceChainProcessor?
         var systemDelay: DelayLine?
+        var loudness: ShortTermLoudness?
 
         init(role: RecordingAudioRole, parameters: RecordingAudioParameters) {
             self.role = role
@@ -345,6 +449,7 @@ nonisolated enum RecordingAudioProcessing {
                         chain.apply(current.settings, version: current.version)
                     }
                     context.chain = chain
+                    context.loudness = ShortTermLoudness(sampleRate: description.mSampleRate, channelCount: channels)
                 case .system:
                     context.systemDelay = DelayLine(frames: VoiceChainProcessor.latency, channels: channels)
                 }
@@ -354,6 +459,7 @@ nonisolated enum RecordingAudioProcessing {
                 context.limiter = nil
                 context.chain = nil
                 context.systemDelay = nil
+                context.loudness = nil
             },
             process: { tap, frames, _, buffers, framesOut, flagsOut in
                 let status = MTAudioProcessingTapGetSourceAudio(tap, frames, buffers, flagsOut, nil, framesOut)
@@ -412,6 +518,13 @@ nonisolated enum RecordingAudioProcessing {
             buffers[channel].mData?.assumingMemoryBound(to: Float.self)[frame] = value
         }
 
+        var inputPeak: Float = 0
+        if context.role == .voice {
+            for frame in 0..<frameCount {
+                for channel in 0..<channels { inputPeak = max(inputPeak, abs(read(frame, channel))) }
+            }
+        }
+
         // 1. The voice chain, or for system audio an equal delay.
         switch context.role {
         case .voice:
@@ -448,6 +561,24 @@ nonisolated enum RecordingAudioProcessing {
         // 3. The true-peak limiter, on every track, so nothing clips on its
         // own; the export limiter then guards the sum.
         context.limiter?.process(frameCount: frameCount, read: read, write: write)
+
+        // 4. Meters, for the voice.
+        if context.role == .voice {
+            var outputPeak: Float = 0
+            for frame in 0..<frameCount {
+                for channel in 0..<channels { outputPeak = max(outputPeak, abs(read(frame, channel))) }
+            }
+            context.loudness?.process(frameCount: frameCount, read: read)
+            context.parameters.meters.store(
+                inputPeak: inputPeak,
+                outputPeak: outputPeak,
+                expanderDB: Float(context.chain?.expanderReductionDB ?? 0),
+                compressorDB: Float(context.chain?.compressorReductionDB ?? 0),
+                deEsserDB: Float(context.chain?.deEsserReductionDB ?? 0),
+                limiterDB: Float(context.limiter?.gainReductionDB ?? 0),
+                shortTermLUFS: context.loudness?.lufs.map(Float.init)
+            )
+        }
     }
 
     private static func applyGainToIntegerSamples(

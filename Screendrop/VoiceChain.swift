@@ -352,6 +352,41 @@ nonisolated extension VoiceChainSettings.Saturation {
     }
 }
 
+// MARK: Frequency response
+
+nonisolated extension VoiceChainSettings {
+    /// The static filters' coefficients: high-pass (two stages), the five
+    /// bands, and the six match bells. The processor and the response curve
+    /// both use this, so the drawn curve is what plays.
+    func staticCoefficients(sampleRate rate: Double) -> (highPass: [Biquad.Coefficients], bands: [Biquad.Coefficients], match: [Biquad.Coefficients]) {
+        let hp = highPass
+        let highPassCoefficients: [Biquad.Coefficients] = !hp.isEnabled ? [.identity, .identity]
+            : hp.isSteep
+                ? [.highPass(rate, hp.frequency, q: 0.5412), .highPass(rate, hp.frequency, q: 1.3066)]
+                : [.highPass(rate, hp.frequency, q: 0.7071), .identity]
+        let bandCoefficients = bands.map { band -> Biquad.Coefficients in
+            guard band.gainDB != 0 else { return .identity }
+            switch band.kind {
+            case .lowShelf: return .lowShelf(rate, band.frequency, q: band.q, gainDB: band.gainDB)
+            case .peak: return .peak(rate, band.frequency, q: band.q, gainDB: band.gainDB)
+            case .highShelf: return .highShelf(rate, band.frequency, q: band.q, gainDB: band.gainDB)
+            }
+        }
+        let matchCoefficients = zip(MatchEQ.centers, match.gains).map { center, gain in
+            gain == 0 ? Biquad.Coefficients.identity : .peak(rate, center, q: MatchEQ.q, gainDB: gain)
+        }
+        return (highPassCoefficients, bandCoefficients, matchCoefficients)
+    }
+
+    /// The static EQ's gain at `frequency`, in dB (input trim, dynamics,
+    /// and saturation excluded).
+    func responseDB(at frequency: Double, sampleRate: Double = 48_000) -> Double {
+        let filters = staticCoefficients(sampleRate: sampleRate)
+        return (filters.highPass + filters.bands + filters.match)
+            .reduce(0) { $0 + $1.magnitudeDB(at: frequency, sampleRate: sampleRate) }
+    }
+}
+
 // MARK: - Processor
 
 /// Runs the chain on up to two channels. Create it off the render thread
@@ -385,6 +420,7 @@ nonisolated struct VoiceChainProcessor {
 
     private var dynamicDetector: EnvelopeFollower
     private var deEssDetector: EnvelopeFollower
+    private var deEssCutDB: Double = 0
     private var expanderGainDB: Double = 0
     private var expanderPeak: Double = 0
     private var expanderHold: Double = 0
@@ -438,27 +474,12 @@ nonisolated struct VoiceChainProcessor {
         inputTrim = pow(10, newSettings.inputTrimDB / 20)
 
         let rate = sampleRate
-        let hp = newSettings.highPass
-        let hpCoefficients: [Biquad.Coefficients] = hp.isSteep
-            ? [.highPass(rate, hp.frequency, q: 0.5412), .highPass(rate, hp.frequency, q: 1.3066)]
-            : [.highPass(rate, hp.frequency, q: 0.7071), .identity]
-        let bandCoefficients = newSettings.bands.map { band -> Biquad.Coefficients in
-            guard band.gainDB != 0 else { return .identity }
-            switch band.kind {
-            case .lowShelf: return .lowShelf(rate, band.frequency, q: band.q, gainDB: band.gainDB)
-            case .peak: return .peak(rate, band.frequency, q: band.q, gainDB: band.gainDB)
-            case .highShelf: return .highShelf(rate, band.frequency, q: band.q, gainDB: band.gainDB)
-            }
-        }
-        let matchCoefficients = zip(VoiceChainSettings.MatchEQ.centers, newSettings.match.gains).map { center, gain in
-            gain == 0 ? Biquad.Coefficients.identity
-                : .peak(rate, center, q: VoiceChainSettings.MatchEQ.q, gainDB: gain)
-        }
+        let (hpCoefficients, bandCoefficients, matchCoefficients) = newSettings.staticCoefficients(sampleRate: rate)
         let dynamic = Biquad.Coefficients.bandPass(rate, newSettings.dynamicLow.frequency, q: newSettings.dynamicLow.q)
         let sibilance = Biquad.Coefficients.bandPass(rate, newSettings.deEsser.frequency, q: 1.5)
 
         for channel in 0..<channelCount {
-            for stage in 0..<2 { highPass[channel * 2 + stage].coefficients = hp.isEnabled ? hpCoefficients[stage] : .identity }
+            for stage in 0..<2 { highPass[channel * 2 + stage].coefficients = hpCoefficients[stage] }
             for stage in 0..<5 { bands[channel * 5 + stage].coefficients = bandCoefficients[stage] }
             for stage in 0..<6 { matchBands[channel * 6 + stage].coefficients = matchCoefficients[stage] }
             dynamicFilter[channel].coefficients = dynamic
@@ -571,6 +592,7 @@ nonisolated struct VoiceChainProcessor {
                 let envelope = deEssDetector.process(level)
                 let over = decibels(envelope) - deEssThreshold
                 let cut = over > 0 ? min(s.deEsser.rangeDB, over * (1 - 1 / 4.0)) : 0
+                deEssCutDB = cut
                 let gain = pow(10, -cut / 20)
                 for channel in 0..<channels {
                     set(&wet, channel, get(wet, channel) + (gain - 1) * get(band, channel))
@@ -618,8 +640,10 @@ nonisolated struct VoiceChainProcessor {
         }
     }
 
-    /// Current compressor gain reduction in dB (zero or negative).
-    var compressorReductionDB: Double { compressorGainDB }
+    /// Current gain reductions in dB (zero or negative), for meters.
+    var compressorReductionDB: Double { settings.compressor.isEnabled ? compressorGainDB : 0 }
+    var expanderReductionDB: Double { settings.expander.isEnabled ? expanderGainDB : 0 }
+    var deEsserReductionDB: Double { settings.deEsser.isEnabled ? -deEssCutDB : 0 }
 
     private func compressionGain(_ input: Double, _ c: VoiceChainSettings.Compressor) -> Double {
         let over = input - c.thresholdDB
@@ -657,6 +681,19 @@ nonisolated struct Biquad {
         var b0 = 1.0, b1 = 0.0, b2 = 0.0, a1 = 0.0, a2 = 0.0
 
         static let identity = Coefficients()
+
+        /// |H(e^jw)| in dB.
+        func magnitudeDB(at frequency: Double, sampleRate: Double) -> Double {
+            let w = 2 * .pi * frequency / sampleRate
+            let (c1, s1, c2, s2) = (cos(w), sin(w), cos(2 * w), sin(2 * w))
+            let numeratorRe = b0 + b1 * c1 + b2 * c2
+            let numeratorIm = -(b1 * s1 + b2 * s2)
+            let denominatorRe = 1 + a1 * c1 + a2 * c2
+            let denominatorIm = -(a1 * s1 + a2 * s2)
+            let power = (numeratorRe * numeratorRe + numeratorIm * numeratorIm)
+                / max(1e-300, denominatorRe * denominatorRe + denominatorIm * denominatorIm)
+            return 10 * log10(max(1e-30, power))
+        }
 
         private static func normalized(_ b0: Double, _ b1: Double, _ b2: Double,
                                        _ a0: Double, _ a1: Double, _ a2: Double) -> Coefficients {

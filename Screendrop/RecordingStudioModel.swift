@@ -270,6 +270,23 @@ final class RecordingStudioModel {
             refreshVoiceProfile(after: .milliseconds(400))
         }
     }
+    /// Live levels and gain reduction from the voice tap.
+    var voiceMeters: RecordingAudioMeters { audioParameters.meters }
+
+    var isVoiceChainCustom: Bool { voiceProfile.customChain != nil }
+
+    /// Edits the chain by hand. The first edit freezes the resolved chain
+    /// as the starting point; from then on the profile stops resolving it.
+    func editVoiceChain(_ edit: (inout VoiceChainSettings) -> Void) {
+        var chain = voiceProfile.customChain ?? voiceChain
+        edit(&chain)
+        voiceProfile.customChain = chain
+    }
+
+    func resetVoiceChainToProfile() {
+        voiceProfile.customChain = nil
+    }
+
     /// The narration's measured loudness and balance, saved with the project.
     private(set) var voiceAnalysis: VoiceAnalysisResult?
     /// What the profile did, or what it is doing, for the inspector.
