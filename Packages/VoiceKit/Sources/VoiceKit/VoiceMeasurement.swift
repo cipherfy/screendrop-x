@@ -3,9 +3,8 @@
 //  Screendrop
 //
 //  Loudness (ITU-R BS.1770-4 / EBU R128), true peak, noise floor, and
-//  spectral balance for narration audio. Foundation and Accelerate only,
-//  so the voice bank tool (scripts/voice-bank.swift) compiles this file
-//  as-is and measures exactly what the app measures.
+//  spectral balance for narration audio. The voice bank tool links the
+//  same code, so it measures exactly what the app measures.
 //
 
 import Accelerate
