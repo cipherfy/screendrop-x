@@ -4,7 +4,7 @@ import Foundation
 // Compile with the isolation, tap, chain, and meter sources:
 //
 //   xcrun swiftc -O Screendrop/RecordingVoiceIsolation.swift Screendrop/RecordingAudioProcessing.swift \
-//     Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift scripts/check-voice-isolation.swift \
+//     Screendrop/VoiceChain.swift Screendrop/VoiceProfile.swift Screendrop/VoiceMeasurement.swift scripts/check-voice-isolation.swift \
 //     -o build/check-voice-isolation
 //   build/check-voice-isolation build/voice-bank/variants/paulina-usb-condenser-desk.wav
 //

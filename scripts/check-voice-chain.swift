@@ -3,7 +3,7 @@ import Foundation
 
 // Compile with the chain, the tap code, and the meter:
 //
-//   xcrun swiftc -O Screendrop/VoiceChain.swift Screendrop/RecordingAudioProcessing.swift \
+//   xcrun swiftc -O Screendrop/VoiceChain.swift Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceProfile.swift \
 //     Screendrop/VoiceMeasurement.swift scripts/check-voice-chain.swift -o build/check-voice-chain
 //   build/check-voice-chain build/voice-bank/variants
 //

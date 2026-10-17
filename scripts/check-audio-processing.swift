@@ -2,9 +2,9 @@ import AVFoundation
 import CoreMedia
 import Foundation
 
-// Compile with RecordingAudioProcessing.swift, VoiceChain.swift, and VoiceMeasurement.swift:
+// Compile with RecordingAudioProcessing.swift, VoiceChain.swift, VoiceProfile.swift, and VoiceMeasurement.swift:
 //
-//   xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift \
+//   xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.swift Screendrop/VoiceProfile.swift Screendrop/VoiceMeasurement.swift \
 //     scripts/check-audio-processing.swift -o build/check-audio-processing
 //   build/check-audio-processing build/voice-bank/variants/paulina-clean.wav
 //

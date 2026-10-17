@@ -64,7 +64,7 @@ build/voice-bank/bin/voice-bank tone <sine-1k|intersample> out.wav
 Screendrop records the microphone track as 24-bit mono LPCM at 48 kHz (system audio stays AAC). `scripts/check-microphone-capture.swift` writes a bank file the way the recorder does, with both the current and the previous AAC 96 kbps settings, and reads it back through Studio's paths: the mono-track rule transcription uses, the per-track processing mix behind playback and export, and the M4A export the speech transcriber reads.
 
 ```bash
-xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift \
+xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.swift Screendrop/VoiceProfile.swift Screendrop/VoiceMeasurement.swift \
   scripts/check-microphone-capture.swift -o build/check-microphone-capture
 build/check-microphone-capture build/voice-bank/variants/paulina-clean.wav
 ```
@@ -82,7 +82,7 @@ Every audio track gets its own processing tap (`Screendrop/RecordingAudioProcess
 - that a +12 dB change mid-render glides without a click and lands at +12 dB.
 
 ```bash
-xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift \
+xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.swift Screendrop/VoiceProfile.swift Screendrop/VoiceMeasurement.swift \
   scripts/check-audio-processing.swift -o build/check-audio-processing
 build/check-audio-processing build/voice-bank/variants/paulina-clean.wav
 ```
@@ -109,7 +109,7 @@ Latency: every tap delays its track by the same 156 frames at 48 kHz (3.25 ms: 1
 | Speed | About 100x real time on one core |
 
 ```bash
-xcrun swiftc -O Screendrop/VoiceChain.swift Screendrop/RecordingAudioProcessing.swift \
+xcrun swiftc -O Screendrop/VoiceChain.swift Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceProfile.swift \
   Screendrop/VoiceMeasurement.swift scripts/check-voice-chain.swift -o build/check-voice-chain
 build/check-voice-chain build/voice-bank/variants
 ```
@@ -126,9 +126,48 @@ Two details matter for alignment. The unit's reported latency (4440 frames at 48
 
 ```bash
 xcrun swiftc -O Screendrop/RecordingVoiceIsolation.swift Screendrop/RecordingAudioProcessing.swift \
-  Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift scripts/check-voice-isolation.swift \
+  Screendrop/VoiceChain.swift Screendrop/VoiceProfile.swift Screendrop/VoiceMeasurement.swift scripts/check-voice-isolation.swift \
   -o build/check-voice-isolation
 build/check-voice-isolation build/voice-bank/variants/paulina-usb-condenser-desk.wav
 ```
 
 On the bank's USB-condenser-at-a-desk take, full isolation took SNR from 23.4 to 45.6 dB and the noise floor from -43.8 to -66.6 dBFS, kept loudness within 0.7 LU, and ran at about 80x real time.
+
+## Voice profile check
+
+A voice profile (`Screendrop/VoiceProfile.swift`) is what the inspector asks for: the microphone (Generic or USB Condenser), a character (Clear, Broadcast, Warm, Bright), how strongly to apply it, whether to match the target curve, and a loudness target (-16 LUFS for spoken word, -14 LUFS where video platforms normalize). `VoiceProfileResolver` turns the profile and an analysis of the take into the chain:
+
+- **Input trim** brings the take to -26 LUFS, the level the chain's thresholds are written for.
+- **Microphone corrections** (high-pass, proximity control, de-esser, expander) apply in full; with match EQ off, the USB Condenser profile also cuts mud and harshness statically.
+- **Character** EQ, compression, and saturation scale with intensity. The body band sits just above the voice's fundamental, found by autocorrelation pitch tracking (the spectrum cannot find it: the first formant outweighs the fundamental).
+- **Match EQ** pulls the long-term balance toward a target curve with six octave bells, at 70% of the measured difference, limited to -6 / +4.5 dB, and leaves alone bands with no content to speak of.
+- **Loudness**: the voice gain that lands chain, fader, and true-peak limiter on the target, refined until what the limiter takes off is added back.
+
+`Screendrop/RecordingVoiceAnalysis.swift` does the measuring offline, on at most the first ten minutes of the narration the project plays (the isolation render when isolation is on). The analysis is saved in the project. The last profile used with each microphone is remembered, and a microphone never seen before starts on USB Condenser when its name says it is one (QuadCast, Yeti, and others).
+
+The target curve is the average of the bank's clean studio voices, a starting point. Rebuild it from narration you like and paste the output into `VoiceTargetCurve`:
+
+```bash
+build/voice-bank/bin/voice-bank target reference-1.wav reference-2.wav
+```
+
+`scripts/check-voice-profile.swift` checks profile resolution, pitch tracking, that match EQ answers a known coloration and moves every bank take closer to the target, and that normalization lands within 0.15 LU of -16 and -14 LUFS at no more than -1.06 dBTP across 40 take, character, and target combinations. It then runs the whole pipeline on the USB-condenser takes:
+
+| Take | LUFS | True peak | SNR | Distance to target |
+|---|---|---|---|---|
+| Paulina raw | -25.5 | -11.8 | 21.8 | 2.5 dB |
+| Paulina, Broadcast | -16.0 | -1.1 | 32.4 | 1.5 dB |
+| Mónica raw | -25.2 | -11.1 | 17.6 | 3.9 dB |
+| Mónica, Clear | -16.0 | -1.1 | 24.9 | 2.7 dB |
+| Eddy raw | -25.1 | -7.6 | 27.0 | 5.7 dB |
+| Eddy, Clear | -16.1 | -1.1 | 42.3 | 5.8 dB |
+
+(Isolation 90%, USB Condenser, match EQ, intensity 60%, -16 LUFS. Eddy stops near 8 kHz, so match EQ leaves its top alone and its distance barely moves.)
+
+```bash
+xcrun swiftc -O Screendrop/VoiceProfile.swift Screendrop/RecordingVoiceAnalysis.swift \
+  Screendrop/RecordingVoiceIsolation.swift Screendrop/RecordingAudioProcessing.swift \
+  Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift scripts/check-voice-profile.swift \
+  -o build/check-voice-profile
+build/check-voice-profile build/voice-bank/variants
+```
