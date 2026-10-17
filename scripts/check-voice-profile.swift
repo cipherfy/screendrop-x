@@ -37,8 +37,8 @@ struct VoiceProfileCheck {
         let eddy = try read(variants.appendingPathComponent("eddy-clean.wav"))
 
         try checkResolver(paulina)
-        checkFundamental(paulina: paulina, eddy: eddy)
-        checkMatchRecovery(paulina)
+        try checkFundamental(paulina: paulina, eddy: eddy)
+        try checkMatchRecovery(paulina)
         try checkMatchMovesTowardTarget(variants)
         try checkNormalization(variants)
         try checkCoding()
@@ -49,7 +49,7 @@ struct VoiceProfileCheck {
     // MARK: Resolver
 
     static func checkResolver(_ voice: [Float]) throws {
-        let analysis = RecordingVoiceAnalysis.analyze(voice, sourceKey: "microphone")
+        let analysis = try RecordingVoiceAnalysis.analyze(voice, sourceKey: "microphone")
         var usb = VoiceProfileSettings(microphone: .usbCondenser, character: .broadcast, intensity: 1, matchesTarget: false)
         var chain = VoiceProfileResolver.chain(for: usb, analysis: analysis)
         precondition(chain.highPass.isSteep && chain.highPass.frequency == 90 && chain.expander.isEnabled && chain.dynamicLow.isEnabled)
@@ -81,30 +81,30 @@ struct VoiceProfileCheck {
         print("ok  profiles resolve: microphone corrections fixed, character scales with intensity, match EQ replaces static cuts, trim brings takes to -26 LUFS")
     }
 
-    static func checkFundamental(paulina: [Float], eddy: [Float]) {
-        let high = RecordingVoiceAnalysis.analyze(paulina, sourceKey: "microphone").fundamentalHz ?? 0
-        let low = RecordingVoiceAnalysis.analyze(eddy, sourceKey: "microphone").fundamentalHz ?? 0
+    static func checkFundamental(paulina: [Float], eddy: [Float]) throws {
+        let high = (try RecordingVoiceAnalysis.analyze(paulina, sourceKey: "microphone").fundamentalHz) ?? 0
+        let low = (try RecordingVoiceAnalysis.analyze(eddy, sourceKey: "microphone").fundamentalHz) ?? 0
         precondition(low < high, "a male voice must read lower than a female one")
         print(String(format: "ok  fundamental: Eddy %.0f Hz, Paulina %.0f Hz; the body band follows the voice", low, high))
     }
 
     // MARK: Match EQ
 
-    static func checkMatchRecovery(_ voice: [Float]) {
+    static func checkMatchRecovery(_ voice: [Float]) throws {
         // Color the voice with a known resonance and a dull top, and check
         // match EQ moves the right octaves the right way.
         var colored = VoiceChainSettings.flat
         colored.mid = .init(kind: .peak, frequency: 1_000, gainDB: 6, q: 1.4)
         colored.highShelf = .init(kind: .highShelf, frequency: 3_000, gainDB: -5, q: 0.7)
-        let original = VoiceProfileResolver.matchEQ(measured: RecordingVoiceAnalysis.analyze(voice, sourceKey: "a").thirdOctave)
-        let shifted = VoiceProfileResolver.matchEQ(measured: RecordingVoiceAnalysis.analyze(run(voice, colored), sourceKey: "b").thirdOctave)
+        let original = VoiceProfileResolver.matchEQ(measured: try RecordingVoiceAnalysis.analyze(voice, sourceKey: "a").thirdOctave)
+        let shifted = VoiceProfileResolver.matchEQ(measured: try RecordingVoiceAnalysis.analyze(run(voice, colored), sourceKey: "b").thirdOctave)
         let delta = zip(shifted.gains, original.gains).map { $0 - $1 }
         precondition(delta[2] < -2, "match must cut the added 1 kHz resonance (\(delta[2]))")
         precondition(delta[4] > 1.5 && delta[5] > 1.5, "match must lift the dulled top (\(delta[4]), \(delta[5]))")
 
         var extreme = VoiceChainSettings.flat
         extreme.mid = .init(kind: .peak, frequency: 1_000, gainDB: 24, q: 1)
-        let limited = VoiceProfileResolver.matchEQ(measured: RecordingVoiceAnalysis.analyze(run(voice, extreme), sourceKey: "c").thirdOctave)
+        let limited = VoiceProfileResolver.matchEQ(measured: try RecordingVoiceAnalysis.analyze(run(voice, extreme), sourceKey: "c").thirdOctave)
         precondition(limited.gains.allSatisfy { $0 <= VoiceProfileResolver.matchBoostLimitDB && $0 >= -VoiceProfileResolver.matchCutLimitDB })
         print(String(format: "ok  match EQ answers a +6 dB 1 kHz resonance and a -5 dB top with %+.1f dB at 1 kHz, %+.1f / %+.1f dB at 4 / 8 kHz; never beyond -6 / +4.5 dB",
                      delta[2], delta[4], delta[5]))
@@ -114,11 +114,11 @@ struct VoiceProfileCheck {
         print("    distance to the target curve (RMS dB over 250 Hz-8 kHz), before -> after match EQ:")
         for name in ["paulina-usb-condenser-desk", "monica-usb-condenser-desk", "eddy-usb-condenser-desk", "paulina-harsh", "paulina-thin", "paulina-boomy"] {
             let voice = try read(directory.appendingPathComponent("\(name).wav"))
-            let analysis = RecordingVoiceAnalysis.analyze(voice, sourceKey: "m")
+            let analysis = try RecordingVoiceAnalysis.analyze(voice, sourceKey: "m")
             var chain = VoiceChainSettings.flat
             chain.match = VoiceProfileResolver.matchEQ(measured: analysis.thirdOctave)
             let before = distanceToTarget(analysis.thirdOctave)
-            let after = distanceToTarget(RecordingVoiceAnalysis.analyze(run(voice, chain), sourceKey: "m").thirdOctave)
+            let after = distanceToTarget(try RecordingVoiceAnalysis.analyze(run(voice, chain), sourceKey: "m").thirdOctave)
             precondition(after < before, "\(name): match EQ moved away from the target")
             print("      " + name.padding(toLength: 28, withPad: " ", startingAt: 0) + String(format: " %4.1f -> %4.1f dB   [%@]", before, after,
                          chain.match.gains.map { String(format: "%+.1f", $0) }.joined(separator: " ")))
@@ -134,12 +134,12 @@ struct VoiceProfileCheck {
         var runs = 0
         for name in ["paulina-usb-condenser-desk", "monica-usb-condenser-desk", "eddy-usb-condenser-desk", "paulina-quiet", "paulina-hot"] {
             let voice = try read(directory.appendingPathComponent("\(name).wav"))
-            let analysis = RecordingVoiceAnalysis.analyze(voice, sourceKey: "m")
+            let analysis = try RecordingVoiceAnalysis.analyze(voice, sourceKey: "m")
             for character in VoiceProfileSettings.Character.allCases {
                 for target in [VoiceProfileSettings.LoudnessTarget.podcast, .platforms] {
                     let profile = VoiceProfileSettings(microphone: .usbCondenser, character: character, intensity: 0.8, loudnessTarget: target)
                     let chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
-                    guard let gain = RecordingVoiceAnalysis.normalizationGain(voice, chain: chain, targetLUFS: target.lufs!) else {
+                    guard let gain = try RecordingVoiceAnalysis.normalizationGain(voice, chain: chain, targetLUFS: target.lufs!) else {
                         print("FAIL \(name) could not be normalized")
                         exit(1)
                     }
@@ -199,10 +199,10 @@ struct VoiceProfileCheck {
                 let started = Date()
                 let isolation = VoiceIsolationSettings(amount: 90)
                 let samples = try await RecordingVoiceAnalysis.readVoice(screenURL: screenURL, isolation: isolation)
-                let analysis = RecordingVoiceAnalysis.analyze(samples, sourceKey: VoiceAnalysisResult.sourceKey(for: isolation))
+                let analysis = try RecordingVoiceAnalysis.analyze(samples, sourceKey: VoiceAnalysisResult.sourceKey(for: isolation))
                 let profile = VoiceProfileSettings(microphone: .usbCondenser, character: character, intensity: 0.6)
                 let chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
-                let gain = RecordingVoiceAnalysis.normalizationGain(samples, chain: chain, targetLUFS: -16) ?? 0
+                let gain = (try RecordingVoiceAnalysis.normalizationGain(samples, chain: chain, targetLUFS: -16)) ?? 0
                 let elapsed = Date().timeIntervalSince(started)
                 row("\(voice) \(character.rawValue)", render(samples, chain, gainDB: gain), seconds: elapsed)
             }

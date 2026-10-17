@@ -7,15 +7,16 @@
 //  from it: the analysis behind input trim and match EQ, and the voice
 //  gain that lands the processed voice on its loudness target.
 //
-//  Everything runs offline, on at most the first ten minutes of narration
-//  (plenty for a long-term spectrum and integrated loudness), through the
-//  same chain and limiter code the playback tap runs.
+//  Everything runs offline, through the same chain and limiter code the
+//  playback tap runs, on a sample of the narration: all of it up to three
+//  minutes, or six 30-second stretches spread across a longer recording.
+//  The sample represents the whole take (not just how it starts) and keeps
+//  the work flat however long the recording is.
 //
 
 import AVFoundation
 
 nonisolated enum RecordingVoiceAnalysis {
-    static let maximumSeconds = 600.0
     static let sampleRate = 48_000.0
 
     enum AnalysisError: LocalizedError {
@@ -26,20 +27,46 @@ nonisolated enum RecordingVoiceAnalysis {
         }
     }
 
-    /// The narration as the voice tap will hear it, mono at 48 kHz.
+    /// The narration as the voice tap will hear it, mono at 48 kHz:
+    /// sampled as described above, stretches joined end to end.
     static func readVoice(screenURL: URL, isolation: VoiceIsolationSettings) async throws -> [Float] {
         let asset = try await RecordingVoiceIsolation.sourceAsset(screenURL: screenURL, settings: isolation)
         let tracks = try await asset.loadTracks(withMediaType: .audio)
         let roles = try await RecordingAudioProcessing.roles(for: tracks, isReplacement: false)
         guard let index = roles.firstIndex(of: .voice) else { throw AnalysisError.noNarration }
+        let track = tracks[index]
+        let range = try await track.load(.timeRange)
 
+        var samples: [Float] = []
+        samples.reserveCapacity(Int(min(range.duration.seconds, sampledSeconds) * sampleRate))
+        for stretch in sampleRanges(of: range) {
+            try await read(track, of: asset, range: stretch, into: &samples)
+        }
+        return samples
+    }
+
+    static let sampledSeconds = 180.0
+    static let stretchCount = 6
+
+    /// The whole range when short, otherwise evenly spaced stretches that
+    /// include the very start and the very end.
+    static func sampleRanges(of range: CMTimeRange) -> [CMTimeRange] {
+        let duration = range.duration.seconds
+        guard duration > sampledSeconds, duration.isFinite else { return [range] }
+        let length = sampledSeconds / Double(stretchCount)
+        let spacing = (duration - length) / Double(stretchCount - 1)
+        return (0..<stretchCount).map { stretch in
+            CMTimeRange(
+                start: range.start + CMTime(seconds: Double(stretch) * spacing, preferredTimescale: 48_000),
+                duration: CMTime(seconds: length, preferredTimescale: 48_000)
+            )
+        }
+    }
+
+    private static func read(_ track: AVAssetTrack, of asset: AVAsset, range: CMTimeRange, into samples: inout [Float]) async throws {
         let reader = try AVAssetReader(asset: asset)
-        let range = try await tracks[index].load(.timeRange)
-        reader.timeRange = CMTimeRange(
-            start: range.start,
-            duration: CMTimeMinimum(range.duration, CMTime(seconds: maximumSeconds, preferredTimescale: 600))
-        )
-        let output = AVAssetReaderTrackOutput(track: tracks[index], outputSettings: [
+        reader.timeRange = range
+        let output = AVAssetReaderTrackOutput(track: track, outputSettings: [
             AVFormatIDKey: kAudioFormatLinearPCM,
             AVSampleRateKey: sampleRate,
             AVNumberOfChannelsKey: 1,
@@ -50,9 +77,6 @@ nonisolated enum RecordingVoiceAnalysis {
         ])
         reader.add(output)
         guard reader.startReading() else { throw reader.error ?? AnalysisError.noNarration }
-
-        var samples: [Float] = []
-        samples.reserveCapacity(Int(min(range.duration.seconds, maximumSeconds) * sampleRate))
         while let buffer = output.copyNextSampleBuffer() {
             try Task.checkCancellation()
             guard let block = CMSampleBufferGetDataBuffer(buffer) else { continue }
@@ -67,17 +91,16 @@ nonisolated enum RecordingVoiceAnalysis {
             }
         }
         if reader.status == .failed { throw reader.error ?? AnalysisError.noNarration }
-        return samples
     }
 
-    static func analyze(_ samples: [Float], sourceKey: String) -> VoiceAnalysisResult {
+    static func analyze(_ samples: [Float], sourceKey: String) throws -> VoiceAnalysisResult {
         let measurement = VoiceAnalyzer.measure(channels: [samples], sampleRate: sampleRate)
         return VoiceAnalysisResult(
             sourceKey: sourceKey,
             integratedLUFS: measurement.integratedLUFS,
             speechLevelDBFS: measurement.speechLevelDBFS,
             noiseFloorDBFS: measurement.noiseFloorDBFS,
-            fundamentalHz: fundamental(of: samples),
+            fundamentalHz: try fundamental(of: samples),
             thirdOctave: measurement.thirdOctave
         )
     }
@@ -88,7 +111,7 @@ nonisolated enum RecordingVoiceAnalysis {
     /// just above the fundamental and differs by an octave between voices.
     /// The spectrum cannot say this: in speech the first formant, not the
     /// fundamental, carries the most low-frequency energy.
-    static func fundamental(of samples: [Float]) -> Double? {
+    static func fundamental(of samples: [Float]) throws -> Double? {
         let factor = Int(sampleRate / 8_000)
         let rate = sampleRate / Double(factor)
         var decimated: [Float] = []
@@ -115,6 +138,7 @@ nonisolated enum RecordingVoiceAnalysis {
 
         var pitches: [Double] = []
         for (start, energy) in zip(starts, energies) where energy > loud * 0.01 {
+            try Task.checkCancellation()
             var bestLag = 0
             var best: Float = 0
             for lag in minimumLag...maximumLag {
@@ -145,13 +169,14 @@ nonisolated enum RecordingVoiceAnalysis {
         _ samples: [Float],
         chain: VoiceChainSettings,
         targetLUFS: Double
-    ) -> Double? {
+    ) throws -> Double? {
         var processor = VoiceChainProcessor(sampleRate: sampleRate, channelCount: 1)
         processor.apply(chain, version: 1)
         var processed = samples
-        processed.withUnsafeMutableBufferPointer { pointer in
+        try processed.withUnsafeMutableBufferPointer { pointer in
             var start = 0
             while start < pointer.count {
+                try Task.checkCancellation()
                 let count = min(4_096, pointer.count - start)
                 processor.process(
                     frameCount: count, enabled: true,
@@ -169,6 +194,7 @@ nonisolated enum RecordingVoiceAnalysis {
         // factor, pushed hard toward -14 LUFS, need more than one.
         var gain = targetLUFS - chainLoudness
         for _ in 0..<5 {
+            try Task.checkCancellation()
             var limiter = PeakLimiter(
                 sampleRate: sampleRate, channelCount: 1,
                 ceilingDB: RecordingAudioProcessing.ceilingDB, detectsTruePeak: true

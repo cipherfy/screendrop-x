@@ -2459,10 +2459,10 @@ final class RecordingStudioModel {
                 let work = Task.detached(priority: .userInitiated) { () throws -> (VoiceAnalysisResult, Double?) in
                     let samples = try await RecordingVoiceAnalysis.readVoice(screenURL: screenURL, isolation: isolation)
                     try Task.checkCancellation()
-                    let analysis = current ?? RecordingVoiceAnalysis.analyze(samples, sourceKey: key)
+                    let analysis = try current ?? RecordingVoiceAnalysis.analyze(samples, sourceKey: key)
                     let chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
-                    let gain = target.flatMap {
-                        RecordingVoiceAnalysis.normalizationGain(samples, chain: chain, targetLUFS: $0)
+                    let gain = try target.flatMap {
+                        try RecordingVoiceAnalysis.normalizationGain(samples, chain: chain, targetLUFS: $0)
                     }
                     return (analysis, gain)
                 }
