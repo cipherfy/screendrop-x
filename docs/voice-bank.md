@@ -58,3 +58,15 @@ build/voice-bank/bin/voice-bank tone <sine-1k|intersample> out.wav
 ## Comparing
 
 `compare` reports per file any change beyond tolerance (0.5 LU integrated, 1 LU range, 0.5 dB true peak, 1 dB noise floor, SNR, or any voice band) and exits non-zero when a file newly exceeds -1 dBTP or clips more than before.
+
+## Microphone capture check
+
+Screendrop records the microphone track as 24-bit mono LPCM at 48 kHz (system audio stays AAC). `scripts/check-microphone-capture.swift` writes a bank file the way the recorder does, with both the current and the previous AAC 96 kbps settings, and reads it back through Studio's paths: the mono-track rule transcription uses, the gain mix behind playback and export (including above 100%), and the M4A export the speech transcriber reads.
+
+```bash
+xcrun swiftc -O Screendrop/RecordingAudioGain.swift Screendrop/VoiceMeasurement.swift \
+  scripts/check-microphone-capture.swift -o build/check-microphone-capture
+build/check-microphone-capture build/voice-bank/variants/paulina-clean.wav
+```
+
+The lossless track is bit-identical to its source; AAC at 96 kbps deviated by -42 dB on the same take. The cost is size: about 9.7 MB per minute with system audio, against 1.8 MB before (video not included).
