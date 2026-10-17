@@ -24,10 +24,9 @@ voices=(
 )
 
 mkdir -p "$out/bin" "$out/source" "$out/variants"
-engine="$root/Packages/VoiceKit/Sources/VoiceKit"
-xcrun swiftc -O "$engine/VoiceMeasurement.swift" "$engine/VoiceChain.swift" \
-  "$engine/RecordingAudioProcessing.swift" "$engine/VoiceProfile.swift" \
-  "$root/scripts/voice-bank.swift" -o "$bin"
+package="$root/Packages/VoiceKit"
+xcrun swift build -c release --package-path "$package" --product voice-bank
+cp "$(xcrun swift build -c release --package-path "$package" --show-bin-path)/voice-bank" "$bin"
 
 for entry in "${voices[@]}"; do
   name="${entry%%|*}"

@@ -28,6 +28,12 @@ public nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
         public var frequency = 80.0
         /// 24 dB per octave instead of 12.
         public var isSteep = false
+
+        public init(isEnabled: Bool = true, frequency: Double = 80.0, isSteep: Bool = false) {
+            self.isEnabled = isEnabled
+            self.frequency = frequency
+            self.isSteep = isSteep
+        }
     }
 
     /// A gain of 0 dB leaves the band out of the sound entirely.
@@ -36,6 +42,13 @@ public nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
         public var frequency: Double
         public var gainDB = 0.0
         public var q = 0.7
+
+        public init(kind: FilterKind, frequency: Double, gainDB: Double = 0.0, q: Double = 0.7) {
+            self.kind = kind
+            self.frequency = frequency
+            self.gainDB = gainDB
+            self.q = q
+        }
     }
 
     /// Octave bells that pull the voice's long-term balance toward a target
@@ -69,6 +82,14 @@ public nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
         public var q = 1.0
         public var thresholdDB = -30.0
         public var rangeDB = 6.0
+
+        public init(isEnabled: Bool = false, frequency: Double = 160.0, q: Double = 1.0, thresholdDB: Double = -30.0, rangeDB: Double = 6.0) {
+            self.isEnabled = isEnabled
+            self.frequency = frequency
+            self.q = q
+            self.thresholdDB = thresholdDB
+            self.rangeDB = rangeDB
+        }
     }
 
     public struct DeEsser: Codable, Sendable, Equatable {
@@ -76,6 +97,13 @@ public nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
         public var frequency = 6_500.0
         public var thresholdDB = -32.0
         public var rangeDB = 8.0
+
+        public init(isEnabled: Bool = false, frequency: Double = 6_500.0, thresholdDB: Double = -32.0, rangeDB: Double = 8.0) {
+            self.isEnabled = isEnabled
+            self.frequency = frequency
+            self.thresholdDB = thresholdDB
+            self.rangeDB = rangeDB
+        }
     }
 
     /// Gentle downward expander: lowers what falls under the threshold, so
@@ -86,6 +114,14 @@ public nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
         public var ratio = 2.0
         public var rangeDB = 8.0
         public var releaseMilliseconds = 150.0
+
+        public init(isEnabled: Bool = false, thresholdDB: Double = -45.0, ratio: Double = 2.0, rangeDB: Double = 8.0, releaseMilliseconds: Double = 150.0) {
+            self.isEnabled = isEnabled
+            self.thresholdDB = thresholdDB
+            self.ratio = ratio
+            self.rangeDB = rangeDB
+            self.releaseMilliseconds = releaseMilliseconds
+        }
     }
 
     public struct Compressor: Codable, Sendable, Equatable {
@@ -96,6 +132,16 @@ public nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
         public var attackMilliseconds = 10.0
         public var releaseMilliseconds = 100.0
         public var makeupDB = 0.0
+
+        public init(isEnabled: Bool = false, thresholdDB: Double = -24.0, ratio: Double = 3.0, kneeDB: Double = 6.0, attackMilliseconds: Double = 10.0, releaseMilliseconds: Double = 100.0, makeupDB: Double = 0.0) {
+            self.isEnabled = isEnabled
+            self.thresholdDB = thresholdDB
+            self.ratio = ratio
+            self.kneeDB = kneeDB
+            self.attackMilliseconds = attackMilliseconds
+            self.releaseMilliseconds = releaseMilliseconds
+            self.makeupDB = makeupDB
+        }
     }
 
     /// Soft saturation, run at four times the sample rate so its harmonics
@@ -106,6 +152,13 @@ public nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
         public var driveDB = 6.0
         public var mix = 0.3
         public var warmth = 0.3
+
+        public init(isEnabled: Bool = false, driveDB: Double = 6.0, mix: Double = 0.3, warmth: Double = 0.3) {
+            self.isEnabled = isEnabled
+            self.driveDB = driveDB
+            self.mix = mix
+            self.warmth = warmth
+        }
     }
 
     /// Level into the chain, so thresholds mean the same thing for a quiet

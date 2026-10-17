@@ -1,11 +1,9 @@
 import AVFoundation
 import Foundation
+import VoiceKit
+import VoiceKitTestSupport
 
-// Compile with the meter and the profile code it reads target curves for:
-//
-//   xcrun swiftc -O Screendrop/VoiceMeasurement.swift Screendrop/VoiceChain.swift \
-//     Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceProfile.swift \
-//     scripts/voice-bank.swift -o build/voice-bank/bin/voice-bank
+//   swift build -c release --package-path Packages/VoiceKit --product voice-bank
 //
 // Measures narration files and builds degraded variants of a clean take so
 // voice processing can be checked against known problems without a test
@@ -337,15 +335,8 @@ struct AudioData {
     }
 
     static func read(_ path: String) throws -> AudioData {
-        let file = try AVAudioFile(forReading: URL(fileURLWithPath: path))
-        let format = file.processingFormat
-        let buffer = try file.readAll()
-        guard let data = buffer.floatChannelData else { throw CocoaError(.fileReadCorruptFile) }
-        let frames = Int(buffer.frameLength)
-        let channels = (0..<Int(format.channelCount)).map { channel in
-            Array(UnsafeBufferPointer(start: data[channel], count: frames))
-        }
-        return AudioData(channels: channels, sampleRate: format.sampleRate)
+        let (channels, sampleRate) = try AudioBench.readChannels(URL(fileURLWithPath: path))
+        return AudioData(channels: channels, sampleRate: sampleRate)
     }
 
     static func write(_ samples: [Float], sampleRate: Double, to url: URL) throws {
@@ -354,29 +345,7 @@ struct AudioData {
 
     /// 24-bit PCM WAV, the format a lossless narration capture would use.
     static func write(channels: [[Float]], sampleRate: Double, to url: URL) throws {
-        try? FileManager.default.removeItem(at: url)
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatLinearPCM,
-            AVSampleRateKey: sampleRate,
-            AVNumberOfChannelsKey: channels.count,
-            AVLinearPCMBitDepthKey: 24,
-            AVLinearPCMIsFloatKey: false,
-            AVLinearPCMIsBigEndianKey: false
-        ]
-        let file = try AVAudioFile(
-            forWriting: url, settings: settings,
-            commonFormat: .pcmFormatFloat32, interleaved: false
-        )
-        let frames = channels.map(\.count).min() ?? 0
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(frames)),
-              let data = buffer.floatChannelData else {
-            throw CocoaError(.fileWriteUnknown)
-        }
-        buffer.frameLength = AVAudioFrameCount(frames)
-        for (index, channel) in channels.enumerated() {
-            channel.withUnsafeBufferPointer { data[index].update(from: $0.baseAddress!, count: frames) }
-        }
-        try file.write(from: buffer)
+        try AudioBench.writeWAV(channels: channels, sampleRate: sampleRate, to: url)
     }
 }
 
@@ -561,25 +530,5 @@ enum Synth {
             time += 3 + random.unit() * 4
         }
         return output
-    }
-}
-
-extension AVAudioFile {
-    /// Reads the whole file. A single `read(into:)` can stop short of the
-    /// end, so this keeps reading until the file reports no more frames.
-    func readAll() throws -> AVAudioPCMBuffer {
-        let all = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: AVAudioFrameCount(max(1, length)))!
-        let chunk = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: 65_536)!
-        framePosition = 0
-        while framePosition < length {
-            try read(into: chunk, frameCount: min(chunk.frameCapacity, AVAudioFrameCount(length - framePosition)))
-            guard chunk.frameLength > 0 else { break }
-            for channel in 0..<Int(processingFormat.channelCount) {
-                (all.floatChannelData![channel] + Int(all.frameLength))
-                    .update(from: chunk.floatChannelData![channel], count: Int(chunk.frameLength))
-            }
-            all.frameLength += chunk.frameLength
-        }
-        return all
     }
 }

@@ -215,6 +215,8 @@ public nonisolated final class RecordingAudioMeters: Sendable {
     private let loudness = Atomic<UInt32>(Float.nan.bitPattern)
     private let sequence = Atomic<UInt32>(0)
 
+    public init() {}
+
     public func store(
         inputPeak: Float, outputPeak: Float,
         expanderDB: Float, compressorDB: Float, deEsserDB: Float, limiterDB: Float,
