@@ -12,7 +12,7 @@ import Accelerate
 import Foundation
 
 nonisolated struct VoiceMeasurement: Codable, Sendable {
-    struct Band: Codable, Sendable {
+    struct Band: Codable, Sendable, Equatable {
         let name: String
         let lowHz: Double
         let highHz: Double
@@ -21,7 +21,7 @@ nonisolated struct VoiceMeasurement: Codable, Sendable {
         let levelDB: Double
     }
 
-    struct SpectrumPoint: Codable, Sendable {
+    struct SpectrumPoint: Codable, Sendable, Equatable {
         let centerHz: Double
         let levelDB: Double
     }

@@ -38,6 +38,30 @@ nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
         var q = 0.7
     }
 
+    /// Octave bells that pull the voice's long-term balance toward a target
+    /// curve. Fixed fields rather than an array, so the render thread can
+    /// copy settings without touching the heap.
+    struct MatchEQ: Codable, Sendable, Equatable {
+        static let centers: [Double] = [250, 500, 1_000, 2_000, 4_000, 8_000]
+        static let q = 1.2
+
+        var gain250 = 0.0
+        var gain500 = 0.0
+        var gain1k = 0.0
+        var gain2k = 0.0
+        var gain4k = 0.0
+        var gain8k = 0.0
+
+        var gains: [Double] { [gain250, gain500, gain1k, gain2k, gain4k, gain8k] }
+
+        init() {}
+
+        init(gains: [Double]) {
+            let g = gains + Array(repeating: 0, count: max(0, 6 - gains.count))
+            gain250 = g[0]; gain500 = g[1]; gain1k = g[2]; gain2k = g[3]; gain4k = g[4]; gain8k = g[5]
+        }
+    }
+
     /// Cuts a band only while it is loud: proximity boom from leaning in.
     struct DynamicBand: Codable, Sendable, Equatable {
         var isEnabled = false
@@ -93,6 +117,7 @@ nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
     var mid = Band(kind: .peak, frequency: 900, q: 1.4)
     var presence = Band(kind: .peak, frequency: 4_500, q: 1.4)
     var highShelf = Band(kind: .highShelf, frequency: 10_000)
+    var match = MatchEQ()
     var dynamicLow = DynamicBand()
     var expander = Expander()
     var deEsser = DeEsser()
@@ -182,7 +207,7 @@ nonisolated extension KeyedDecodingContainer {
 
 nonisolated extension VoiceChainSettings {
     private enum CodingKeys: String, CodingKey {
-        case inputTrimDB, highPass, lowShelf, lowMid, mid, presence, highShelf
+        case inputTrimDB, highPass, lowShelf, lowMid, mid, presence, highShelf, match
         case dynamicLow, expander, deEsser, compressor, saturation
     }
 
@@ -196,6 +221,7 @@ nonisolated extension VoiceChainSettings {
         mid = c.value(.mid, default: defaults.mid)
         presence = c.value(.presence, default: defaults.presence)
         highShelf = c.value(.highShelf, default: defaults.highShelf)
+        match = c.value(.match, default: defaults.match)
         dynamicLow = c.value(.dynamicLow, default: defaults.dynamicLow)
         expander = c.value(.expander, default: defaults.expander)
         deEsser = c.value(.deEsser, default: defaults.deEsser)
@@ -229,6 +255,18 @@ nonisolated extension VoiceChainSettings.Band {
             gainDB: c.value(.gainDB, default: 0),
             q: c.value(.q, default: 0.7)
         )
+    }
+}
+
+nonisolated extension VoiceChainSettings.MatchEQ {
+    private enum CodingKeys: String, CodingKey { case gain250, gain500, gain1k, gain2k, gain4k, gain8k }
+
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(gains: [
+            c.value(.gain250, default: 0.0), c.value(.gain500, default: 0.0), c.value(.gain1k, default: 0.0),
+            c.value(.gain2k, default: 0.0), c.value(.gain4k, default: 0.0), c.value(.gain8k, default: 0.0)
+        ])
     }
 }
 
@@ -335,6 +373,7 @@ nonisolated struct VoiceChainProcessor {
     // Filters, `channel * count + stage`.
     private var highPass: [Biquad]
     private var bands: [Biquad]
+    private var matchBands: [Biquad]
     private var dynamicFilter: [Biquad]
     private var deEssFilter: [Biquad]
     private var saturators: [Oversampler]
@@ -375,6 +414,7 @@ nonisolated struct VoiceChainProcessor {
         let channels = self.channelCount
         highPass = Array(repeating: Biquad(), count: channels * 2)
         bands = Array(repeating: Biquad(), count: channels * 5)
+        matchBands = Array(repeating: Biquad(), count: channels * 6)
         dynamicFilter = Array(repeating: Biquad(), count: channels)
         deEssFilter = Array(repeating: Biquad(), count: channels)
         saturators = Array(repeating: Oversampler(), count: channels)
@@ -410,12 +450,17 @@ nonisolated struct VoiceChainProcessor {
             case .highShelf: return .highShelf(rate, band.frequency, q: band.q, gainDB: band.gainDB)
             }
         }
+        let matchCoefficients = zip(VoiceChainSettings.MatchEQ.centers, newSettings.match.gains).map { center, gain in
+            gain == 0 ? Biquad.Coefficients.identity
+                : .peak(rate, center, q: VoiceChainSettings.MatchEQ.q, gainDB: gain)
+        }
         let dynamic = Biquad.Coefficients.bandPass(rate, newSettings.dynamicLow.frequency, q: newSettings.dynamicLow.q)
         let sibilance = Biquad.Coefficients.bandPass(rate, newSettings.deEsser.frequency, q: 1.5)
 
         for channel in 0..<channelCount {
             for stage in 0..<2 { highPass[channel * 2 + stage].coefficients = hp.isEnabled ? hpCoefficients[stage] : .identity }
             for stage in 0..<5 { bands[channel * 5 + stage].coefficients = bandCoefficients[stage] }
+            for stage in 0..<6 { matchBands[channel * 6 + stage].coefficients = matchCoefficients[stage] }
             dynamicFilter[channel].coefficients = dynamic
             deEssFilter[channel].coefficients = sibilance
         }
@@ -462,6 +507,7 @@ nonisolated struct VoiceChainProcessor {
                 var x = get(wet, channel)
                 x = highPass[channel * 2].process(x)
                 x = highPass[channel * 2 + 1].process(x)
+                for stage in 0..<6 { x = matchBands[channel * 6 + stage].process(x) }
                 for stage in 0..<5 { x = bands[channel * 5 + stage].process(x) }
                 set(&wet, channel, x)
             }
