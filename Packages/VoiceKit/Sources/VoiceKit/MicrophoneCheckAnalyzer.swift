@@ -48,7 +48,7 @@ public nonisolated enum MicrophoneCheckAnalyzer {
         var findings: [MicrophoneCheckResult.Finding] = []
         if speechPeak < -45 {
             findings.append(.init(severity: .problem, title: "No voice detected",
-                                  detail: "Check the right microphone is selected and not muted. On a QuadCast, a touch on top mutes it; speak into the side with the logo."))
+                                  detail: "Check the right microphone is selected and not muted (some USB microphones, like HyperX models, mute with a touch on top). Speak into the side that picks up: the top on a SoloCast, the logo side on a QuadCast."))
         } else {
             if clipped > 0 || speechPeak > -1 {
                 findings.append(.init(severity: .problem, title: "Too loud: the voice clips",
