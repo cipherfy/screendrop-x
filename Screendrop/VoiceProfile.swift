@@ -30,7 +30,7 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
         var help: String {
             switch self {
             case .clear: "Close to neutral, tuned for intelligibility: light compression, a touch of presence"
-            case .broadcast: "Radio voice: more body and presence, firmer compression, light saturation"
+            case .broadcast: "Forward, polished narration: the balance of the reference recordings, mid presence that cuts through, steady compression, light saturation"
             }
         }
     }
@@ -138,6 +138,13 @@ nonisolated struct VoiceAnalysisResult: Codable, Sendable, Equatable {
 nonisolated enum VoiceTargetCurve {
     static let range: ClosedRange<Double> = 200...8_000
 
+    static func points(for character: VoiceProfileSettings.Character) -> [VoiceMeasurement.SpectrumPoint] {
+        switch character {
+        case .clear: points
+        case .broadcast: broadcast
+        }
+    }
+
     static let points: [VoiceMeasurement.SpectrumPoint] = [
         .init(centerHz: 250.0, levelDB: 10.1),
         .init(centerHz: 315.0, levelDB: 13.4),
@@ -155,6 +162,30 @@ nonisolated enum VoiceTargetCurve {
         .init(centerHz: 5039.7, levelDB: -7.6),
         .init(centerHz: 6349.6, levelDB: -10.1),
         .init(centerHz: 8000.0, levelDB: -9.3),
+    ]
+
+    /// Broadcast's target: two reference narrations chosen for this profile
+    /// (Spanish, voices around 140 Hz), averaged with `voice-bank target`.
+    /// Against the default curve it has more 400-630 Hz and 1.2-1.6 kHz and
+    /// less 3-8 kHz: body in the low mids and presence in the mids, rather
+    /// than bass and bright highs.
+    static let broadcast: [VoiceMeasurement.SpectrumPoint] = [
+        .init(centerHz: 250.0, levelDB: 9.7),
+        .init(centerHz: 315.0, levelDB: 10.8),
+        .init(centerHz: 396.9, levelDB: 12.1),
+        .init(centerHz: 500.0, levelDB: 10.8),
+        .init(centerHz: 630.0, levelDB: 8.7),
+        .init(centerHz: 793.7, levelDB: 2.4),
+        .init(centerHz: 1000.0, levelDB: -2.4),
+        .init(centerHz: 1259.9, levelDB: -0.2),
+        .init(centerHz: 1587.4, levelDB: -0.1),
+        .init(centerHz: 2000.0, levelDB: -3.1),
+        .init(centerHz: 2519.8, levelDB: -4.0),
+        .init(centerHz: 3174.8, levelDB: -5.5),
+        .init(centerHz: 4000.0, levelDB: -8.7),
+        .init(centerHz: 5039.7, levelDB: -9.4),
+        .init(centerHz: 6349.6, levelDB: -8.9),
+        .init(centerHz: 8000.0, levelDB: -12.2),
     ]
 }
 
@@ -186,7 +217,8 @@ nonisolated enum VoiceProfileResolver {
     /// no content to speak of are left alone.
     static func matchEQ(
         measured: [VoiceMeasurement.SpectrumPoint],
-        target: [VoiceMeasurement.SpectrumPoint] = VoiceTargetCurve.points
+        target: [VoiceMeasurement.SpectrumPoint] = VoiceTargetCurve.points,
+        strength: Double = matchStrength
     ) -> VoiceChainSettings.MatchEQ {
         func key(_ hz: Double) -> Int { Int((log2(hz / 1_000) * 3).rounded()) }
         let targetByBand = Dictionary(target.map { (key($0.centerHz), $0.levelDB) }, uniquingKeysWith: { a, _ in a })
@@ -208,7 +240,7 @@ nonisolated enum VoiceProfileResolver {
             let around = (band - 1...band + 1).compactMap { differences[$0] }
             guard !around.isEmpty else { return 0 }
             let average = around.reduce(0, +) / Double(around.count) - mean
-            let gain = min(matchBoostLimitDB, max(-matchCutLimitDB, average * matchStrength))
+            let gain = min(matchBoostLimitDB, max(-matchCutLimitDB, average * strength))
             return (gain * 10).rounded() / 10
         }
         return VoiceChainSettings.MatchEQ(gains: gains)
@@ -237,7 +269,7 @@ nonisolated enum VoiceProfileResolver {
         let body = min(250, max(100, fundamental * 1.1)) * c.bodyScale
         chain.lowShelf = .init(kind: .peak, frequency: body, gainDB: c.body * intensity, q: 0.9)
         chain.lowMid = .init(kind: .peak, frequency: 300, gainDB: c.mud * intensity, q: 1.2)
-        chain.mid = .init(kind: .peak, frequency: c.presenceHz, gainDB: c.presence * intensity, q: 1)
+        chain.mid = .init(kind: .peak, frequency: c.presenceHz, gainDB: c.presence * intensity, q: c.presenceQ)
         chain.presence = .init(kind: .peak, frequency: 5_000, gainDB: 0, q: 2)
         chain.highShelf = .init(kind: .highShelf, frequency: c.airHz, gainDB: c.air * intensity, q: 0.7)
 
@@ -247,8 +279,8 @@ nonisolated enum VoiceProfileResolver {
                 thresholdDB: c.threshold,
                 ratio: 1 + (c.ratio - 1) * intensity,
                 kneeDB: 6,
-                attackMilliseconds: 10,
-                releaseMilliseconds: 100,
+                attackMilliseconds: c.attack,
+                releaseMilliseconds: c.release,
                 makeupDB: c.makeup * intensity
             )
         }
@@ -262,7 +294,11 @@ nonisolated enum VoiceProfileResolver {
         }
 
         if matching, let analysis {
-            chain.match = matchEQ(measured: analysis.thirdOctave)
+            chain.match = matchEQ(
+                measured: analysis.thirdOctave,
+                target: VoiceTargetCurve.points(for: profile.character),
+                strength: c.matchStrength
+            )
         }
         return chain
     }
@@ -274,11 +310,15 @@ nonisolated enum VoiceProfileResolver {
         var mud = 0.0
         var presence = 0.0
         var presenceHz = 3_200.0
+        var presenceQ = 1.0
         var air = 0.0
         var airHz = 10_000.0
         var ratio = 2.0
         var threshold = -26.0
         var makeup = 2.0
+        var attack = 10.0
+        var release = 100.0
+        var matchStrength = VoiceProfileResolver.matchStrength
         var saturationDrive = 6.0
         var saturationMix = 0.0
         var saturationWarmth = 0.3
@@ -288,9 +328,14 @@ nonisolated enum VoiceProfileResolver {
             case .clear:
                 body = 1; presence = 1.5; air = 1
             case .broadcast:
-                body = 2.5; mud = -1; presence = 2.5; presenceHz = 3_500; air = 1.5
-                ratio = 3; threshold = -24; makeup = 4
-                saturationMix = 0.25
+                // Most of the sound comes from matching the reference
+                // balance; the bells add what octave matching cannot reach.
+                body = 1; presence = 1.5; presenceHz = 1_400; presenceQ = 1.2; air = 0.5
+                matchStrength = 0.85
+                // A slower attack lets consonants through, which is where
+                // clarity lives; the ratio stays moderate.
+                ratio = 2.5; threshold = -24; makeup = 3; attack = 15; release = 120
+                saturationMix = 0.15; saturationWarmth = 0.2
             }
         }
     }

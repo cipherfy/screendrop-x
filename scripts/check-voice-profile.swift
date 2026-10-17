@@ -54,13 +54,17 @@ struct VoiceProfileCheck {
         var chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
         precondition(chain.highPass.isEnabled && chain.highPass.frequency == 80 && !chain.highPass.isSteep)
         precondition(chain.dynamicLow.isEnabled && chain.deEsser.isEnabled && chain.expander.isEnabled, "base corrections for every voice")
-        precondition(chain.lowMid.gainDB == -1 && chain.presence.gainDB == 0, "broadcast mud only; no static harshness cut")
-        precondition(chain.compressor.isEnabled && chain.compressor.ratio == 3 && chain.saturation.isEnabled)
+        precondition(chain.lowMid.gainDB == 0 && chain.presence.gainDB == 0, "no static mud or harshness cuts")
+        precondition(chain.mid.frequency == 1_400 && chain.mid.gainDB == 1.5, "broadcast presence sits in the mids")
+        precondition(chain.compressor.isEnabled && chain.compressor.ratio == 2.5 && chain.compressor.attackMilliseconds == 15)
+        precondition(chain.saturation.isEnabled && chain.saturation.mix == 0.15)
         precondition(chain.match == VoiceChainSettings.MatchEQ(), "match EQ off leaves the bells flat")
 
         profile.matchesTarget = true
         chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
         precondition(chain.match != VoiceChainSettings.MatchEQ(), "match EQ must be computed")
+        let clearMatch = VoiceProfileResolver.chain(for: VoiceProfileSettings(character: .clear), analysis: analysis).match
+        precondition(clearMatch != chain.match, "each character matches its own target curve")
 
         profile.intensity = 0
         chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
@@ -69,7 +73,7 @@ struct VoiceProfileCheck {
 
         profile.intensity = 0.5
         chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
-        precondition(chain.compressor.ratio == 2 && abs(chain.mid.gainDB - 1.25) < 1e-9 && abs(chain.saturation.mix - 0.125) < 1e-9)
+        precondition(chain.compressor.ratio == 1.75 && abs(chain.mid.gainDB - 0.75) < 1e-9 && abs(chain.saturation.mix - 0.075) < 1e-9)
 
         let defaults = VoiceProfileSettings()
         precondition(defaults.character == .clear && defaults.matchesTarget && defaults.loudnessTarget == .platforms)
