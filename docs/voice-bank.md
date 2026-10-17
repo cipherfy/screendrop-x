@@ -115,3 +115,20 @@ build/check-voice-chain build/voice-bank/variants
 ```
 
 Compressor, expander, and de-esser thresholds are absolute, so they assume a typical raw narration level (around -26 LUFS). Input trim exists so loudness analysis can bring every take to that level first.
+
+## Voice isolation check
+
+Voice isolation (`Screendrop/RecordingVoiceIsolation.swift`) runs Apple's on-device AUSoundIsolation, high-quality model, over the narration track. It is too heavy for a playback tap, so it is rendered once, offline, into the project package (`voice-isolated-hq-v1-<amount>.caf`, 32-bit float mono), and playback and every export read a composition of the master with the narration track swapped for the render. The master is never modified, the voice chain still runs on the isolated track, and exports render a missing file on demand. An imported replacement soundtrack is not isolated. Amounts are 75%, 90%, and 100%: the blend is linear, so 75% lowers the room by about 12 dB and 90% by about 20 dB.
+
+Two details matter for alignment. The unit's reported latency (4440 frames at 48 kHz) is measured and dropped from the render. And the unit pulls input ahead of the output it is asked for, so the renderer keeps two 4096-frame blocks queued in the player beyond what it renders; without that the player pads with silence and the narration comes out 4096 frames late.
+
+`scripts/check-voice-isolation.swift` builds a project package around a noisy narration and checks the render is aligned to the frame with the master's narration, how much it removes, partial amounts, the track swap, on-demand rendering for exports, and that a cancelled render leaves nothing behind:
+
+```bash
+xcrun swiftc -O Screendrop/RecordingVoiceIsolation.swift Screendrop/RecordingAudioProcessing.swift \
+  Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift scripts/check-voice-isolation.swift \
+  -o build/check-voice-isolation
+build/check-voice-isolation build/voice-bank/variants/paulina-usb-condenser-desk.wav
+```
+
+On the bank's USB-condenser-at-a-desk take, full isolation took SNR from 23.4 to 45.6 dB and the noise floor from -43.8 to -66.6 dBFS, kept loudness within 0.7 LU, and ran at about 80x real time.
