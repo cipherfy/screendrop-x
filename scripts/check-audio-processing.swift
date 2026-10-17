@@ -2,9 +2,9 @@ import AVFoundation
 import CoreMedia
 import Foundation
 
-// Compile with RecordingAudioProcessing.swift and VoiceMeasurement.swift:
+// Compile with RecordingAudioProcessing.swift, VoiceChain.swift, and VoiceMeasurement.swift:
 //
-//   xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceMeasurement.swift \
+//   xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift \
 //     scripts/check-audio-processing.swift -o build/check-audio-processing
 //   build/check-audio-processing build/voice-bank/variants/paulina-clean.wav
 //
@@ -50,33 +50,38 @@ struct AudioProcessingCheck {
         precondition(RecordingAudioSettings(legacyVolume: 0).linearGain(for: .system) == 0)
         print("ok  legacy volume 200% becomes +6.0 dB on both tracks, 0% mutes")
 
-        // Unity: the render is the plain sum, delayed by two look-aheads
-        // (the track's tap, then the mix limiter).
-        let unity = try await render(asset, tracks, RecordingAudioSettings())
-        let lookahead = 2 * Int(sampleRate * 0.003)
+        // Unity, with the voice chain flat: the render is the plain sum,
+        // delayed by the taps' latency and the mix limiter's look-ahead.
+        let flat = RecordingAudioSettings(voiceChain: .flat)
+        let unity = try await render(asset, tracks, flat)
+        let lookahead = RecordingAudioProcessing.tapLatency(sampleRate: sampleRate)
+            + PeakLimiter.lookaheadFrames(sampleRate: sampleRate)
         let sum = zip(voice, system).map(+)
         let unityError = errorRatio(reference: sum, decoded: Array(unity.dropFirst(lookahead)))
         precondition(unityError < -60, "unity render must match the sum (\(unityError) dB)")
-        print(String(format: "ok  0 dB renders the sum of the tracks (difference %.0f dB, 6 ms latency)", unityError))
+        print(String(format: "ok  0 dB renders the sum of the tracks (difference %.0f dB, %.2f ms latency)", unityError, Double(lookahead) / sampleRate * 1_000))
 
         // System at the bottom of its range is muted.
-        let muted = try await render(asset, tracks, RecordingAudioSettings(systemGainDB: -60))
+        let muted = try await render(asset, tracks, RecordingAudioSettings(systemGainDB: -60, voiceChain: .flat))
         let mutedError = errorRatio(reference: voice, decoded: Array(muted.dropFirst(lookahead)))
         precondition(mutedError < -60, "muted system audio must leave the voice alone (\(mutedError) dB)")
         print(String(format: "ok  system at -60 dB is muted (difference from voice alone %.0f dB)", mutedError))
 
         // Voice gain moves the voice and only the voice.
-        let base = loudness(try await render(asset, tracks, RecordingAudioSettings(systemGainDB: -60)))
-        let boosted = loudness(try await render(asset, tracks, RecordingAudioSettings(voiceGainDB: 6, systemGainDB: -60)))
+        let base = loudness(try await render(asset, tracks, RecordingAudioSettings(systemGainDB: -60, voiceChain: .flat)))
+        let boosted = loudness(try await render(asset, tracks, RecordingAudioSettings(voiceGainDB: 6, systemGainDB: -60, voiceChain: .flat)))
         precondition(abs(boosted - base - 6) < 0.2, "voice +6 dB moved loudness by \(boosted - base)")
         print(String(format: "ok  voice +6 dB raises loudness by %.2f LU", boosted - base))
 
-        // Pushed hard: the ceiling holds with processing on and off.
+        // Pushed hard: the ceiling holds with processing on and off, now on
+        // true peak as well.
         for processing in [true, false] {
             let hot = try await render(asset, tracks, RecordingAudioSettings(voiceGainDB: 24, voiceProcessingEnabled: processing))
             let peak = hot.map(abs).max() ?? 0
             let atCeiling = hot.filter { abs($0) >= ceiling * 0.9999 }.count
             precondition(peak <= ceiling + 1e-6, "peak \(peak) is above the ceiling")
+            let hotTruePeak = VoiceAnalyzer.measure(channels: [hot], sampleRate: sampleRate).truePeakDBTP
+            precondition(hotTruePeak <= -0.9, "true peak \(hotTruePeak) dBTP is above the ceiling")
             let measured = VoiceAnalyzer.measure(channels: [hot], sampleRate: sampleRate)
             print(String(format: "ok  voice +24 dB, processing %@: peak %.2f dBFS, true peak %.2f dBTP, %d samples at the ceiling, %.1f LUFS",
                          processing ? "on " : "off", 20 * log10(Double(peak)), measured.truePeakDBTP, atCeiling,
@@ -94,10 +99,10 @@ struct AudioProcessingCheck {
         try await writeMovie(to: toneMovie, voice: steady, system: [Float](repeating: 0, count: steady.count))
         let toneAsset = AVURLAsset(url: toneMovie)
         let toneTracks = try await toneAsset.loadTracks(withMediaType: .audio)
-        let parameters = RecordingAudioParameters()
+        let parameters = RecordingAudioParameters(RecordingAudioSettings(voiceChain: .flat))
         let switched = try await render(toneAsset, toneTracks, parameters: parameters) { buffer in
             // Jump the gain by 12 dB partway through, as a slider drag would.
-            if buffer == 40 { parameters.update(RecordingAudioSettings(voiceGainDB: 12)) }
+            if buffer == 40 { parameters.update(RecordingAudioSettings(voiceGainDB: 12, voiceChain: .flat)) }
         }
         let maxStep = zip(switched.dropFirst(), switched).map { abs($0 - $1) }.max() ?? 0
         let naturalStep = Float(2 * .pi * 220 / sampleRate) * 0.1 * pow(10, 12 / 20)

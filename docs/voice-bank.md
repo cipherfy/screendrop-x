@@ -64,7 +64,7 @@ build/voice-bank/bin/voice-bank tone <sine-1k|intersample> out.wav
 Screendrop records the microphone track as 24-bit mono LPCM at 48 kHz (system audio stays AAC). `scripts/check-microphone-capture.swift` writes a bank file the way the recorder does, with both the current and the previous AAC 96 kbps settings, and reads it back through Studio's paths: the mono-track rule transcription uses, the per-track processing mix behind playback and export, and the M4A export the speech transcriber reads.
 
 ```bash
-xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceMeasurement.swift \
+xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift \
   scripts/check-microphone-capture.swift -o build/check-microphone-capture
 build/check-microphone-capture build/voice-bank/variants/paulina-clean.wav
 ```
@@ -82,11 +82,36 @@ Every audio track gets its own processing tap (`Screendrop/RecordingAudioProcess
 - that a +12 dB change mid-render glides without a click and lands at +12 dB.
 
 ```bash
-xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceMeasurement.swift \
+xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift \
   scripts/check-audio-processing.swift -o build/check-audio-processing
 build/check-audio-processing build/voice-bank/variants/paulina-clean.wav
 ```
 
-Latency: each look-ahead delays audio by 3 ms. Playback runs one (the track tap), exports two (the tap and the mix limiter), so exported audio lands 6 ms after the picture, well below what can be perceived. Later stages that need look-ahead should compensate rather than add to this.
+Latency: every tap delays its track by the same 156 frames at 48 kHz (3.25 ms: 12 for the voice chain's oversampling, 144 for the limiter's look-ahead), so voice and system audio stay aligned. Exports add the mix limiter's 3 ms, so exported audio lands about 6 ms after the picture, well below what can be perceived. Stages that need more look-ahead should share this budget rather than add to it.
 
-The limiters control sample peaks; true peak can still read a few tenths of a dB higher (-0.9 dBTP at +24 dB of gain). A true-peak limiter comes with the voice chain.
+## Voice chain check
+
+`Screendrop/VoiceChain.swift` is the narration channel strip, run inside the voice track's tap in this order: input trim, high-pass (12 or 24 dB/oct), five EQ bands, a dynamic low band against proximity boom, a 2:1 downward expander for the room between words, a feed-forward soft-knee compressor, a split-band de-esser, and saturation at 4x oversampling with a warmth control for even harmonics. The fader and a true-peak limiter at -1 dBTP follow. Turning Voice Processing off plays the dry voice matched to the processed loudness, with the same latency, so an A/B compares sound rather than level. The USB Condenser preset is a starting curve for a HyperX QuadCast-class microphone at a desk.
+
+`scripts/check-voice-chain.swift` checks each stage against signals with known answers and reports what the preset does to the bank's USB-condenser takes:
+
+| Check | Result |
+|---|---|
+| Flat chain | Bit-transparent; delay, oversampler, and bypass all land at 12 frames |
+| High-pass an octave below the corner | -12.3 dB (12 dB/oct), -24.1 dB (24 dB/oct), as Butterworth theory gives |
+| EQ bell, shelf, cut | +5.99, +3.94, -2.73 dB for +6, +4, -3 settings |
+| Compressor 3:1 at -24 dB | -6 dBFS in, -18.0 out; -30 in, -30.0 out |
+| Expander 2:1 at -45 dB, 8 dB range | -50 in, -54.9 out; -70 in, -77.7 out |
+| De-esser and dynamic low band | Full range on loud bands, nothing on others |
+| Aliasing, 9 kHz driven 12 dB | -88 dB with 4x oversampling, -13 dB without |
+| Limiter on inter-sample peaks | -1.16 dBTP with true-peak detection, +1.52 dBTP sample-based |
+| A/B loudness | Within 0.03 LU |
+| Speed | About 100x real time on one core |
+
+```bash
+xcrun swiftc -O Screendrop/VoiceChain.swift Screendrop/RecordingAudioProcessing.swift \
+  Screendrop/VoiceMeasurement.swift scripts/check-voice-chain.swift -o build/check-voice-chain
+build/check-voice-chain build/voice-bank/variants
+```
+
+Compressor, expander, and de-esser thresholds are absolute, so they assume a typical raw narration level (around -26 LUFS). Input trim exists so loudness analysis can bring every take to that level first.
