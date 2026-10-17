@@ -170,7 +170,7 @@ struct RecordingEditDocument: Codable, Equatable {
 
     var resolvedAudioSettings: RecordingAudioSettings {
         if let audioSettings { return audioSettings.normalized }
-        return audioVolume.map(RecordingAudioSettings.init(legacyVolume:)) ?? RecordingAudioSettings()
+        return audioVolume.map(RecordingAudioSettings.init(legacyVolume:)) ?? .projectDefault
     }
 
     var audioExportFormatValue: RecordingAudioFormat {

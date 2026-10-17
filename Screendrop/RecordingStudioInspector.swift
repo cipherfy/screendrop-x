@@ -52,6 +52,8 @@ struct StudioInspector: View {
     @State private var transcriptTab: StudioTranscriptTab = .captions
     @State private var isAudioExportOptionsPresented = false
     @State private var isChannelStripPresented = false
+    /// Meters stay folded away until asked for; the choice is remembered.
+    @AppStorage("studioShowsVoiceMeters") private var showsVoiceMeters = false
     @State private var page: StudioInspectorPage?
     @Environment(\.colorScheme) private var colorScheme
 
@@ -1009,48 +1011,31 @@ struct StudioInspector: View {
 
     // MARK: Audio
 
-    /// Microphone, character, intensity, match EQ, and loudness: the voice
-    /// profile the chain is resolved from.
+    /// Character, intensity, and loudness: the voice profile the chain is
+    /// resolved from. Match EQ is always on; its switch lives in the channel
+    /// strip with the rest of the detail.
     private var voiceProfileControls: some View {
         VStack(alignment: .leading, spacing: InspectorMetrics.rowSpacing) {
             Group {
-            InspectorRow("Mic") {
-                InspectorSegmented(
-                    options: VoiceProfileSettings.Microphone.allCases,
-                    isSelected: { $0 == model.voiceProfile.microphone },
-                    onTap: { model.voiceProfile.microphone = $0 },
-                    label: { option in
-                        Text(option.title).font(.inspectorSegment).lineLimit(1).minimumScaleFactor(0.7).help(option.help)
-                    }
+                InspectorRow("Character") {
+                    InspectorSegmented(
+                        options: VoiceProfileSettings.Character.allCases,
+                        isSelected: { $0 == model.voiceProfile.character },
+                        onTap: { model.voiceProfile.character = $0 },
+                        label: { option in
+                            Text(option.title).font(.inspectorSegment).lineLimit(1).minimumScaleFactor(0.7).help(option.help)
+                        }
+                    )
+                }
+                InspectorSlider(
+                    "Intensity",
+                    value: Binding(
+                        get: { CGFloat(model.voiceProfile.intensity) },
+                        set: { model.voiceProfile.intensity = Double($0) }
+                    ),
+                    range: 0...1,
+                    format: .percent()
                 )
-            }
-            InspectorRow("Character") {
-                InspectorSegmented(
-                    options: VoiceProfileSettings.Character.allCases,
-                    isSelected: { $0 == model.voiceProfile.character },
-                    onTap: { model.voiceProfile.character = $0 },
-                    label: { option in
-                        Text(option.title).font(.inspectorSegment).lineLimit(1).minimumScaleFactor(0.7).help(option.help)
-                    }
-                )
-            }
-            InspectorSlider(
-                "Intensity",
-                value: Binding(
-                    get: { CGFloat(model.voiceProfile.intensity) },
-                    set: { model.voiceProfile.intensity = Double($0) }
-                ),
-                range: 0...1,
-                format: .percent()
-            )
-            InspectorToggleRow(
-                "Match Target EQ",
-                isOn: Binding(
-                    get: { model.voiceProfile.matchesTarget },
-                    set: { model.voiceProfile.matchesTarget = $0 }
-                )
-            )
-            .help("Measures the voice's balance and gently corrects it toward a reference narration curve")
             }
             .disabled(model.isVoiceChainCustom)
 
@@ -1079,8 +1064,14 @@ struct StudioInspector: View {
                 VoiceChannelStripView(model: model)
             }
 
-            VoiceMetersView(meters: model.voiceMeters, targetLUFS: model.voiceProfile.loudnessTarget.lufs)
-                .padding(.top, 2)
+            DisclosureGroup(isExpanded: $showsVoiceMeters) {
+                VoiceMetersView(meters: model.voiceMeters, targetLUFS: model.voiceProfile.loudnessTarget.lufs)
+                    .padding(.top, 4)
+            } label: {
+                Text("Meters")
+                    .font(.inspectorLabel)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 

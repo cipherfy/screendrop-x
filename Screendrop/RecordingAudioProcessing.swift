@@ -68,7 +68,7 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
             systemGainDB: c.value(.systemGainDB, default: 0),
             voiceProcessingEnabled: c.value(.voiceProcessingEnabled, default: true),
             voiceChain: c.value(.voiceChain, default: VoiceChainSettings()),
-            voiceIsolation: c.value(.voiceIsolation, default: VoiceIsolationSettings()),
+            voiceIsolation: c.value(.voiceIsolation, default: VoiceIsolationSettings.projectDefault),
             voiceProfile: c.value(.voiceProfile, default: nil)
         )
     }
@@ -76,7 +76,16 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
     /// Projects saved with one linear volume (0...2) for everything.
     init(legacyVolume volume: Double) {
         let decibels = volume.isFinite && volume > 0 ? 20 * log10(min(2, volume)) : Self.systemGainRange.lowerBound
-        self.init(voiceGainDB: max(Self.voiceGainRange.lowerBound, decibels), systemGainDB: decibels)
+        self.init(
+            voiceGainDB: max(Self.voiceGainRange.lowerBound, decibels),
+            systemGainDB: decibels,
+            voiceIsolation: .projectDefault
+        )
+    }
+
+    /// What a project without saved audio settings starts with.
+    static var projectDefault: RecordingAudioSettings {
+        RecordingAudioSettings(voiceIsolation: .projectDefault)
     }
 
     var normalized: Self {
@@ -111,6 +120,9 @@ nonisolated struct VoiceIsolationSettings: Codable, Sendable, Equatable {
     /// The blend is linear, so 75% lowers the room by about 12 dB and 90% by
     /// about 20 dB; keeping a little can sound more natural than none.
     static let amounts = [0, 75, 90, 100]
+    /// Where a project starts: enough to clear the room and the keyboard
+    /// while keeping the voice natural.
+    static let projectDefault = VoiceIsolationSettings(amount: 75)
 
     var amount = 0
 

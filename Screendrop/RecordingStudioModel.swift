@@ -239,7 +239,7 @@ final class RecordingStudioModel {
 
     /// Share of the isolated voice, in percent; 0 is off. Changing it
     /// renders the narration again (about 90x real time).
-    var voiceIsolationAmount = 0 {
+    var voiceIsolationAmount = VoiceIsolationSettings.projectDefault.amount {
         didSet {
             guard voiceIsolationAmount != oldValue else { return }
             audioSettingsDidChange()
@@ -285,6 +285,18 @@ final class RecordingStudioModel {
 
     func resetVoiceChainToProfile() {
         voiceProfile.customChain = nil
+    }
+
+    /// Match EQ on or off. A custom chain keeps its own match gains, so it
+    /// gets the measured ones back (or flat ones) here too.
+    func setMatchesTarget(_ matches: Bool) {
+        voiceProfile.matchesTarget = matches
+        guard voiceProfile.customChain != nil else { return }
+        editVoiceChain { chain in
+            chain.match = matches
+                ? voiceAnalysis.map { VoiceProfileResolver.matchEQ(measured: $0.thirdOctave) } ?? .init()
+                : .init()
+        }
     }
 
     /// The narration's measured loudness and balance, saved with the project.
@@ -507,10 +519,10 @@ final class RecordingStudioModel {
         }
         if document?.audioSettings?.voiceProfile == nil {
             // A new recording, or one from before profiles: start from what
-            // this microphone used last time, or a guess from its name.
+            // this microphone used last time, or the defaults.
             isApplyingDocument = true
             voiceProfile = VoiceProfileStore.profile(forMicrophone: manifest?.microphoneDeviceID)
-                ?? VoiceProfileStore.defaultProfile(microphoneName: manifest?.microphoneName)
+                ?? VoiceProfileSettings()
             isApplyingDocument = false
         }
 

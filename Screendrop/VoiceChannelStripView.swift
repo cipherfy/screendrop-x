@@ -54,7 +54,19 @@ struct VoiceChannelStripView: View {
                         band("Harshness", \.presence, 2_000...10_000)
                         band("Air", \.highShelf, 5_000...16_000)
                     }
-                    section("Match EQ") {
+                    VStack(alignment: .leading, spacing: InspectorMetrics.rowSpacing) {
+                        InspectorToggleRow(
+                            "Match Target EQ",
+                            isOn: Binding(
+                                get: { model.voiceProfile.matchesTarget },
+                                set: { model.setMatchesTarget($0) }
+                            )
+                        )
+                        .font(.inspectorLabel.weight(.semibold))
+                        .help("Measures the voice's balance and gently corrects it toward a reference narration curve")
+                    }
+                    .padding(.top, 4)
+                    if model.voiceProfile.matchesTarget {
                         slider("250 Hz", \.match.gain250, -6...4.5, .decibels)
                         slider("500 Hz", \.match.gain500, -6...4.5, .decibels)
                         slider("1 kHz", \.match.gain1k, -6...4.5, .decibels)

@@ -217,7 +217,9 @@ nonisolated enum RecordingVoiceAnalysis {
 /// The last voice profile chosen for each microphone, so a new recording
 /// from the same microphone starts where the previous one was left.
 nonisolated enum VoiceProfileStore {
-    private static func key(_ deviceID: String) -> String { "voiceProfile.\(deviceID)" }
+    /// Versioned: profiles remembered before the microphone choice and the
+    /// Warm and Bright characters went away start over from the defaults.
+    private static func key(_ deviceID: String) -> String { "voiceProfile.v2.\(deviceID)" }
 
     static func profile(forMicrophone deviceID: String?) -> VoiceProfileSettings? {
         guard let deviceID,
@@ -228,15 +230,5 @@ nonisolated enum VoiceProfileStore {
     static func remember(_ profile: VoiceProfileSettings, forMicrophone deviceID: String?) {
         guard let deviceID, let data = try? JSONEncoder().encode(profile) else { return }
         UserDefaults.standard.set(data, forKey: key(deviceID))
-    }
-
-    /// A starting profile for a microphone never seen before, guessed from
-    /// its name.
-    static func defaultProfile(microphoneName: String?) -> VoiceProfileSettings {
-        let name = (microphoneName ?? "").lowercased()
-        let condensers = ["quadcast", "solocast", "yeti", "at2020", "nt-usb", "snowball", "hyperx", "condenser"]
-        let microphone: VoiceProfileSettings.Microphone =
-            condensers.contains(where: name.contains) ? .usbCondenser : .generic
-        return VoiceProfileSettings(microphone: microphone)
     }
 }

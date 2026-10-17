@@ -2,9 +2,9 @@
 //  VoiceProfile.swift
 //  Screendrop
 //
-//  How someone describes the voice they want: which microphone recorded
-//  it, a character, how strongly to apply it, whether to match a target
-//  balance, and a delivery loudness. VoiceProfileResolver turns that, plus
+//  How someone describes the voice they want: a character, how strongly
+//  to apply it, whether to match a target balance, and a delivery
+//  loudness. VoiceProfileResolver turns that, plus
 //  an analysis of the take, into the concrete VoiceChainSettings the tap
 //  runs. Pure values and functions, so they can be checked offline.
 //
@@ -14,34 +14,9 @@ import Foundation
 // MARK: - Profile
 
 nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
-    nonisolated enum Microphone: String, Codable, CaseIterable, Identifiable, Sendable {
-        case generic
-        case usbCondenser
-
-        var id: Self { self }
-
-        var title: String {
-            switch self {
-            case .generic: "Generic"
-            case .usbCondenser: "USB Condenser"
-            }
-        }
-
-        var help: String {
-            switch self {
-            case .generic:
-                "A gentle high-pass and de-esser, for most microphones"
-            case .usbCondenser:
-                "For a USB condenser at a desk: steeper high-pass, proximity control, a stronger de-esser, and an expander for the room between words"
-            }
-        }
-    }
-
     nonisolated enum Character: String, Codable, CaseIterable, Identifiable, Sendable {
         case clear
         case broadcast
-        case warm
-        case bright
 
         var id: Self { self }
 
@@ -49,8 +24,6 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
             switch self {
             case .clear: "Clear"
             case .broadcast: "Broadcast"
-            case .warm: "Warm"
-            case .bright: "Bright"
             }
         }
 
@@ -58,8 +31,6 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
             switch self {
             case .clear: "Close to neutral, tuned for intelligibility: light compression, a touch of presence"
             case .broadcast: "Radio voice: more body and presence, firmer compression, light saturation"
-            case .warm: "Fuller low mids, softer highs, warmer saturation; intimate and relaxed"
-            case .bright: "Less mud, more presence and air; for dark voices or dark microphones"
             }
         }
     }
@@ -96,26 +67,23 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
         }
     }
 
-    var microphone: Microphone = .generic
     var character: Character = .clear
-    /// 0...1: how strongly the character is applied. The microphone's
-    /// corrections and the match EQ do not scale with it.
+    /// 0...1: how strongly the character is applied. The base corrections
+    /// and the match EQ do not scale with it.
     var intensity = 0.6
     var matchesTarget = true
-    var loudnessTarget: LoudnessTarget = .podcast
+    var loudnessTarget: LoudnessTarget = .platforms
     /// A chain edited by hand in the channel strip. While set, it stands in
     /// for the resolved chain; the loudness target still applies.
     var customChain: VoiceChainSettings?
 
     init(
-        microphone: Microphone = .generic,
         character: Character = .clear,
         intensity: Double = 0.6,
         matchesTarget: Bool = true,
-        loudnessTarget: LoudnessTarget = .podcast,
+        loudnessTarget: LoudnessTarget = .platforms,
         customChain: VoiceChainSettings? = nil
     ) {
-        self.microphone = microphone
         self.character = character
         self.intensity = min(1, max(0, intensity))
         self.matchesTarget = matchesTarget
@@ -124,14 +92,13 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case microphone, character, intensity, matchesTarget, loudnessTarget, customChain
+        case character, intensity, matchesTarget, loudnessTarget, customChain
     }
 
     init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = Self()
         self.init(
-            microphone: c.value(.microphone, default: d.microphone),
             character: c.value(.character, default: d.character),
             intensity: c.value(.intensity, default: d.intensity),
             matchesTarget: c.value(.matchesTarget, default: d.matchesTarget),
@@ -255,33 +222,23 @@ nonisolated enum VoiceProfileResolver {
         let matching = profile.matchesTarget && analysis != nil
         chain.inputTrimDB = analysis.map(inputTrimDB(for:)) ?? 0
 
-        // The microphone's corrections. With match EQ on, the measured
-        // correction replaces the static mud and harshness cuts.
-        var mudCut = 0.0
-        var harshCut = 0.0
-        switch profile.microphone {
-        case .generic:
-            chain.highPass = .init(isEnabled: true, frequency: 80, isSteep: false)
-            chain.deEsser = .init(isEnabled: true, frequency: 6_500, thresholdDB: -30, rangeDB: 4)
-        case .usbCondenser:
-            chain.highPass = .init(isEnabled: true, frequency: 90, isSteep: true)
-            chain.dynamicLow = .init(isEnabled: true, frequency: 140, q: 1, thresholdDB: -28, rangeDB: 4)
-            chain.deEsser = .init(isEnabled: true, frequency: 6_500, thresholdDB: -30, rangeDB: 6)
-            chain.expander = .init(isEnabled: true, thresholdDB: -40, ratio: 2, rangeDB: 8, releaseMilliseconds: 150)
-            if !matching {
-                mudCut = -2.5
-                harshCut = -2
-            }
-        }
+        // Corrections every voice gets, whatever the microphone: rumble
+        // out, proximity boom held in check, sibilance tamed, and a gentle
+        // expander for whatever room isolation leaves. Mud and harshness are
+        // the match EQ's job, measured rather than guessed.
+        chain.highPass = .init(isEnabled: true, frequency: 80, isSteep: false)
+        chain.dynamicLow = .init(isEnabled: true, frequency: 140, q: 1, thresholdDB: -28, rangeDB: 4)
+        chain.deEsser = .init(isEnabled: true, frequency: 6_500, thresholdDB: -30, rangeDB: 5)
+        chain.expander = .init(isEnabled: true, thresholdDB: -40, ratio: 2, rangeDB: 6, releaseMilliseconds: 150)
 
         // The character, scaled by intensity.
         let c = CharacterCurve(profile.character)
         let fundamental = analysis?.fundamentalHz ?? 150
         let body = min(250, max(100, fundamental * 1.1)) * c.bodyScale
         chain.lowShelf = .init(kind: .peak, frequency: body, gainDB: c.body * intensity, q: 0.9)
-        chain.lowMid = .init(kind: .peak, frequency: 300, gainDB: mudCut + c.mud * intensity, q: 1.2)
+        chain.lowMid = .init(kind: .peak, frequency: 300, gainDB: c.mud * intensity, q: 1.2)
         chain.mid = .init(kind: .peak, frequency: c.presenceHz, gainDB: c.presence * intensity, q: 1)
-        chain.presence = .init(kind: .peak, frequency: 5_000, gainDB: harshCut, q: 2)
+        chain.presence = .init(kind: .peak, frequency: 5_000, gainDB: 0, q: 2)
         chain.highShelf = .init(kind: .highShelf, frequency: c.airHz, gainDB: c.air * intensity, q: 0.7)
 
         if intensity > 0 {
@@ -334,13 +291,6 @@ nonisolated enum VoiceProfileResolver {
                 body = 2.5; mud = -1; presence = 2.5; presenceHz = 3_500; air = 1.5
                 ratio = 3; threshold = -24; makeup = 4
                 saturationMix = 0.25
-            case .warm:
-                body = 3; bodyScale = 1.4; presence = 0.5; presenceHz = 3_000; air = -1.5; airHz = 9_000
-                ratio = 2.5; threshold = -25; makeup = 3
-                saturationDrive = 8; saturationMix = 0.35; saturationWarmth = 0.6
-            case .bright:
-                mud = -1.5; presence = 2; presenceHz = 4_000; air = 3
-                ratio = 2.5; threshold = -25; makeup = 3
             }
         }
     }
