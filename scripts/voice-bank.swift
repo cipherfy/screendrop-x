@@ -1,10 +1,11 @@
 import AVFoundation
 import Foundation
 
-// Compile with Screendrop/VoiceMeasurement.swift:
+// Compile with the meter and the profile code it reads target curves for:
 //
-//   xcrun swiftc -O Screendrop/VoiceMeasurement.swift scripts/voice-bank.swift \
-//     -o build/voice-bank/bin/voice-bank
+//   xcrun swiftc -O Screendrop/VoiceMeasurement.swift Screendrop/VoiceChain.swift \
+//     Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceProfile.swift \
+//     scripts/voice-bank.swift -o build/voice-bank/bin/voice-bank
 //
 // Measures narration files and builds degraded variants of a clean take so
 // voice processing can be checked against known problems without a test
@@ -20,6 +21,7 @@ struct VoiceBank {
         case "compare": try compare(arguments)
         case "degrade": try degrade(arguments)
         case "tone": try tone(arguments)
+        case "target": try target(arguments)
         default: usage()
         }
     }
@@ -31,6 +33,7 @@ struct VoiceBank {
           voice-bank compare <baseline.json> <current.json>
           voice-bank degrade <clean.wav> <output-dir> [--lufs <target>]
           voice-bank tone <sine-1k|intersample> <out.wav>
+          voice-bank target <reference>...
         """)
         exit(2)
     }
@@ -194,15 +197,15 @@ struct VoiceBank {
         let hum = Synth.hum(count: clean.count, sampleRate: rate, levelDB: -66)
 
         var harsh = clean
-        var presencePeak = Biquad.peaking(sampleRate: rate, frequency: 5_000, q: 1.4, gainDB: 6)
+        var presencePeak = ShapingBiquad.peaking(sampleRate: rate, frequency: 5_000, q: 1.4, gainDB: 6)
         presencePeak.process(&harsh)
 
         var thin = clean
-        var lowCut = Biquad.lowShelf(sampleRate: rate, frequency: 250, gainDB: -7)
+        var lowCut = ShapingBiquad.lowShelf(sampleRate: rate, frequency: 250, gainDB: -7)
         lowCut.process(&thin)
 
         var boomy = clean
-        var proximity = Biquad.lowShelf(sampleRate: rate, frequency: 160, gainDB: 8)
+        var proximity = ShapingBiquad.lowShelf(sampleRate: rate, frequency: 160, gainDB: 8)
         proximity.process(&boomy)
 
         var desk = Reverb(sampleRate: rate).process(harsh)
@@ -226,6 +229,37 @@ struct VoiceBank {
             try AudioData.write(samples, sampleRate: rate, to: url)
             print(url.path)
         }
+    }
+
+    // MARK: Target
+
+    /// Averages the third-octave balance of reference narrations you like
+    /// into a target curve for match EQ, printed as Swift to paste into
+    /// VoiceTargetCurve. Each file weighs the same; bands a file does not
+    /// reach (a narrowband voice above 8 kHz) are averaged over the rest.
+    static func target(_ arguments: [String]) throws {
+        guard !arguments.isEmpty else { usage() }
+        var sums: [Double: (total: Double, count: Int)] = [:]
+        for path in arguments {
+            let audio = try AudioData.read(path)
+            let measurement = VoiceAnalyzer.measure(channels: [audio.mono], sampleRate: audio.sampleRate)
+            for point in measurement.thirdOctave where point.levelDB > -60 {
+                sums[point.centerHz, default: (0, 0)].total += point.levelDB
+                sums[point.centerHz, default: (0, 0)].count += 1
+            }
+        }
+        let range = VoiceTargetCurve.range
+        let points = sums.keys.sorted()
+            .filter { range.contains($0) }
+            .map { (centerHz: $0, levelDB: sums[$0]!.total / Double(sums[$0]!.count)) }
+        guard !points.isEmpty else { print("no usable spectrum"); exit(1) }
+        let mean = points.map(\.levelDB).reduce(0, +) / Double(points.count)
+        print("// From: \(arguments.map { URL(fileURLWithPath: $0).lastPathComponent }.joined(separator: ", "))")
+        print("static let points: [VoiceMeasurement.SpectrumPoint] = [")
+        for point in points {
+            print(String(format: "    .init(centerHz: %.1f, levelDB: %.1f),", point.centerHz, point.levelDB - mean))
+        }
+        print("]")
     }
 
     // MARK: Tone
@@ -373,31 +407,32 @@ struct SeededRandom {
     }
 }
 
-/// RBJ Audio EQ Cookbook biquads.
-struct Biquad {
+/// RBJ Audio EQ Cookbook biquads for shaping the degraded variants. The
+/// app's own Biquad is double-precision TDF2 with live coefficients.
+struct ShapingBiquad {
     var b0, b1, b2, a1, a2: Double
     var z1 = 0.0
     var z2 = 0.0
 
-    static func peaking(sampleRate: Double, frequency: Double, q: Double, gainDB: Double) -> Biquad {
+    static func peaking(sampleRate: Double, frequency: Double, q: Double, gainDB: Double) -> ShapingBiquad {
         let a = pow(10, gainDB / 40)
         let w = 2 * .pi * frequency / sampleRate
         let alpha = sin(w) / (2 * q)
         let a0 = 1 + alpha / a
-        return Biquad(
+        return ShapingBiquad(
             b0: (1 + alpha * a) / a0, b1: -2 * cos(w) / a0, b2: (1 - alpha * a) / a0,
             a1: -2 * cos(w) / a0, a2: (1 - alpha / a) / a0
         )
     }
 
-    static func lowShelf(sampleRate: Double, frequency: Double, gainDB: Double) -> Biquad {
+    static func lowShelf(sampleRate: Double, frequency: Double, gainDB: Double) -> ShapingBiquad {
         let a = pow(10, gainDB / 40)
         let w = 2 * .pi * frequency / sampleRate
         let alpha = sin(w) / 2 * sqrt(2)
         let c = cos(w)
         let s = 2 * sqrt(a) * alpha
         let a0 = (a + 1) + (a - 1) * c + s
-        return Biquad(
+        return ShapingBiquad(
             b0: a * ((a + 1) - (a - 1) * c + s) / a0,
             b1: 2 * a * ((a - 1) - (a + 1) * c) / a0,
             b2: a * ((a + 1) - (a - 1) * c - s) / a0,
@@ -406,11 +441,11 @@ struct Biquad {
         )
     }
 
-    static func bandPass(sampleRate: Double, frequency: Double, q: Double) -> Biquad {
+    static func bandPass(sampleRate: Double, frequency: Double, q: Double) -> ShapingBiquad {
         let w = 2 * .pi * frequency / sampleRate
         let alpha = sin(w) / (2 * q)
         let a0 = 1 + alpha
-        return Biquad(b0: alpha / a0, b1: 0, b2: -alpha / a0, a1: -2 * cos(w) / a0, a2: (1 - alpha) / a0)
+        return ShapingBiquad(b0: alpha / a0, b1: 0, b2: -alpha / a0, a1: -2 * cos(w) / a0, a2: (1 - alpha) / a0)
     }
 
     mutating func process(_ x: Float) -> Float {
@@ -512,7 +547,7 @@ enum Synth {
                 let clickLength = Int(sampleRate * 0.006)
                 let thumpLength = Int(sampleRate * 0.03)
                 let level = Float(pow(10, (-24 - random.unit() * 6) / 20))
-                var click = Biquad.bandPass(sampleRate: sampleRate, frequency: 2_800 + random.unit() * 1_500, q: 1.2)
+                var click = ShapingBiquad.bandPass(sampleRate: sampleRate, frequency: 2_800 + random.unit() * 1_500, q: 1.2)
                 for offset in 0..<clickLength where start + offset < count {
                     let envelope = Float(exp(-Double(offset) / (sampleRate * 0.0012)))
                     output[start + offset] += click.process(random.bipolar()) * envelope * level * 4
