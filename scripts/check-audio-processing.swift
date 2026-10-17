@@ -224,8 +224,7 @@ struct AudioProcessingCheck {
         let file = try AVAudioFile(forReading: url)
         precondition(file.processingFormat.channelCount == 1 && file.processingFormat.sampleRate == sampleRate,
                      "use a mono 48 kHz file, such as build/voice-bank/variants/paulina-clean.wav")
-        let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length))!
-        try file.read(into: buffer)
+        let buffer = try file.readAll()
         return Array(UnsafeBufferPointer(start: buffer.floatChannelData![0], count: Int(buffer.frameLength)))
     }
 
@@ -243,5 +242,25 @@ struct AudioProcessingCheck {
             error += difference * difference
         }
         return error > 0 ? 10 * log10(error / signal) : -200
+    }
+}
+
+extension AVAudioFile {
+    /// Reads the whole file. A single `read(into:)` can stop short of the
+    /// end, so this keeps reading until the file reports no more frames.
+    func readAll() throws -> AVAudioPCMBuffer {
+        let all = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: AVAudioFrameCount(max(1, length)))!
+        let chunk = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: 65_536)!
+        framePosition = 0
+        while framePosition < length {
+            try read(into: chunk, frameCount: min(chunk.frameCapacity, AVAudioFrameCount(length - framePosition)))
+            guard chunk.frameLength > 0 else { break }
+            for channel in 0..<Int(processingFormat.channelCount) {
+                (all.floatChannelData![channel] + Int(all.frameLength))
+                    .update(from: chunk.floatChannelData![channel], count: Int(chunk.frameLength))
+            }
+            all.frameLength += chunk.frameLength
+        }
+        return all
     }
 }

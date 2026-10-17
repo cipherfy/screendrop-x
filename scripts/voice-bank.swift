@@ -305,10 +305,7 @@ struct AudioData {
     static func read(_ path: String) throws -> AudioData {
         let file = try AVAudioFile(forReading: URL(fileURLWithPath: path))
         let format = file.processingFormat
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(file.length)) else {
-            throw CocoaError(.fileReadCorruptFile)
-        }
-        try file.read(into: buffer)
+        let buffer = try file.readAll()
         guard let data = buffer.floatChannelData else { throw CocoaError(.fileReadCorruptFile) }
         let frames = Int(buffer.frameLength)
         let channels = (0..<Int(format.channelCount)).map { channel in
@@ -529,5 +526,25 @@ enum Synth {
             time += 3 + random.unit() * 4
         }
         return output
+    }
+}
+
+extension AVAudioFile {
+    /// Reads the whole file. A single `read(into:)` can stop short of the
+    /// end, so this keeps reading until the file reports no more frames.
+    func readAll() throws -> AVAudioPCMBuffer {
+        let all = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: AVAudioFrameCount(max(1, length)))!
+        let chunk = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: 65_536)!
+        framePosition = 0
+        while framePosition < length {
+            try read(into: chunk, frameCount: min(chunk.frameCapacity, AVAudioFrameCount(length - framePosition)))
+            guard chunk.frameLength > 0 else { break }
+            for channel in 0..<Int(processingFormat.channelCount) {
+                (all.floatChannelData![channel] + Int(all.frameLength))
+                    .update(from: chunk.floatChannelData![channel], count: Int(chunk.frameLength))
+            }
+            all.frameLength += chunk.frameLength
+        }
+        return all
     }
 }
