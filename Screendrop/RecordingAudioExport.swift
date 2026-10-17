@@ -81,7 +81,7 @@ nonisolated final class RecordingAudioExporter: @unchecked Sendable {
         /// the edited timeline's length.
         let replacementURL: URL?
         let format: RecordingAudioFormat
-        var volume: Double = 1
+        var audioSettings = RecordingAudioSettings()
     }
 
     enum ExportError: LocalizedError {
@@ -132,8 +132,18 @@ nonisolated final class RecordingAudioExporter: @unchecked Sendable {
             start: .zero,
             duration: CMTime(seconds: duration, preferredTimescale: 600)
         )
-        let output = AVAssetReaderAudioMixOutput(audioTracks: tracks, audioSettings: nil)
-        output.audioMix = RecordingAudioGain.makeMix(tracks: tracks, volume: configuration.volume)
+        let output = AVAssetReaderAudioMixOutput(
+            audioTracks: tracks,
+            audioSettings: RecordingAudioProcessing.mixOutputSettings
+        )
+        output.audioMix = RecordingAudioProcessing.makeMix(
+            tracks: tracks,
+            roles: try await RecordingAudioProcessing.roles(
+                for: tracks,
+                isReplacement: configuration.replacementURL != nil
+            ),
+            parameters: RecordingAudioParameters(configuration.audioSettings)
+        )
         output.alwaysCopiesSampleData = false
         reader.add(output)
 
@@ -154,14 +164,17 @@ nonisolated final class RecordingAudioExporter: @unchecked Sendable {
         }
         writer.startSession(atSourceTime: .zero)
 
+        // Guards the sum of the tracks, as the video export does.
+        var limiter = PeakLimiter(sampleRate: 48_000, channelCount: 2, ceilingDB: RecordingAudioProcessing.ceilingDB)
         do {
             while let sampleBuffer = output.copyNextSampleBuffer() {
                 try Task.checkCancellation()
+                let limited = try RecordingAudioProcessing.limitMix(sampleBuffer, with: &limiter)
                 while !input.isReadyForMoreMediaData {
                     try Task.checkCancellation()
                     try await Task.sleep(nanoseconds: 2_000_000)
                 }
-                guard input.append(sampleBuffer) else {
+                guard input.append(limited) else {
                     throw ExportError.writerFailed(writer.error)
                 }
                 let time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer).seconds

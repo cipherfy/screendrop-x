@@ -212,18 +212,56 @@ final class RecordingStudioModel {
     /// live progress and the history card mirrors the state.
     private(set) var shareItemID: UUID?
 
-    /// Gain shared by playback and video/audio export; 1 preserves the source.
-    var audioVolume: CGFloat = 1 {
-        didSet {
-            updatePlaybackVolume()
-            scheduleProjectSave()
-        }
+    /// Narration and system audio gains in dB, shared by playback and
+    /// every export; 0 preserves the source.
+    var voiceGainDB: CGFloat = 0 {
+        didSet { audioSettingsDidChange() }
+    }
+    var systemGainDB: CGFloat = 0 {
+        didSet { audioSettingsDidChange() }
+    }
+    /// Off is the "before" of an A/B: the voice with its gain alone.
+    var voiceProcessingEnabled = true {
+        didSet { audioSettingsDidChange() }
+    }
+    /// What the recording's own tracks carry, for the inspector.
+    private(set) var recordedAudioRoles: Set<RecordingAudioRole> = []
+    /// Read by the playback taps on the audio thread.
+    private let audioParameters = RecordingAudioParameters()
+
+    var audioSettings: RecordingAudioSettings {
+        RecordingAudioSettings(
+            voiceGainDB: Double(voiceGainDB),
+            systemGainDB: Double(systemGainDB),
+            voiceProcessingEnabled: voiceProcessingEnabled
+        )
     }
 
-    private func updatePlaybackVolume() {
+    /// An imported soundtrack stands in for all the recorded audio and is
+    /// treated as narration.
+    var hasVoiceAudio: Bool {
+        replacementAudio != nil || recordedAudioRoles.contains(.voice)
+    }
+
+    var hasSystemAudio: Bool {
+        replacementAudio == nil && recordedAudioRoles.contains(.system)
+    }
+
+    private func audioSettingsDidChange() {
+        audioParameters.update(audioSettings)
+        scheduleProjectSave()
+    }
+
+    /// Gives the current player item's tracks their taps. Settings reach
+    /// them through `audioParameters`, so this runs only when the item is
+    /// rebuilt, never while a slider drags.
+    private func installPlaybackAudioMix() {
         guard let item = screenPlayer.currentItem else { return }
-        item.audioMix = RecordingAudioGain.makeMix(
-            tracks: item.asset.tracks(withMediaType: .audio), volume: Double(audioVolume)
+        let tracks = item.asset.tracks(withMediaType: .audio)
+        item.audioMix = RecordingAudioProcessing.makeMix(
+            tracks: tracks,
+            roles: RecordingAudioProcessing.rolesSynchronously(for: tracks, isReplacement: replacementAudio != nil),
+            parameters: audioParameters
         )
     }
 
@@ -322,6 +360,12 @@ final class RecordingStudioModel {
                 }
             }
             hasRecordedAudio = tracks.contains { $0.mediaType == .audio }
+            let roles = try await RecordingAudioProcessing.roles(
+                for: tracks.filter { $0.mediaType == .audio },
+                isReplacement: false
+            )
+            guard !isTornDown, !Task.isCancelled else { return }
+            recordedAudioRoles = Set(roles)
         } catch {
             guard !isTornDown, !Task.isCancelled else { return }
             loadError = "Could not open the recording: \(error.localizedDescription)"
@@ -486,7 +530,10 @@ final class RecordingStudioModel {
         exportAspectMode = document.exportAspectContentMode
         videoCropRect = document.normalizedVideoCropRect
         audioExportFormat = document.audioExportFormatValue
-        audioVolume = CGFloat(RecordingAudioGain.normalized(document.audioVolume ?? 1))
+        let audio = document.resolvedAudioSettings
+        voiceGainDB = CGFloat(audio.voiceGainDB)
+        systemGainDB = CGFloat(audio.systemGainDB)
+        voiceProcessingEnabled = audio.voiceProcessingEnabled
     }
 
     func teardown() {
@@ -855,7 +902,7 @@ final class RecordingStudioModel {
         }
 
         screenPlayer.replaceCurrentItem(with: AVPlayerItem(asset: playbackAsset))
-        updatePlaybackVolume()
+        installPlaybackAudioMix()
         screenPlayer.actionAtItemEnd = .pause
         currentTime = min(max(editorTime, 0), duration)
         movePlayers(to: currentTime)
@@ -1205,7 +1252,7 @@ final class RecordingStudioModel {
             replacementAudioFileName: replacementAudio?.url.lastPathComponent,
             replacementAudioDisplayName: replacementAudio?.displayName,
             audioExportFormat: audioExportFormat,
-            audioVolume: Double(audioVolume)
+            audioSettings: audioSettings
         )
     }
 
@@ -1832,7 +1879,7 @@ final class RecordingStudioModel {
             clipTimeline: clipTimeline,
             exportSettings: exportSettings,
             audioReplacementURL: replacementAudio?.url,
-            audioVolume: Double(audioVolume),
+            audioSettings: audioSettings,
             reframe: reframe,
             fitContentAspect: fitContentAspect,
             usesUniformPadding: exportAspect == .original
@@ -2074,7 +2121,7 @@ final class RecordingStudioModel {
             clipTimeline: clipTimeline,
             replacementURL: replacementAudio?.url,
             format: audioExportFormat,
-            volume: Double(audioVolume)
+            audioSettings: audioSettings
         )
         let suggestedFileName = audioExportSuggestedFileName
         let dockProgressID = DockExportProgressCoordinator.shared.start()

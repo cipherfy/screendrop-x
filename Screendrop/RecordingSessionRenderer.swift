@@ -182,7 +182,7 @@ enum RecordingSessionRenderer {
                 ?? CGRect(x: 0, y: 0, width: 1, height: 1),
             clipTimeline: clipTimeline,
             exportSettings: document?.exportSettings ?? VideoCompressionSettings(),
-            audioVolume: document?.audioVolume ?? 1,
+            audioSettings: document?.resolvedAudioSettings ?? RecordingAudioSettings(),
             reframe: reframe,
             fitContentAspect: fitContentAspect,
             usesUniformPadding: aspect == .original

@@ -66,7 +66,11 @@ struct RecordingEditDocument: Codable, Equatable {
     var replacementAudioDisplayName: String?
     /// Raw RecordingAudioFormat value for the audio-only export.
     var audioExportFormat: String?
+    /// The single linear volume (0...2) of projects saved before per-track
+    /// audio; read for migration, no longer written.
     var audioVolume: Double?
+    /// Voice and system gains and the voice processing switch.
+    var audioSettings: RecordingAudioSettings?
 
     private enum CodingKeys: String, CodingKey {
         case formatVersion
@@ -98,6 +102,7 @@ struct RecordingEditDocument: Codable, Equatable {
         case replacementAudioDisplayName
         case audioExportFormat
         case audioVolume
+        case audioSettings
     }
 
     init(
@@ -122,7 +127,7 @@ struct RecordingEditDocument: Codable, Equatable {
         replacementAudioFileName: String? = nil,
         replacementAudioDisplayName: String? = nil,
         audioExportFormat: RecordingAudioFormat? = nil,
-        audioVolume: Double? = nil
+        audioSettings: RecordingAudioSettings? = nil
     ) {
         self.style = StoredRecordingStudioStyle(style)
         self.zoomEnabled = zoomEnabled
@@ -154,7 +159,12 @@ struct RecordingEditDocument: Codable, Equatable {
         self.replacementAudioFileName = replacementAudioFileName
         self.replacementAudioDisplayName = replacementAudioDisplayName
         self.audioExportFormat = audioExportFormat.map(\.rawValue)
-        self.audioVolume = audioVolume
+        self.audioSettings = audioSettings
+    }
+
+    var resolvedAudioSettings: RecordingAudioSettings {
+        if let audioSettings { return audioSettings.normalized }
+        return audioVolume.map(RecordingAudioSettings.init(legacyVolume:)) ?? RecordingAudioSettings()
     }
 
     var audioExportFormatValue: RecordingAudioFormat {
@@ -245,6 +255,7 @@ struct RecordingEditDocument: Codable, Equatable {
         )
         audioExportFormat = try container.decodeIfPresent(String.self, forKey: .audioExportFormat)
         audioVolume = try container.decodeIfPresent(Double.self, forKey: .audioVolume)
+        audioSettings = try container.decodeIfPresent(RecordingAudioSettings.self, forKey: .audioSettings)
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -278,6 +289,7 @@ struct RecordingEditDocument: Codable, Equatable {
         )
         try container.encodeIfPresent(audioExportFormat, forKey: .audioExportFormat)
         try container.encodeIfPresent(audioVolume, forKey: .audioVolume)
+        try container.encodeIfPresent(audioSettings, forKey: .audioSettings)
     }
 }
 

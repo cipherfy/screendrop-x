@@ -60,6 +60,16 @@ struct InspectorValueFormat {
         )
     }
 
+    /// Signed level in decibels, for audio gains.
+    static let decibels = InspectorValueFormat(
+        multiplier: 1,
+        fractionDigits: 1,
+        suffix: " dB",
+        showsPositiveSign: true,
+        step: 0.1,
+        acceptedSuffixes: ["decibels", "db"]
+    )
+
     static func decimal(fractionDigits: Int) -> InspectorValueFormat {
         InspectorValueFormat(
             multiplier: 1,

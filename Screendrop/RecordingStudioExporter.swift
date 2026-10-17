@@ -59,7 +59,7 @@ nonisolated final class RecordingStudioExporter: @unchecked Sendable {
         /// audio. It is already the finished cut's audio, so it plays flat
         /// from zero instead of being re-cut through the clip timeline.
         let audioReplacementURL: URL?
-        let audioVolume: Double
+        let audioSettings: RecordingAudioSettings
         /// Non-nil when exporting into a different aspect ratio; drives the
         /// crop-and-follow virtual camera in place of the zoom viewport.
         let reframe: ReframeTrack?
@@ -90,7 +90,7 @@ nonisolated final class RecordingStudioExporter: @unchecked Sendable {
             clipTimeline: RecordingClipTimeline,
             exportSettings: VideoCompressionSettings,
             audioReplacementURL: URL? = nil,
-            audioVolume: Double = 1,
+            audioSettings: RecordingAudioSettings = RecordingAudioSettings(),
             reframe: ReframeTrack? = nil,
             fitContentAspect: CGFloat? = nil,
             usesUniformPadding: Bool = false
@@ -114,7 +114,7 @@ nonisolated final class RecordingStudioExporter: @unchecked Sendable {
             self.clipTimeline = clipTimeline
             self.exportSettings = exportSettings
             self.audioReplacementURL = audioReplacementURL
-            self.audioVolume = audioVolume
+            self.audioSettings = audioSettings
             self.reframe = reframe
             self.fitContentAspect = fitContentAspect
             self.usesUniformPadding = usesUniformPadding
@@ -237,9 +237,13 @@ nonisolated final class RecordingStudioExporter: @unchecked Sendable {
                     reader.timeRange = exportTimeRange
                     let output = AVAssetReaderAudioMixOutput(
                         audioTracks: replacementTracks,
-                        audioSettings: nil
+                        audioSettings: RecordingAudioProcessing.mixOutputSettings
                     )
-                    output.audioMix = RecordingAudioGain.makeMix(tracks: replacementTracks, volume: configuration.audioVolume)
+                    output.audioMix = RecordingAudioProcessing.makeMix(
+                        tracks: replacementTracks,
+                        roles: try await RecordingAudioProcessing.roles(for: replacementTracks, isReplacement: true),
+                        parameters: RecordingAudioParameters(configuration.audioSettings)
+                    )
                     output.alwaysCopiesSampleData = false
                     reader.add(output)
                     replacementReader = reader
@@ -248,9 +252,13 @@ nonisolated final class RecordingStudioExporter: @unchecked Sendable {
             } else if !audioTracks.isEmpty {
                 let output = AVAssetReaderAudioMixOutput(
                     audioTracks: audioTracks,
-                    audioSettings: nil
+                    audioSettings: RecordingAudioProcessing.mixOutputSettings
                 )
-                output.audioMix = RecordingAudioGain.makeMix(tracks: audioTracks, volume: configuration.audioVolume)
+                output.audioMix = RecordingAudioProcessing.makeMix(
+                    tracks: audioTracks,
+                    roles: try await RecordingAudioProcessing.roles(for: audioTracks, isReplacement: false),
+                    parameters: RecordingAudioParameters(configuration.audioSettings)
+                )
                 output.alwaysCopiesSampleData = false
                 screenReader.add(output)
                 audioOutput = output
@@ -535,13 +543,19 @@ nonisolated final class RecordingStudioExporter: @unchecked Sendable {
     ) async throws {
         guard let output, let input else { return }
 
+        // The per-track taps keep each track under the ceiling; this guards
+        // their sum, which only exists here. Its look-ahead adds 3 ms to the
+        // taps' 3 ms: audio lands 6 ms after the picture, far below what
+        // anyone can perceive (sound travels about 2 m in that time).
+        var limiter = PeakLimiter(sampleRate: 48_000, channelCount: 2, ceilingDB: RecordingAudioProcessing.ceilingDB)
         while let sampleBuffer = output.copyNextSampleBuffer() {
             if cancelFlag.isCancelled { throw ExportError.cancelled }
+            let limited = try RecordingAudioProcessing.limitMix(sampleBuffer, with: &limiter)
             while !input.isReadyForMoreMediaData {
                 if cancelFlag.isCancelled { throw ExportError.cancelled }
                 try await Task.sleep(nanoseconds: 2_000_000)
             }
-            if !input.append(sampleBuffer) {
+            if !input.append(limited) {
                 throw ExportError.writerFailed(nil)
             }
         }

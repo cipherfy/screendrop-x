@@ -1008,6 +1008,10 @@ struct StudioInspector: View {
 
     // MARK: Audio
 
+    private static func range(_ range: ClosedRange<Double>) -> ClosedRange<CGFloat> {
+        CGFloat(range.lowerBound)...CGFloat(range.upperBound)
+    }
+
     /// The round trip around tools that clean up speech but offer no API:
     /// write the cut's soundtrack out, run it through the tool, bring the
     /// result back in as the project's audio. Two buttons and a file chip -
@@ -1016,8 +1020,26 @@ struct StudioInspector: View {
         VStack(alignment: .leading, spacing: InspectorMetrics.rowSpacing) {
             // A silent recording has nothing to send out, but it can still
             // be given a soundtrack - so only the export half is withheld.
-            if model.hasAudio {
-                InspectorSlider("Volume", value: $model.audioVolume, range: 0...2, format: .percent())
+            if model.hasVoiceAudio {
+                InspectorSlider(
+                    "Voice",
+                    value: $model.voiceGainDB,
+                    range: Self.range(RecordingAudioSettings.voiceGainRange),
+                    format: .decibels
+                )
+            }
+            if model.hasSystemAudio {
+                InspectorSlider(
+                    "System Audio",
+                    value: $model.systemGainDB,
+                    range: Self.range(RecordingAudioSettings.systemGainRange),
+                    format: .decibels
+                )
+                .help("Drag to the bottom to mute system audio")
+            }
+            if model.hasVoiceAudio {
+                InspectorToggleRow("Voice Processing", isOn: $model.voiceProcessingEnabled)
+                    .help("Turn off to hear the voice without processing, then back on to compare")
             }
 
             HStack(spacing: InspectorMetrics.rowSpacing) {
