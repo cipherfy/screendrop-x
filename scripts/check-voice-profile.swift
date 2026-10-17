@@ -50,35 +50,38 @@ struct VoiceProfileCheck {
 
     static func checkResolver(_ voice: [Float]) throws {
         let analysis = try RecordingVoiceAnalysis.analyze(voice, sourceKey: "microphone")
-        var usb = VoiceProfileSettings(microphone: .usbCondenser, character: .broadcast, intensity: 1, matchesTarget: false)
-        var chain = VoiceProfileResolver.chain(for: usb, analysis: analysis)
-        precondition(chain.highPass.isSteep && chain.highPass.frequency == 90 && chain.expander.isEnabled && chain.dynamicLow.isEnabled)
-        precondition(chain.lowMid.gainDB == -3.5 && chain.presence.gainDB == -2, "USB corrections plus broadcast mud")
+        var profile = VoiceProfileSettings(character: .broadcast, intensity: 1, matchesTarget: false)
+        var chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
+        precondition(chain.highPass.isEnabled && chain.highPass.frequency == 80 && !chain.highPass.isSteep)
+        precondition(chain.dynamicLow.isEnabled && chain.deEsser.isEnabled && chain.expander.isEnabled, "base corrections for every voice")
+        precondition(chain.lowMid.gainDB == -1 && chain.presence.gainDB == 0, "broadcast mud only; no static harshness cut")
         precondition(chain.compressor.isEnabled && chain.compressor.ratio == 3 && chain.saturation.isEnabled)
+        precondition(chain.match == VoiceChainSettings.MatchEQ(), "match EQ off leaves the bells flat")
 
-        usb.matchesTarget = true
-        chain = VoiceProfileResolver.chain(for: usb, analysis: analysis)
-        precondition(chain.lowMid.gainDB == -1 && chain.presence.gainDB == 0, "match EQ replaces the static cuts")
+        profile.matchesTarget = true
+        chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
         precondition(chain.match != VoiceChainSettings.MatchEQ(), "match EQ must be computed")
 
-        usb.intensity = 0
-        chain = VoiceProfileResolver.chain(for: usb, analysis: analysis)
+        profile.intensity = 0
+        chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
         precondition(!chain.compressor.isEnabled && !chain.saturation.isEnabled && chain.mid.gainDB == 0 && chain.highShelf.gainDB == 0)
-        precondition(chain.expander.isEnabled && chain.deEsser.isEnabled, "microphone corrections do not scale")
+        precondition(chain.expander.isEnabled && chain.deEsser.isEnabled, "base corrections do not scale")
 
-        usb.intensity = 0.5
-        chain = VoiceProfileResolver.chain(for: usb, analysis: analysis)
+        profile.intensity = 0.5
+        chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
         precondition(chain.compressor.ratio == 2 && abs(chain.mid.gainDB - 1.25) < 1e-9 && abs(chain.saturation.mix - 0.125) < 1e-9)
 
-        let generic = VoiceProfileResolver.chain(for: VoiceProfileSettings(), analysis: nil)
-        precondition(generic.highPass.frequency == 80 && !generic.highPass.isSteep && !generic.expander.isEnabled && generic.inputTrimDB == 0)
+        let defaults = VoiceProfileSettings()
+        precondition(defaults.character == .clear && defaults.matchesTarget && defaults.loudnessTarget == .platforms)
+        precondition(VoiceProfileResolver.chain(for: defaults, analysis: nil).inputTrimDB == 0)
+        precondition(RecordingAudioSettings.projectDefault.voiceIsolation.amount == 75)
 
         var quiet = analysis
         quiet.integratedLUFS = -32
         precondition(VoiceProfileResolver.inputTrimDB(for: quiet) == 6)
         quiet.integratedLUFS = -60
         precondition(VoiceProfileResolver.inputTrimDB(for: quiet) == 18)
-        print("ok  profiles resolve: microphone corrections fixed, character scales with intensity, match EQ replaces static cuts, trim brings takes to -26 LUFS")
+        print("ok  profiles resolve: base corrections fixed, character scales with intensity, match EQ on by default, trim brings takes to -26 LUFS; projects start at 75% isolation and -14 LUFS")
     }
 
     static func checkFundamental(paulina: [Float], eddy: [Float]) throws {
@@ -137,7 +140,7 @@ struct VoiceProfileCheck {
             let analysis = try RecordingVoiceAnalysis.analyze(voice, sourceKey: "m")
             for character in VoiceProfileSettings.Character.allCases {
                 for target in [VoiceProfileSettings.LoudnessTarget.podcast, .platforms] {
-                    let profile = VoiceProfileSettings(microphone: .usbCondenser, character: character, intensity: 0.8, loudnessTarget: target)
+                    let profile = VoiceProfileSettings(character: character, intensity: 0.8, loudnessTarget: target)
                     let chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
                     guard let gain = try RecordingVoiceAnalysis.normalizationGain(voice, chain: chain, targetLUFS: target.lufs!) else {
                         print("FAIL \(name) could not be normalized")
@@ -162,26 +165,30 @@ struct VoiceProfileCheck {
     }
 
     static func checkCoding() throws {
-        let profile = VoiceProfileSettings(microphone: .usbCondenser, character: .warm, intensity: 0.3, matchesTarget: false, loudnessTarget: .platforms)
+        let profile = VoiceProfileSettings(character: .broadcast, intensity: 0.3, matchesTarget: false, loudnessTarget: .podcast)
         let roundTrip = try JSONDecoder().decode(VoiceProfileSettings.self, from: JSONEncoder().encode(profile))
         precondition(roundTrip == profile)
-        let partial = try JSONDecoder().decode(VoiceProfileSettings.self, from: Data(#"{"character":"bright"}"#.utf8))
-        precondition(partial.character == .bright && partial.loudnessTarget == .podcast && partial.microphone == .generic)
-        precondition(VoiceProfileStore.defaultProfile(microphoneName: "HyperX QuadCast S").microphone == .usbCondenser)
-        precondition(VoiceProfileStore.defaultProfile(microphoneName: "MacBook Pro Microphone").microphone == .generic)
+        let partial = try JSONDecoder().decode(VoiceProfileSettings.self, from: Data(#"{"character":"broadcast"}"#.utf8))
+        precondition(partial.character == .broadcast && partial.loudnessTarget == .platforms)
+        // Profiles saved with a microphone choice or a removed character
+        // still open, falling back to the defaults for what is gone.
+        let older = try JSONDecoder().decode(VoiceProfileSettings.self, from: Data(#"{"microphone":"usbCondenser","character":"warm","intensity":0.4}"#.utf8))
+        precondition(older.character == .clear && older.intensity == 0.4)
+        let olderSettings = try JSONDecoder().decode(RecordingAudioSettings.self, from: Data(#"{"voiceGainDB":2}"#.utf8))
+        precondition(olderSettings.voiceIsolation.amount == 75, "settings saved before isolation start at 75%")
         var settings = RecordingAudioSettings()
         settings.voiceProfile = profile
         let settingsRoundTrip = try JSONDecoder().decode(RecordingAudioSettings.self, from: JSONEncoder().encode(settings))
         precondition(settingsRoundTrip == settings)
-        print("ok  profiles round-trip and fill in defaults; a QuadCast starts on the USB Condenser profile")
+        print("ok  profiles round-trip and fill in defaults; profiles from before this change still open")
     }
 
     // MARK: Pipeline report
 
-    /// Raw take versus the full pipeline: isolation at 90%, USB Condenser
+    /// Raw take versus the full pipeline: isolation at 75%
     /// with Clear and Broadcast at 60%, match EQ, -16 LUFS.
     static func reportPipeline(_ directory: URL) async throws {
-        print("\npipeline on the USB-condenser-at-a-desk takes: isolation 90%, USB Condenser, match EQ, -16 LUFS, intensity 60%")
+        print("\npipeline on the USB-condenser-at-a-desk takes, at the defaults: isolation 75%, match EQ, -14 LUFS, intensity 60%")
         print("take                   LUFS-I     TP   LRA    SNR  target dist  | time")
         for voice in ["paulina", "monica", "eddy"] {
             let source = directory.appendingPathComponent("\(voice)-usb-condenser-desk.wav")
@@ -197,12 +204,12 @@ struct VoiceProfileCheck {
 
             for character in [VoiceProfileSettings.Character.clear, .broadcast] {
                 let started = Date()
-                let isolation = VoiceIsolationSettings(amount: 90)
+                let isolation = VoiceIsolationSettings.projectDefault
                 let samples = try await RecordingVoiceAnalysis.readVoice(screenURL: screenURL, isolation: isolation)
                 let analysis = try RecordingVoiceAnalysis.analyze(samples, sourceKey: VoiceAnalysisResult.sourceKey(for: isolation))
-                let profile = VoiceProfileSettings(microphone: .usbCondenser, character: character, intensity: 0.6)
+                let profile = VoiceProfileSettings(character: character, intensity: 0.6)
                 let chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
-                let gain = (try RecordingVoiceAnalysis.normalizationGain(samples, chain: chain, targetLUFS: -16)) ?? 0
+                let gain = (try RecordingVoiceAnalysis.normalizationGain(samples, chain: chain, targetLUFS: -14)) ?? 0
                 let elapsed = Date().timeIntervalSince(started)
                 row("\(voice) \(character.rawValue)", render(samples, chain, gainDB: gain), seconds: elapsed)
             }

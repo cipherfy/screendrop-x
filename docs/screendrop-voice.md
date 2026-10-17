@@ -36,7 +36,7 @@ Preview, export de video, export de solo audio y Share usan exactamente el mismo
 
 - Usa el aislamiento de voz de Apple en el dispositivo (`AUSoundIsolation`, modelo de alta calidad) para quitar ruido de fondo, eco de la habitación y teclado.
 - Se renderiza **una vez** dentro del paquete del proyecto, a unas 80 veces tiempo real (unos 7 s por cada 10 minutos de narración). Después se sustituye solo la pista del micrófono, con alineación exacta a la muestra.
-- Cantidades: **Off, 75 %, 90 %, 100 %**. La mezcla es lineal: al 75 % la habitación baja unos 12 dB y al 90 % unos 20 dB. Dejar un poco suele sonar más natural.
+- Cantidades: **Off, 75 %, 90 %, 100 %**, con **75 % por defecto** en cada proyecto. La mezcla es lineal: al 75 % la habitación baja unos 12 dB y al 90 % unos 20 dB. Dejar un poco suele sonar más natural.
 - En el banco de pruebas, la toma de un condensador USB en un escritorio pasó de 23.4 a 45.6 dB de SNR.
 - Los exports renderizan el aislamiento automáticamente si falta. No se aplica al audio de reemplazo importado.
 
@@ -46,11 +46,13 @@ El inspector describe la voz que se quiere, y Studio resuelve a partir de eso un
 
 | Control | Opciones | Qué hace |
 |---|---|---|
-| **Mic** | Generic, USB Condenser | Correcciones del micrófono: high-pass, control de proximidad, de-esser y, para condensadores USB, un expansor contra la habitación. Se aplican siempre completas |
-| **Character** | Clear, Broadcast, Warm, Bright | EQ, compresión y saturación con carácter |
-| **Intensity** | 0–100 % | Escala solo el carácter |
-| **Match Target EQ** | Sí / No | Corrige el balance tonal hacia una curva objetivo |
-| **Loudness** | Off, -16 LUFS, -14 LUFS | Ajusta el fader de voz para llegar al objetivo |
+| **Character** | Clear, Broadcast | EQ, compresión y saturación con carácter |
+| **Intensity** | 0–100 % (60 % por defecto) | Escala solo el carácter |
+| **Loudness** | Off, -16 LUFS, -14 LUFS (por defecto) | Ajusta el fader de voz para llegar al objetivo |
+
+Además, toda voz recibe unas **correcciones base** que no dependen del micrófono ni escalan con la intensidad: high-pass a 80 Hz, control de proximidad, de-esser y un expansor suave para la habitación que quede tras el aislamiento.
+
+El **match EQ** está siempre activo por defecto. Su interruptor está en el channel strip.
 
 ### Análisis automático de la toma
 
@@ -81,7 +83,7 @@ Hasta 3 minutos analiza la narración completa; en grabaciones más largas toma 
 
 ### Memoria por micrófono
 
-Se recuerda el último perfil usado con cada micrófono. Un micrófono nuevo cuyo nombre indique que es un condensador USB (QuadCast, Yeti, AT2020USB…) empieza en *USB Condenser*.
+Se recuerda el último perfil (carácter, intensidad, loudness) usado con cada micrófono. Un micrófono nuevo empieza con los valores por defecto.
 
 ## 4. Channel strip
 
@@ -92,7 +94,7 @@ Se recuerda el último perfil usado con cada micrófono. Un micrófono nuevo cuy
 | Input | Trim |
 | High-pass | Frecuencia; 12 o 24 dB/octava |
 | EQ | Body, Mud, Presence, Harshness, Air: ganancia, frecuencia y Q |
-| Match EQ | 250 Hz, 500 Hz, 1 kHz, 2 kHz, 4 kHz, 8 kHz |
+| Match EQ | Interruptor *Match Target EQ*; 250 Hz, 500 Hz, 1 kHz, 2 kHz, 4 kHz, 8 kHz |
 | Proximity | Banda dinámica: frecuencia, umbral, rango |
 | Expander | Umbral, ratio, rango, release |
 | Compressor | Umbral, ratio, knee, attack, release, makeup |
@@ -108,7 +110,7 @@ Se recuerda el último perfil usado con cada micrófono. Un micrófono nuevo cuy
 - **Limitador de true peak a -1 dBTP**, con lookahead, en cada pista y sobre la mezcla al exportar. Sustituye al clipping duro del original.
 - **Latencia uniforme.** Todas las pistas se retrasan lo mismo (3.25 ms), así que voz y sistema siguen alineados con cualquier ajuste. En el export el audio queda unos 6 ms detrás de la imagen, algo imperceptible.
 - **Voice Processing (A/B)**: al apagarlo se oye la voz sin procesar, **al mismo loudness** y con la misma latencia, para comparar el sonido sin que influya el volumen.
-- **Medidores en vivo**:
+- **Medidores en vivo**, en un acordeón *Meters* del panel (cerrado por defecto) y siempre visibles en el channel strip:
   - entrada y salida, con caída tipo PPM;
   - reducción de ganancia del expansor, compresor, de-esser y limitador;
   - loudness de corto plazo (EBU R128, 3 s) frente al objetivo.

@@ -110,12 +110,12 @@ struct VoiceToolsCheck {
     }
 
     static func checkCustomChain() {
-        var profile = VoiceProfileSettings(microphone: .usbCondenser, character: .broadcast)
+        var profile = VoiceProfileSettings(character: .broadcast)
         var custom = VoiceProfileResolver.chain(for: profile, analysis: nil)
         custom.compressor.ratio = 6
         profile.customChain = custom
         precondition(VoiceProfileResolver.chain(for: profile, analysis: nil) == custom)
-        profile.character = .warm
+        profile.character = .clear
         precondition(VoiceProfileResolver.chain(for: profile, analysis: nil).compressor.ratio == 6, "a custom chain ignores the character")
         profile.customChain = nil
         precondition(VoiceProfileResolver.chain(for: profile, analysis: nil).compressor.ratio != 6)

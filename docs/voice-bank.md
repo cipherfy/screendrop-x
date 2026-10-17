@@ -91,7 +91,7 @@ Latency: every tap delays its track by the same 156 frames at 48 kHz (3.25 ms: 1
 
 ## Voice chain check
 
-`Screendrop/VoiceChain.swift` is the narration channel strip, run inside the voice track's tap in this order: input trim, high-pass (12 or 24 dB/oct), five EQ bands, a dynamic low band against proximity boom, a 2:1 downward expander for the room between words, a feed-forward soft-knee compressor, a split-band de-esser, and saturation at 4x oversampling with a warmth control for even harmonics. The fader and a true-peak limiter at -1 dBTP follow. Turning Voice Processing off plays the dry voice matched to the processed loudness, with the same latency, so an A/B compares sound rather than level. The USB Condenser preset is a starting curve for a HyperX QuadCast-class microphone at a desk.
+`Screendrop/VoiceChain.swift` is the narration channel strip, run inside the voice track's tap in this order: input trim, high-pass (12 or 24 dB/oct), five EQ bands, a dynamic low band against proximity boom, a 2:1 downward expander for the room between words, a feed-forward soft-knee compressor, a split-band de-esser, and saturation at 4x oversampling with a warmth control for even harmonics. The fader and a true-peak limiter at -1 dBTP follow. Turning Voice Processing off plays the dry voice matched to the processed loudness, with the same latency, so an A/B compares sound rather than level. The chain's own Neutral and USB Condenser presets remain as fixed test cases for this check; the app resolves its chain from a voice profile.
 
 `scripts/check-voice-chain.swift` checks each stage against signals with known answers and reports what the preset does to the bank's USB-condenser takes:
 
@@ -135,15 +135,15 @@ On the bank's USB-condenser-at-a-desk take, full isolation took SNR from 23.4 to
 
 ## Voice profile check
 
-A voice profile (`Screendrop/VoiceProfile.swift`) is what the inspector asks for: the microphone (Generic or USB Condenser), a character (Clear, Broadcast, Warm, Bright), how strongly to apply it, whether to match the target curve, and a loudness target (-16 LUFS for spoken word, -14 LUFS where video platforms normalize). `VoiceProfileResolver` turns the profile and an analysis of the take into the chain:
+A voice profile (`Screendrop/VoiceProfile.swift`) is what the inspector asks for: a character (Clear or Broadcast), how strongly to apply it, and a loudness target (-14 LUFS by default, where video platforms normalize, or -16 LUFS for spoken word). Match EQ is on by default; its switch lives in the channel strip. Projects start with voice isolation at 75%. `VoiceProfileResolver` turns the profile and an analysis of the take into the chain:
 
 - **Input trim** brings the take to -26 LUFS, the level the chain's thresholds are written for.
-- **Microphone corrections** (high-pass, proximity control, de-esser, expander) apply in full; with match EQ off, the USB Condenser profile also cuts mud and harshness statically.
+- **Base corrections** for every voice (80 Hz high-pass, proximity control, de-esser, a gentle expander) apply in full, whatever the microphone. Mud and harshness are left to match EQ, which measures them.
 - **Character** EQ, compression, and saturation scale with intensity. The body band sits just above the voice's fundamental, found by autocorrelation pitch tracking (the spectrum cannot find it: the first formant outweighs the fundamental).
 - **Match EQ** pulls the long-term balance toward a target curve with six octave bells, at 70% of the measured difference, limited to -6 / +4.5 dB, and leaves alone bands with no content to speak of.
 - **Loudness**: the voice gain that lands chain, fader, and true-peak limiter on the target, refined until what the limiter takes off is added back.
 
-`Screendrop/RecordingVoiceAnalysis.swift` does the measuring offline on the narration the project plays (the isolation render when isolation is on): all of it up to three minutes, or six 30-second stretches spread from start to end of a longer recording. That keeps analysis and loudness matching near two seconds at any length (in a Release build; Debug runs the DSP 20-30x slower), and on a deliberately uneven 10- and 30-minute recording the sampled gain landed the whole recording within 0.25 LU of target. The analysis is saved in the project. The last profile used with each microphone is remembered, and a microphone never seen before starts on USB Condenser when its name says it is one (QuadCast, Yeti, and others).
+`Screendrop/RecordingVoiceAnalysis.swift` does the measuring offline on the narration the project plays (the isolation render when isolation is on): all of it up to three minutes, or six 30-second stretches spread from start to end of a longer recording. That keeps analysis and loudness matching near two seconds at any length (in a Release build; Debug runs the DSP 20-30x slower), and on a deliberately uneven 10- and 30-minute recording the sampled gain landed the whole recording within 0.25 LU of target. The analysis is saved in the project. The last profile used with each microphone is remembered; a microphone never seen before starts on the defaults.
 
 The target curve is the average of the bank's clean studio voices, a starting point. Rebuild it from narration you like and paste the output into `VoiceTargetCurve`:
 
@@ -156,13 +156,13 @@ build/voice-bank/bin/voice-bank target reference-1.wav reference-2.wav
 | Take | LUFS | True peak | SNR | Distance to target |
 |---|---|---|---|---|
 | Paulina raw | -25.5 | -11.8 | 21.8 | 2.5 dB |
-| Paulina, Broadcast | -16.0 | -1.1 | 32.4 | 1.5 dB |
+| Paulina, Broadcast | -14.1 | -1.1 | 26.8 | 1.6 dB |
 | Mónica raw | -25.2 | -11.1 | 17.6 | 3.9 dB |
-| Mónica, Clear | -16.0 | -1.1 | 24.9 | 2.7 dB |
+| Mónica, Clear | -14.1 | -1.1 | 22.5 | 2.8 dB |
 | Eddy raw | -25.1 | -7.6 | 27.0 | 5.7 dB |
-| Eddy, Clear | -16.1 | -1.1 | 42.3 | 5.8 dB |
+| Eddy, Clear | -14.1 | -1.1 | 32.5 | 5.4 dB |
 
-(Isolation 90%, USB Condenser, match EQ, intensity 60%, -16 LUFS. Eddy stops near 8 kHz, so match EQ leaves its top alone and its distance barely moves.)
+(At the defaults: isolation 75%, match EQ, intensity 60%, -14 LUFS. At 90% isolation and -16 LUFS the same takes gained 8-15 dB of SNR instead of 4-6: less room gets through, and less gain lifts it. Eddy stops near 8 kHz, so match EQ leaves its top alone and its distance barely moves.)
 
 ```bash
 xcrun swiftc -O Screendrop/VoiceProfile.swift Screendrop/RecordingVoiceAnalysis.swift \
