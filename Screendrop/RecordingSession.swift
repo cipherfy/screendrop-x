@@ -295,6 +295,10 @@ nonisolated struct CaptureManifest: Codable, Sendable, Equatable {
     var sourceDisplayID: UInt32?
     var includesSystemAudio = false
     var includesMicrophone = false
+    /// Which microphone recorded the narration, so a voice profile can be
+    /// remembered per microphone. Absent in older recordings.
+    var microphoneDeviceID: String?
+    var microphoneName: String?
     /// Where the camera movie's t=0 falls on the screen movie's timeline.
     /// Positive means the camera started after the screen recording.
     var cameraLeadIn: TimeInterval?

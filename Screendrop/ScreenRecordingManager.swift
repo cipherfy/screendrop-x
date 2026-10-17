@@ -261,6 +261,9 @@ final class ScreenRecordingManager {
                 manifest.pressEffectsEnabled = true
                 manifest.includesSystemAudio = options.capturesSystemAudio
                 manifest.includesMicrophone = options.microphoneDeviceID != nil
+                manifest.microphoneDeviceID = options.microphoneDeviceID
+                manifest.microphoneName = options.microphoneDeviceID
+                    .flatMap(RecordingDeviceCatalog.microphone(withID:))?.localizedName
                 if !cameraStarted {
                     manifest.cameraLeadIn = nil
                 }
