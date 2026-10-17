@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3163891C2F9DC05A002A7AF3"
-               BuildableName = "Screendrop.app"
+               BuildableName = "Screendrop Voice.app"
                BlueprintName = "Screendrop"
                ReferencedContainer = "container:Screendrop.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3163891C2F9DC05A002A7AF3"
-            BuildableName = "Screendrop.app"
+            BuildableName = "Screendrop Voice.app"
             BlueprintName = "Screendrop"
             ReferencedContainer = "container:Screendrop.xcodeproj">
          </BuildableReference>
@@ -63,7 +63,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3163891C2F9DC05A002A7AF3"
-            BuildableName = "Screendrop.app"
+            BuildableName = "Screendrop Voice.app"
             BlueprintName = "Screendrop"
             ReferencedContainer = "container:Screendrop.xcodeproj">
          </BuildableReference>

@@ -19,7 +19,7 @@ struct ScreendropApp: App {
     var body: some Scene {
         let _ = configurePreviewPresentation()
 
-        MenuBarExtra("Screendrop", image: "MenuBarIcon", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("Screendrop Voice", image: "MenuBarIcon", isInserted: $showMenuBarIcon) {
             MenuBarView()
         }
 

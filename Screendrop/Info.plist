@@ -18,21 +18,17 @@
 		</dict>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>Screendrop records your camera alongside the screen so you can add a camera bubble to recordings.</string>
+	<string>Screendrop Voice records your camera alongside the screen so you can add a camera bubble to recordings.</string>
 	<key>NSInputMonitoringUsageDescription</key>
-	<string>Screendrop needs input monitoring permission to show key press captions while recording.</string>
+	<string>Screendrop Voice needs input monitoring permission to show key press captions while recording.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Screendrop captures your microphone so recordings can include narration.</string>
+	<string>Screendrop Voice captures your microphone so recordings can include narration.</string>
 	<key>NSQuitAlwaysKeepsWindows</key>
 	<false/>
 	<key>NSScreenCaptureUsageDescription</key>
-	<string>Screendrop needs screen recording permission to capture screenshots.</string>
+	<string>Screendrop Voice needs screen recording permission to capture screenshots.</string>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
-	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/fayazara/screendrop/main/appcast.xml</string>
-	<key>SUPublicEDKey</key>
-	<string>MA/6n0fqT0T2updDlkXr8BjhJKoHWik9uf6Lh5pUG7U=</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
@@ -41,17 +37,17 @@
 				<string>public.json</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Screendrop Screenshot Preset</string>
+			<string>Screendrop Voice Screenshot Preset</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.fayazahmed.screendrop.preset</string>
+			<string>com.cipherfy.screendropvoice.preset</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
 				<array>
-					<string>screendroppreset</string>
+					<string>screendropvoicepreset</string>
 				</array>
 				<key>public.mime-type</key>
-				<string>application/vnd.screendrop.preset+json</string>
+				<string>application/vnd.screendropvoice.preset+json</string>
 			</dict>
 		</dict>
 	</array>

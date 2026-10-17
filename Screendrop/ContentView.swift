@@ -14,7 +14,7 @@ struct ContentView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
             
-            Text("Screendrop")
+            Text("Screendrop Voice")
                 .font(.title)
                 .fontWeight(.bold)
             
