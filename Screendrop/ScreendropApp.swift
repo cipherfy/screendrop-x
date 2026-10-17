@@ -16,10 +16,15 @@ struct ScreendropApp: App {
     @Environment(\.openWindow) var openWindow
     @AppStorage(ScreendropPreferences.showMenuBarIconKey) private var showMenuBarIcon = true
 
+    init() {
+        // Before any store reads its folder.
+        AppIdentity.migrateFromPreviousName()
+    }
+
     var body: some Scene {
         let _ = configurePreviewPresentation()
 
-        MenuBarExtra("Screendrop Voice", image: "MenuBarIcon", isInserted: $showMenuBarIcon) {
+        MenuBarExtra("Screendrop X", image: "MenuBarIcon", isInserted: $showMenuBarIcon) {
             MenuBarView()
         }
 

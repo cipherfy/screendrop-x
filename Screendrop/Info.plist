@@ -18,15 +18,15 @@
 		</dict>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>Screendrop Voice records your camera alongside the screen so you can add a camera bubble to recordings.</string>
+	<string>Screendrop X records your camera alongside the screen so you can add a camera bubble to recordings.</string>
 	<key>NSInputMonitoringUsageDescription</key>
-	<string>Screendrop Voice needs input monitoring permission to show key press captions while recording.</string>
+	<string>Screendrop X needs input monitoring permission to show key press captions while recording.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Screendrop Voice captures your microphone so recordings can include narration.</string>
+	<string>Screendrop X captures your microphone so recordings can include narration.</string>
 	<key>NSQuitAlwaysKeepsWindows</key>
 	<false/>
 	<key>NSScreenCaptureUsageDescription</key>
-	<string>Screendrop Voice needs screen recording permission to capture screenshots.</string>
+	<string>Screendrop X needs screen recording permission to capture screenshots.</string>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>UTExportedTypeDeclarations</key>
@@ -37,17 +37,17 @@
 				<string>public.json</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Screendrop Voice Screenshot Preset</string>
+			<string>Screendrop X Screenshot Preset</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.cipherfy.screendropvoice.preset</string>
+			<string>com.cipherfy.screendropx.preset</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
 				<array>
-					<string>screendropvoicepreset</string>
+					<string>screendropxpreset</string>
 				</array>
 				<key>public.mime-type</key>
-				<string>application/vnd.screendropvoice.preset+json</string>
+				<string>application/vnd.screendropx.preset+json</string>
 			</dict>
 		</dict>
 	</array>

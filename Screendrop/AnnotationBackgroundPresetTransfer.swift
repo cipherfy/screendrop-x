@@ -9,7 +9,7 @@ import UniformTypeIdentifiers
 
 extension UTType {
     static let screendropPreset = UTType(
-        exportedAs: "com.cipherfy.screendropvoice.preset",
+        exportedAs: "com.cipherfy.screendropx.preset",
         conformingTo: .json
     )
 }
@@ -20,7 +20,7 @@ extension UTType {
 struct AnnotationBackgroundPresetTransferFile: Codable {
     static let currentVersion = 1
     static let formatIdentifier = "screendrop-screenshot-presets"
-    static let filenameExtension = "screendropvoicepreset"
+    static let filenameExtension = "screendropxpreset"
     static let maximumFileSize = 1_000_000
     static let maximumPresetCount = 100
 

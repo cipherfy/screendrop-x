@@ -279,7 +279,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Screendrop/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Screendrop Voice";
+				INFOPLIST_KEY_CFBundleDisplayName = "Screendrop X";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -292,8 +292,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.35.3;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cipherfy.ScreendropVoice;
-				PRODUCT_NAME = "Screendrop Voice";
+				PRODUCT_BUNDLE_IDENTIFIER = com.cipherfy.ScreendropX;
+				PRODUCT_NAME = "Screendrop X";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -321,7 +321,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Screendrop/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Screendrop Voice";
+				INFOPLIST_KEY_CFBundleDisplayName = "Screendrop X";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -334,8 +334,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.35.3;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cipherfy.ScreendropVoice;
-				PRODUCT_NAME = "Screendrop Voice";
+				PRODUCT_BUNDLE_IDENTIFIER = com.cipherfy.ScreendropX;
+				PRODUCT_NAME = "Screendrop X";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -427,7 +427,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Screendrop/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Screendrop Voice Dev";
+				INFOPLIST_KEY_CFBundleDisplayName = "Screendrop X Dev";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -440,8 +440,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 0.35.3;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cipherfy.ScreendropVoice.dev;
-				PRODUCT_NAME = "Screendrop Voice Dev";
+				PRODUCT_BUNDLE_IDENTIFIER = com.cipherfy.ScreendropX.dev;
+				PRODUCT_NAME = "Screendrop X Dev";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;

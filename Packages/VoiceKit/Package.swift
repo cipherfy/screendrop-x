@@ -1,6 +1,6 @@
 // swift-tools-version: 6.2
 //
-// Screendrop Voice's audio engine: the voice chain, loudness and spectrum
+// Screendrop X's audio engine: the voice chain, loudness and spectrum
 // measurement, voice profiles, the per-track processing taps, voice
 // isolation, and the microphone check's analysis. No UI and no dependency
 // on the app, so it builds and tests on its own:
