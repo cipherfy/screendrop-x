@@ -1,0 +1,7 @@
+Hola, bienvenidos. En este tutorial vamos a ver, paso a paso, cómo configurar tu primer proyecto.
+
+Primero, abre el panel de ajustes y selecciona la pestaña de servicios. Si ves un aviso en rojo, no te preocupes: significa que todavía no has conectado tu cuenta.
+
+Ahora presiona el botón azul, el que dice "Conectar". Perfecto. Fíjate cómo aparecen las opciones de sincronización, las sesiones activas y el historial de cambios.
+
+Para terminar, guarda los cambios y comprueba que todo funcione. Así de simple. En el siguiente video veremos atajos, plantillas y algunos trucos para trabajar más rápido.

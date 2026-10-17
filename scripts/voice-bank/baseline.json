@@ -1,0 +1,7418 @@
+[
+  {
+    "file" : "eddy-boomy.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -17.29080139276793,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 5.175557248443065,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 3.3240543703660204,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 0.6652971946770778,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -4.109245365300195,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -7.1248972206263925,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -11.011717688112574,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -32.799314534583466,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -115.69211024497645,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -99.41446421530658,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.001267533516511321,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -23.872146665173435,
+      "loudnessRangeLU" : 1.2746436426040972,
+      "momentaryMaxLUFS" : -20.920648433276195,
+      "noiseFloorDBFS" : -150,
+      "samplePeakDBFS" : -7.733077404318505,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -22.979214087453574,
+      "speechLevelDBFS" : -18.88537394192895,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -24.310867100656925
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -23.6070936080238
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -23.566437309863716
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -19.58808895575156
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -18.53300377849522
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -16.666309948696536
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -5.658545179147353
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 4.987917159593149
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 6.609179844570773
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 3.488260924837453
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 2.042178480083214
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 4.743544449925545
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.694636452843641
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 0.24181107296436455
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 0.9633680070325035
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -0.49163499344760675
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -5.023651723312314
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -7.013027967331077
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -6.007429720520493
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -5.8839053200040015
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -9.90465212923524
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -8.577516723913906
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -13.991238768966115
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -10.518382803940787
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -15.262920602218692
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -68.59213634867024
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -109.70635736390665
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -120.23019850364508
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -108.85699824766776
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -96.18635659317832
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -114.0420131839849
+        }
+      ],
+      "truePeakDBTP" : -7.73194186125296
+    }
+  },
+  {
+    "file" : "eddy-clean.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -22.748599753472746,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.6845076353023938,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 4.099482368977878,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.6899572005347223,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -1.8689074842252666,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -4.861688788193005,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.747380463723392,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -30.53493403082376,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -113.44686701494686,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -97.1493818001612,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.0005046140286140144,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -25.999999707110465,
+      "loudnessRangeLU" : 1.558086132760934,
+      "momentaryMaxLUFS" : -22.847426834777448,
+      "noiseFloorDBFS" : -150,
+      "samplePeakDBFS" : -8.216829483172198,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -25.0669099544476,
+      "speechLevelDBFS" : -20.899567874074773,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -30.04300693215448
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -29.338466420649844
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -29.291056384449394
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -25.287678588945642
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -24.17342432358868
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -22.1898146317618
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -10.707888547873416
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.6334965409195785
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.1962998735999855
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.2263184728524128
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 2.091331180060049
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.79315188965375
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.309770677678679
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.2798315827631805
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.126709514840354
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.7313818085508135
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -2.7760184779020176
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -4.754975967028325
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -3.7453813819624378
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.620533691539531
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -7.640665385715436
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -6.313270386200024
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.72689960505523
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -8.254010534213995
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.998541091738808
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -66.32782053445786
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -107.4514451240416
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -118.01544602171768
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -106.5915634660775
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -93.9211179155636
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -111.80309580176134
+        }
+      ],
+      "truePeakDBTP" : -8.196146929658436
+    }
+  },
+  {
+    "file" : "eddy-harsh.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -22.887849525765386,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.5466522664726483,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 3.967367955493395,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.574485126157173,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -1.9303285709483946,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -4.586098495998695,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -5.5566201876240235,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -24.716575230082547,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -113.1195183311904,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -97.14485868959099,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.0005046144360676408,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -25.72563826002635,
+      "loudnessRangeLU" : 1.4421619900548102,
+      "momentaryMaxLUFS" : -22.767734961843942,
+      "noiseFloorDBFS" : -150,
+      "samplePeakDBFS" : -7.929165275054465,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.77807056150087,
+      "speechLevelDBFS" : -20.70025750159123,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -30.182736027153503
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -29.478214939032906
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -29.43075886883296
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -25.427250338232138
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -24.31288251362135
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -22.329181999161346
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -10.846628775431988
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.4950707522737535
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.058378812995995
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.0893637622744117
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 1.9568736170161483
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.661255916362032
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.181662239280433
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.160433274742784
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.0175790396116877
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.640342052159531
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -2.837575179091058
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -4.765369865714989
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -3.664076281818176
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.4141641551823687
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -7.176568220534363
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -5.330567165590656
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -9.612294414735663
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -4.224352612571814
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -7.455913273506748
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -61.342609258821675
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -105.21400645714368
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -117.78611379228309
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -106.37727251271536
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -93.92158789677742
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -111.9004468676626
+        }
+      ],
+      "truePeakDBTP" : -7.903031471829057
+    }
+  },
+  {
+    "file" : "eddy-hot.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -22.53267586302172,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.8262355367416871,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 4.268962646946698,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.624896616782835,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -2.4126602085382136,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -5.268141263634907,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.729037409848194,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -24.423533539009096,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -34.65062039435974,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -39.78929800596691,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 33954,
+      "dcOffset" : 0.005036891903728247,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -10.424497366415656,
+      "loudnessRangeLU" : 1.4533609749868344,
+      "momentaryMaxLUFS" : -7.567542811798579,
+      "noiseFloorDBFS" : -150,
+      "samplePeakDBFS" : 0,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -9.452573155925744,
+      "speechLevelDBFS" : -5.586883737566937,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -28.035750986368356
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -28.401873076216173
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -28.86045770884501
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -25.08941351204154
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -24.072467746787684
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -22.043441871338104
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -10.455761667445636
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.8824735462767905
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.3529089062512862
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.2286522623793827
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 2.3770113296972797
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.962137740423328
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.348651913409813
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.2825725304050906
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 2.979786303169978
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.4573164114931574
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -3.591566885530408
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -5.629625493500008
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -4.247683596679422
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.922857168286983
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -8.206787080677477
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -6.636890205431217
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -12.23011915264463
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -7.980506897976759
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.231967247988758
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -25.743042418400602
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -31.844811668072914
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -35.037437728927415
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -37.36028981835924
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -41.070261944410156
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -43.19659149077459
+        }
+      ],
+      "truePeakDBTP" : 0.3192533056326255
+    }
+  },
+  {
+    "file" : "eddy-hum.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -22.6429890581597,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.683783908728376,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 4.099675523462754,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.6901817161483272,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -1.8687028968002792,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -4.861484056658046,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.747149481223664,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -30.534674423082148,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -113.35375095148167,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -97.14789925852793,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.0005046618171036243,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -26.000064382131523,
+      "loudnessRangeLU" : 1.555846643482937,
+      "momentaryMaxLUFS" : -22.847964838630848,
+      "noiseFloorDBFS" : -67.56454484310711,
+      "samplePeakDBFS" : -8.22235920670609,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -25.066184587510627,
+      "speechLevelDBFS" : -20.899221200066687,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -30.04294662725877
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -29.33798238335725
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -29.29128969803113
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -25.287803231490038
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -24.121422290374742
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -21.68752297044991
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -10.707808507571775
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.6333036250596596
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.194762672850271
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.2261905707340401
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 2.0914157987542343
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.793356486845211
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.310217865220182
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.280036203440485
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.1269141538089427
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.7315864204517126
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -2.7758138675284427
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -4.754771398683626
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -3.7451767277628294
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.62032895959619
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -7.640460632225407
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -6.313065499980642
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.726692658053178
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -8.253778237055707
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.998210351780298
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -66.3275597370754
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -107.42857130669485
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -117.73747868507053
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -106.58451980175303
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -93.92087274892873
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -111.68438547181844
+        }
+      ],
+      "truePeakDBTP" : -8.201626895100928
+    }
+  },
+  {
+    "file" : "eddy-keyboard.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -22.214202477184983,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.7040357256442493,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 4.092772729319899,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.6826647135595416,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -1.875972344911444,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -4.861665037614289,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.676191654144244,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -25.732925569285108,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -30.750422959798417,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -35.49096909629918,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.0005831070593558252,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -25.98706413969901,
+      "loudnessRangeLU" : 1.527514838889708,
+      "momentaryMaxLUFS" : -22.847426834777448,
+      "noiseFloorDBFS" : -150,
+      "samplePeakDBFS" : -8.216829483172198,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -25.057099507455543,
+      "speechLevelDBFS" : -20.899567874074773,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -28.941323603281475
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -28.413724530729276
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -28.31480490779146
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -24.449145573666794
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -23.306976127408703
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -21.490014860145386
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -10.505701578102924
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.6758534471534878
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.205507842267203
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.2297675346524448
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 2.083721939635001
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.78667060400379
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.302315441486319
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.2728695984725884
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.1195893087025146
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.724181188721022
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -2.7833448519968074
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -4.761844792203435
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -3.7498640713128637
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.622920280736933
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -7.632560756180514
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -6.298368692988115
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.588324391721407
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -8.174439396644955
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.805519065350106
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -27.356925000113726
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -29.284980333569813
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -31.123518339062933
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -33.108315802598234
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -36.01259495633231
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -42.446486062393305
+        }
+      ],
+      "truePeakDBTP" : -8.196146929658436
+    }
+  },
+  {
+    "file" : "eddy-noisy.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -22.485698015698823,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.683718462080773,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 4.0997720377004905,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.6893127193436026,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -1.8682121713825763,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -4.859588050803574,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.74127256109288,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -29.363912871101412,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -35.67148055215665,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -35.669281771860774,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.00046117816236801445,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -25.997129472238335,
+      "loudnessRangeLU" : 1.5597071256034347,
+      "momentaryMaxLUFS" : -22.847502775329886,
+      "noiseFloorDBFS" : -57.70448713197685,
+      "samplePeakDBFS" : -8.239544343012883,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -25.065212794184724,
+      "speechLevelDBFS" : -20.893330575188852,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -28.570157446984883
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -28.206387325446244
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -28.26011818056804
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -24.685616587234914
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -23.77330256292893
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -21.904802285149746
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -10.694623296603611
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.6343505113353586
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.195011993107077
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.2248899252349508
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 2.0912255926233825
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.79297915814983
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.310534180999645
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.280187452085914
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.124772436404145
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.7319106353481954
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -2.7758550927055503
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -4.752046792251887
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -3.7463211306538193
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.618237002409156
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -7.636008076303629
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -6.311572671106807
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.71098756771907
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -8.24866653245396
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.976224340651495
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -35.657504178982094
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -35.66612430844112
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -35.659183025542966
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -35.687220801665084
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -35.66251421615325
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -35.65963670559682
+        }
+      ],
+      "truePeakDBTP" : -8.226010273161343
+    }
+  },
+  {
+    "file" : "eddy-quiet.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -22.74868685017548,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.6845765218917441,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 4.099551635902757,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.69000316935502,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -1.8688667301136617,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -4.861850010743273,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.749663438554093,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -30.541533814589528,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -103.3750147430746,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -95.87592811237074,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 6.352717900881544e-05,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -44.000000124770914,
+      "loudnessRangeLU" : 1.5580863425370595,
+      "momentaryMaxLUFS" : -40.84742724149301,
+      "noiseFloorDBFS" : -150,
+      "samplePeakDBFS" : -26.216828676263567,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -43.06691011645937,
+      "speechLevelDBFS" : -38.89956798916562,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -30.043108770996323
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -29.338531787076825
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -29.291083732364168
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -25.287687271064744
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -24.1734851910196
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -22.190021162130165
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -10.707852628317688
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.6335700322039278
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.196372551921332
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.226377614920713
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 2.091403112537835
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.7932248953683
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.309829809358376
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.279879336516562
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.126748472997699
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.7314254727215372
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -2.775966794878901
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -4.7549422172504325
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -3.7455443143546563
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.620543346810445
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -7.641102774631136
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -6.313583265182513
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.727101594491042
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -8.257809926165645
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -13.004573358878053
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -66.34045851482999
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -102.87211179290544
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -103.57637621547879
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -101.24209553120787
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -93.24966115702658
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -100.42886784714197
+        }
+      ],
+      "truePeakDBTP" : -26.196150605732917
+    }
+  },
+  {
+    "file" : "eddy-room.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -21.744839682767353,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.8334353244166541,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 3.947445013246554,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.7708924623777897,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -1.7912163348051438,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -4.833267567026727,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.784520939386194,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -30.55184920983144,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -105.23089247244732,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -96.99429080761928,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.002428828040137887,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -25.33442252005885,
+      "loudnessRangeLU" : 1.4708582123427263,
+      "momentaryMaxLUFS" : -22.075654156154883,
+      "noiseFloorDBFS" : -51.61968467421751,
+      "samplePeakDBFS" : -7.824239569356196,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.435257930731513,
+      "speechLevelDBFS" : -20.389748159964615,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -28.149091304870957
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -28.942636032275928
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -30.681854733239817
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -28.32557527145888
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -23.594286601361798
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -19.658437192033826
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -11.09300448760193
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.5564213366484532
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.5847354341567836
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.1928692843941275
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 2.0003488283291393
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.492890710095378
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.294444870645377
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.3564757522515247
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.461924900794291
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.5731670897462033
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -2.830720236505122
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -3.9992157449358734
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -3.85414762887925
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.5676049664865674
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -7.390581682396627
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -6.346141853059816
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.634953021908691
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -8.318373048926757
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -13.0281258574999
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -66.31018639031784
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -102.1654382844627
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -106.02624954175661
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -104.38139759343417
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -93.92557944896001
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -107.13918358990816
+        }
+      ],
+      "truePeakDBTP" : -7.812668701909913
+    }
+  },
+  {
+    "file" : "eddy-thin.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -27.445787458471315,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -2.5601640919776987,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 2.8306465119541304,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.031004380250451,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : 0.2721569415073299,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -2.608066030383478,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -6.488045948618391,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -28.275327443473177,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -111.18947211382752,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -94.89072326544672,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.00022540260397363454,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -28.01781002029784,
+      "loudnessRangeLU" : 1.8561271605743563,
+      "momentaryMaxLUFS" : -23.921021931088514,
+      "noiseFloorDBFS" : -150,
+      "samplePeakDBFS" : -7.182337167375199,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -26.973888846825172,
+      "speechLevelDBFS" : -22.65129438967666,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -34.78220725805027
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -34.0784026190746
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -34.0298681055658
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -30.022028803036676
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -28.89935701007034
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -26.899961286165496
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -15.33617014291285
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -3.8640645091676578
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -1.0719557521505962
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : -2.634621187297903
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : -0.3123279386069891
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 4.660798670953713
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.3272069987419535
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 3.564990829991497
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 4.910751358859841
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 3.788484271849959
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -0.5998514792489182
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -2.527328819965672
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -1.497555372679609
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -1.3661463323235077
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -5.3830995469266565
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -4.054419482821821
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -9.467584272053477
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -5.994482438424903
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -10.738830831560598
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -64.06814587263285
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -105.19542793104759
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -115.75565581881492
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -104.34295937127693
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -91.66181467763374
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -109.55761820019723
+        }
+      ],
+      "truePeakDBTP" : -7.179198781596773
+    }
+  },
+  {
+    "file" : "eddy-usb-condenser-desk-aac96.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -21.202894158620623,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.7143480932574173,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 3.8193467781290247,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.654062747550887,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -1.847190568938214,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -4.587543526467651,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -5.655214624974786,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -23.136393117293487,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -30.367683569469598,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -33.831998892951304,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.0024593472480773926,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -25.080411223479995,
+      "loudnessRangeLU" : 1.4379147897230276,
+      "momentaryMaxLUFS" : -21.98149929703744,
+      "noiseFloorDBFS" : -47.261822562493535,
+      "samplePeakDBFS" : -7.675670734494977,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.155970376677637,
+      "speechLevelDBFS" : -20.257128029077677,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -26.83051598514531
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -27.585734864891123
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -28.704536213283557
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -26.37838431242777
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -22.771364528980378
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -18.987656385714907
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -10.991038441868886
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.4682588368995628
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.449906222537349
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.0639334049831628
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 1.8686118934093496
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.367007309903984
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.165438543677715
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.237419871021441
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.3503349585888014
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.4941903698687462
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -2.896870472628142
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -4.028538626986786
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -3.807588137059043
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.385566926412515
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -6.965231025488973
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -5.4290903399587815
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -9.565250835041084
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -4.340378043544841
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -7.53445865634117
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -27.69609269426603
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -29.180415656698102
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -30.66253019226182
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -32.03379834311755
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -33.5648110037242
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -44.587070753926305
+        }
+      ],
+      "truePeakDBTP" : -7.647504894203218
+    }
+  },
+  {
+    "file" : "eddy-usb-condenser-desk.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -21.22338019026793,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.709369119428605,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 3.8108935608235606,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.6491997987961264,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -1.854987525450226,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -4.5541749401550975,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -5.563510732051544,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -22.94106655587626,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -30.29131870977231,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -33.2722300513771,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 0.0024639354087412357,
+      "duration" : 36.586666666666666,
+      "integratedLUFS" : -25.05977101665228,
+      "loudnessRangeLU" : 1.4465323172216067,
+      "momentaryMaxLUFS" : -21.995022834886843,
+      "noiseFloorDBFS" : -47.151725169024495,
+      "samplePeakDBFS" : -7.618160587686756,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.137716082846016,
+      "speechLevelDBFS" : -20.27528833217307,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -26.851595617544973
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -27.62796328554876
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -28.767314848517813
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -26.40708330681468
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -22.76144739149004
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -18.988389287287625
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -11.01284935934288
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : 0.4577624581843909
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 3.4501387670382018
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 1.053713145888418
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 1.860883601570499
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 5.356063141497113
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 4.161952258323953
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 2.2318904506703765
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.3452963199825625
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : 1.477537966654785
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -2.8960842710824912
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -4.0128567745353365
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -3.7766608545533504
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -3.3638718540834245
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -6.920874349032095
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -5.353872990035703
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -9.452654766279556
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -4.249083171087888
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -7.448998347416646
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -27.54848669431975
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -29.1481328011351
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -30.556327016880495
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -31.92850203931943
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -33.52054390127992
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -35.458597773271066
+        }
+      ],
+      "truePeakDBTP" : -7.592732443694089
+    }
+  },
+  {
+    "file" : "monica-boomy.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -26.438192931936605,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 0.7428011699518754,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.733131862965837,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.5790948849478674,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -7.531920667221708,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -17.2271411001778,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -14.434342274403289,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -16.632194944734742,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -20.293275943847146,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -101.77841573129088,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -0.00019167008576914668,
+      "duration" : 33.664,
+      "integratedLUFS" : -24.142963008190762,
+      "loudnessRangeLU" : 1.327619523896999,
+      "momentaryMaxLUFS" : -21.38407710347921,
+      "noiseFloorDBFS" : -42.97004845922058,
+      "samplePeakDBFS" : -10.368592438662896,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -23.049234060024002,
+      "speechLevelDBFS" : -19.26091366733269,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -30.121495757433358
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -28.8648017776012
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -28.29855793474989
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -24.408682873247443
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -24.429905235374463
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -26.800721981262235
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -24.856118071072807
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -20.645021167356575
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -3.528858614943295
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 8.18293950629346
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.685557825766477
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.2756947345065273
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 5.101156123023053
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 3.0062893442172234
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -0.6557274585307606
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -5.4369127755880164
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -6.404826261163512
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -12.71808902933299
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -18.14370841335836
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -18.49447085012705
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -15.862537659569476
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -16.625740436802772
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -13.741386318223391
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -14.43523472477803
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -14.051605650366986
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -16.76777838475719
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -22.05379562138209
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -18.851571033322752
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -91.79322168179093
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -102.1069617779402
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -90.33051197035405
+        }
+      ],
+      "truePeakDBTP" : -10.368585606096614
+    }
+  },
+  {
+    "file" : "monica-clean.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -32.38432515983823,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.8275732591814184,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.1516462863896395,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.1894909217763985,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.607357617452031,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -15.280080096269321,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -12.486573774268177,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -14.68438928314233,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -18.34547072004393,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -99.83210536257921,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -7.630541222169995e-05,
+      "duration" : 33.664,
+      "integratedLUFS" : -25.999999537549346,
+      "loudnessRangeLU" : 1.3670943915142288,
+      "momentaryMaxLUFS" : -23.03353420830135,
+      "noiseFloorDBFS" : -47.87919420785941,
+      "samplePeakDBFS" : -12.170413918466545,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.78711989577053,
+      "speechLevelDBFS" : -21.401778124403176,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -36.175062147551124
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -34.913604429292185
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -34.3387884920847
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -30.425626488092924
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -30.399878832978228
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -32.6668757412008
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -30.361920769303765
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -25.28138036221829
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -6.77905785925253
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 6.206173285079136
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.058063691406728
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.8312863392222531
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.511860424094996
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.686008842008386
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.1826380576373068
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.5246201754133697
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.475333922317944
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.776908522179163
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -16.198483503194282
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.547586461995945
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -13.915133607842318
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -14.678075909888396
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.793633595626648
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -12.487443311491875
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.103802046968282
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -14.819972393834295
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -20.105991991325418
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.903765571801458
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -89.84526854755913
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -100.15928511584129
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -88.3839876567579
+        }
+      ],
+      "truePeakDBTP" : -12.170293059206728
+    }
+  },
+  {
+    "file" : "monica-harsh.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -32.47956541592775,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.9202869362687554,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.061657642239457,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.112335164927098,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.630487857662482,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.813162458470806,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.952426439757945,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -9.932595689225806,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.343353214974968,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -99.7842943536838,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -7.630541222169995e-05,
+      "duration" : 33.664,
+      "integratedLUFS" : -25.778318554487505,
+      "loudnessRangeLU" : 1.4273904829082262,
+      "momentaryMaxLUFS" : -22.98035770810944,
+      "noiseFloorDBFS" : -47.696736027866336,
+      "samplePeakDBFS" : -11.924020070979767,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.54178574277952,
+      "speechLevelDBFS" : -21.381709189532284,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -36.27060501482411
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -35.00909415479717
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -34.43418339642642
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -30.520926961170808
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -30.49512644456304
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -32.76197677342851
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -30.456624694821354
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -25.375561167902024
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -6.87231251857714
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 6.11394398265507
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 5.967359132729085
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.743190229953748
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.4292216432191935
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.60920966486369
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.1165685398714196
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.5670074643546217
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.496246448106106
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.745291698691657
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -16.08996000323418
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.273312722674945
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -13.40079580885601
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -13.669002396648848
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -9.80934675063456
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -8.369397206273117
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -6.510297121780242
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -10.659858625862096
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -18.371940518870392
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.0275611634797
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -89.43085765868065
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -100.13749363407483
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -88.46998370844737
+        }
+      ],
+      "truePeakDBTP" : -11.915382960034865
+    }
+  },
+  {
+    "file" : "monica-hot.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -32.66621988641009,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.8095852330192583,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.166259808486093,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.179269738527266,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.761919758957411,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.998440274288347,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -12.498390945540498,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -14.51768722860416,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -18.229178656423734,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -48.61437365763025,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 30025,
+      "dcOffset" : -0.002180973067879677,
+      "duration" : 33.664,
+      "integratedLUFS" : -10.141941878766383,
+      "loudnessRangeLU" : 1.4125126625447013,
+      "momentaryMaxLUFS" : -7.10050641664078,
+      "noiseFloorDBFS" : -31.879193146007538,
+      "samplePeakDBFS" : 0,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -8.905211221965638,
+      "speechLevelDBFS" : -5.484251119456949,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -34.78228905575543
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -34.826007688188916
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -34.676062023382386
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -30.925611230085753
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -30.886843544226238
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -32.777437424712026
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -30.22712827845936
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -25.163226260159107
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -6.678217665461148
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 6.219767302468395
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.043314960062594
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.9172768209410007
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.5327864453270585
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.66444207065652
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.1238032326373413
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.746554298329894
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.587739446719027
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.936307145674409
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.671053345857153
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.070863234231894
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -13.650479735372805
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -15.036895842785135
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.822274004651842
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -12.457107391266337
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -11.934760138287304
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -14.655762730959047
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -19.95671927411342
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.797102655535888
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -45.727765585359954
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -49.974104057043895
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -52.643790355372886
+        }
+      ],
+      "truePeakDBTP" : 0.10723629529067318
+    }
+  },
+  {
+    "file" : "monica-hum.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -31.427226348969633,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.8270403414035397,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.151544514709327,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.189471166112759,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.607347121017391,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -15.280069688347098,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -12.486563141666702,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -14.684378685981688,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -18.345460092894154,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -99.83351514047881,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -7.626277511008084e-05,
+      "duration" : 33.664,
+      "integratedLUFS" : -25.999947573792678,
+      "loudnessRangeLU" : 1.3667485879364172,
+      "momentaryMaxLUFS" : -23.033039936073298,
+      "noiseFloorDBFS" : -47.75919235292537,
+      "samplePeakDBFS" : -12.165223739907061,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.788036446388453,
+      "speechLevelDBFS" : -21.395559545342206,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -36.17528155150947
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -34.9132122881477
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -34.33928493818947
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -30.42595649971763
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -30.138531831167242
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -28.74223119805963
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -30.34780887722797
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -25.267106840982557
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -6.774374546535627
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 6.206255949931383
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.058007038133194
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.8312983058960262
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.511588338683331
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.686019354666976
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.1826486462769332
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.524609671161883
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.475323403335248
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.776898041113121
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -16.198472964152668
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.547576190585463
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -13.915123220057222
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -14.67806519431004
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.79362306063786
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -12.487432594330697
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.103791530850767
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -14.819961669568528
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -20.105981100217846
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.903755069281363
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -89.84609238021048
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -100.16137526413758
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -88.38310317646648
+        }
+      ],
+      "truePeakDBTP" : -12.165100327056503
+    }
+  },
+  {
+    "file" : "monica-keyboard.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -29.161228885222272,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.8080783590515295,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.147431156191158,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.186217508911888,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.609851147508133,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -15.232361822394525,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -12.33148795714479,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -14.510447761845938,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -18.155921587238343,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -36.336324506109115,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -5.095117103337543e-06,
+      "duration" : 33.664,
+      "integratedLUFS" : -25.99128077215561,
+      "loudnessRangeLU" : 1.3839271876944075,
+      "momentaryMaxLUFS" : -23.03353420830135,
+      "noiseFloorDBFS" : -46.104476329305385,
+      "samplePeakDBFS" : -12.064424676514346,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.787119895770534,
+      "speechLevelDBFS" : -21.401778124403176,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -33.004810173554134
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -32.3019187109411
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -31.848361784498145
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -28.368143143232025
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -28.121713812558706
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -28.371000005578445
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -24.09545968607583
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -20.374857147443414
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -6.686583037430777
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 6.198835334328795
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.053586694046954
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.8285316395054871
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.5094868612272725
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.682367640253225
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.1789175720363982
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.5273964465400858
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.47791640864281
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.778399124186004
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -16.185023554004708
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.50670689697248
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -13.865410769507509
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -14.552323328379016
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.683183616171767
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -12.281130022631316
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -11.975986143464095
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -14.63661079573325
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -19.688077593212675
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.776106206703936
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -34.028507333055586
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -36.83265341086032
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -43.27953743059628
+        }
+      ],
+      "truePeakDBTP" : -12.057661288951785
+    }
+  },
+  {
+    "file" : "monica-noisy.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -30.800013582678815,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.8279002232798849,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.151147257853763,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.188640193103362,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.603843407423369,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -15.241619554400271,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -12.467608068612265,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -14.65501154731655,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -18.26796300585225,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -35.844065307816244,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -0.00012633627920877188,
+      "duration" : 33.664,
+      "integratedLUFS" : -25.997947705975186,
+      "loudnessRangeLU" : 1.3635873956378894,
+      "momentaryMaxLUFS" : -23.034151671492367,
+      "noiseFloorDBFS" : -47.493932125546145,
+      "samplePeakDBFS" : -12.15826074570707,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.784323554621768,
+      "speechLevelDBFS" : -21.40746540685216,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -31.990550458786593
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -32.220581291545486
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -32.3208067171485
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -29.02183374990237
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -29.313517891863206
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -31.107471843014608
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -29.008795572437375
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -24.985833057150714
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -6.782575631988869
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 6.20544281156877
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.057244632960906
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.8301283092385223
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.510818841442386
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.685825280023417
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.1824124037292334
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.522351586719357
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.472296638418582
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.760774629810532
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -16.13813217838379
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.494357472407135
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -13.887553035387505
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -14.648490201222806
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.776394602758911
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -12.468106868123245
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.089538488334268
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -14.791247456958194
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -19.998664001270452
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.845216046175867
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -35.86378158172819
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -35.83703894147112
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -35.83297540095043
+        }
+      ],
+      "truePeakDBTP" : -12.151694483256428
+    }
+  },
+  {
+    "file" : "monica-quiet.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -32.38734497431121,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.8288449345176567,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.151774833885748,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.189665019120969,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.607183271591688,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -15.27990814487919,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -12.486836548334718,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -14.685992762878543,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -18.346601579735974,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -97.60223909219735,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -9.606265848560724e-06,
+      "duration" : 33.664,
+      "integratedLUFS" : -43.99999997276518,
+      "loudnessRangeLU" : 1.367094358335251,
+      "momentaryMaxLUFS" : -41.03353450831982,
+      "noiseFloorDBFS" : -65.87919289476987,
+      "samplePeakDBFS" : -30.17042327486044,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -42.78712037172435,
+      "speechLevelDBFS" : -39.40177877805147,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -36.177379890837514
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -34.9152907422745
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -34.34053843543252
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -30.427573272885144
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -30.402987207763616
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -32.67148467849636
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -30.368506150813328
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -25.29043095908635
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -6.782394442674232
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 6.205769861194057
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.058222119667129
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.8314555859574624
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.512033630418185
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.686183080222752
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.1828122808125516
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.524445954951678
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.475159559730857
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.77673428606391
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -16.198309187538527
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.547416319849777
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -13.914962096409162
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -14.677903690669167
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.793694409839546
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -12.48798865013703
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.104597169138136
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -14.821963580115131
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -20.10789371543549
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.90471428736066
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -89.61358690352453
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -97.74505384911306
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -88.12065971855407
+        }
+      ],
+      "truePeakDBTP" : -30.17030014184332
+    }
+  },
+  {
+    "file" : "monica-room.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -32.25420174424529,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.6034024020742932,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 4.9676925997902,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.321538789056384,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.5304850111599055,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -15.055762999987586,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -12.386556712205994,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -14.686399133530427,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -18.573836669604276,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -99.92678146413735,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -0.00036717872717417777,
+      "duration" : 33.664,
+      "integratedLUFS" : -25.443602478950556,
+      "loudnessRangeLU" : 1.5876568478385522,
+      "momentaryMaxLUFS" : -22.156695311508415,
+      "noiseFloorDBFS" : -39.223520571261254,
+      "samplePeakDBFS" : -11.18239165052003,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.17780181543887,
+      "speechLevelDBFS" : -20.748228075424542,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -34.139549321203006
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -34.48006552943697
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -35.65056671628172
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -33.34216420537045
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -30.44358799081398
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -29.49776125756584
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -29.994421182439282
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -25.838885170080758
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -5.489106250502685
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 5.876263633175352
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.086084224690059
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.6198630558461045
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.389812223534335
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.987379064110885
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.7213410533231601
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.62034881466864
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.444055968729347
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -9.934847800183778
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -16.108348776836735
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.443367491080963
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -13.490417271869156
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -14.631014392660823
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -11.611369997090975
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -12.402110433893663
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -12.084890024758126
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -14.855787241194715
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -20.191844402812713
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -17.168543040308396
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -89.97749824354223
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -100.18956855454748
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -88.59567175398217
+        }
+      ],
+      "truePeakDBTP" : -11.18239165052003
+    }
+  },
+  {
+    "file" : "monica-thin.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -36.6271574386647,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -5.214462986299484,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 3.335135492365227,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 5.6356176217223,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -2.978926655719915,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -12.540942949262515,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -9.743867066911168,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -11.941484420563738,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -15.602551678299285,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -97.08999835306933,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -3.4084514481946826e-05,
+      "duration" : 33.664,
+      "integratedLUFS" : -28.578055937561274,
+      "loudnessRangeLU" : 1.2898574678411556,
+      "momentaryMaxLUFS" : -25.896315339549414,
+      "noiseFloorDBFS" : -53.399768493401695,
+      "samplePeakDBFS" : -14.137294812275664,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -27.445261144104755,
+      "speechLevelDBFS" : -24.1205637033124,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -40.43431185839747
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -39.17167112164038
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -38.59432948141961
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -34.677889285254075
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -34.647076558697066
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -36.89968388136134
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -34.53601412218554
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -29.2923787810118
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -10.427926218919467
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 3.1031674003257326
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 3.835417016838149
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 0.9096986826673568
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 7.303876563800803
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 6.303258684801353
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 3.414189341316998
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -0.9556552552765476
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -1.8232588716398825
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -8.067014324047575
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -13.468953549388935
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -13.809296582941414
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -11.174189591892219
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -11.935907291471093
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -9.051006368312912
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -9.744621518133048
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -9.360914518006226
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -12.077063059042095
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -17.363077625421845
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -14.160845721560683
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -87.10331259284088
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -97.41859847133748
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -85.64052043573307
+        }
+      ],
+      "truePeakDBTP" : -14.137294812275664
+    }
+  },
+  {
+    "file" : "monica-usb-condenser-desk-aac96.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -28.229842098584225,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.6757698579875373,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 4.878272772008914,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.241982399662409,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.552983489534703,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.562973021906112,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.896531822505999,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -10.033301815398215,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.552292809165813,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -34.26401100901121,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -0.0003453656390774995,
+      "duration" : 33.664,
+      "integratedLUFS" : -25.225045141978107,
+      "loudnessRangeLU" : 1.557944607399783,
+      "momentaryMaxLUFS" : -22.113637384965116,
+      "noiseFloorDBFS" : -38.3746936026135,
+      "samplePeakDBFS" : -11.052156163168874,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -23.94930935506499,
+      "speechLevelDBFS" : -20.732779447376352,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -30.051443997643954
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -30.74196944793997
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -31.460598387768695
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -29.00263400967011
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -27.697023692893946
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -25.43409558063614
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -24.0647303528829
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -20.87832107457194
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -5.505735291213458
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 5.780259412570529
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 5.995613520568478
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.5331864343842998
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.303801421388059
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.910827845215751
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.6521793337258268
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.6630093760749527
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.463270915668442
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -9.918285534399397
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.974837034753396
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.13477664576387
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -12.965806147796046
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -13.572555687772264
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -9.64089038671203
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -8.301958473815853
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -6.586416487799886
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -10.813762799603664
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -18.239320899344055
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.35426779102276
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -32.61857100497701
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -33.89675486104724
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -44.73796176232984
+        }
+      ],
+      "truePeakDBTP" : -11.045431119362645
+    }
+  },
+  {
+    "file" : "monica-usb-condenser-desk.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -28.23255914753851,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : -1.6806374912920106,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 4.872612586340685,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 4.2394526662136425,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -5.552365992496268,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.525341711787206,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -8.810257638620804,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -9.867872851943352,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.37838594443043,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -33.66419810436598,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -0.00034595534089021385,
+      "duration" : 33.664,
+      "integratedLUFS" : -25.211154728589992,
+      "loudnessRangeLU" : 1.5585095118918488,
+      "momentaryMaxLUFS" : -22.105583077246404,
+      "noiseFloorDBFS" : -38.381832085055834,
+      "samplePeakDBFS" : -11.107870596239298,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -23.936093934069255,
+      "speechLevelDBFS" : -20.73709744757588,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -30.065715512477055
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -30.75726132515051
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -31.486844915777937
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -29.017059359273283
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -27.686377155307227
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -25.426135450554312
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -24.077426203012635
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -20.898432078132526
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -5.51807592369586
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 5.775840614194534
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 5.98983155517053
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : 1.5271372213585055
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 6.302046068000232
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 4.905345801487522
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : 1.651052947909374
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -3.6650767400795297
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -4.464319531017839
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -9.896403669048096
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.939300292800189
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -16.095663654347852
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -12.925026717406297
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -13.52309934280656
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -9.577664916066794
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -8.196092520856746
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -6.465502360918348
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -10.628659862270734
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -18.145910983782695
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.153875813557526
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -32.44394188410224
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -33.891639545805845
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -35.67509196661928
+        }
+      ],
+      "truePeakDBTP" : -11.107870596239298
+    }
+  },
+  {
+    "file" : "paulina-boomy.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -24.790600755145476,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 4.075278434306569,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 6.003445953290351,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -3.890823951995401,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -14.472354927604368,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -17.74794067825465,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -21.244634647843476,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -24.335038915349884,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -20.52016078316231,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -104.3481066241213,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -0.00017019234655890614,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -22.776763600945024,
+      "loudnessRangeLU" : 1.3677796625573748,
+      "momentaryMaxLUFS" : -19.324464962946344,
+      "noiseFloorDBFS" : -71.85694338830079,
+      "samplePeakDBFS" : -10.658111732307454,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -21.76490898713318,
+      "speechLevelDBFS" : -17.586223366747483,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -28.9479659839459
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -27.72427699820913
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -26.044662464831234
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -21.81355824289377
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -22.762256559813675
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -26.45010401686312
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -24.53074311255529
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -13.694125236427903
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 1.8364125875102686
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.976923528142544
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 5.91856548335084
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -5.876887201096781
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 0.1939769621801395
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -5.683240560174589
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -8.419340671821331
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -13.849121300945875
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -13.747299248692777
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -14.877389167509673
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -18.694117258306242
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -18.95858771774152
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -15.857220540339839
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -19.050830038149055
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -18.76152855166971
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -27.503051719513895
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -27.52286121185104
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -26.286805202043368
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -19.296094797152435
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -21.141691948483057
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -99.73724813627373
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -105.96286489136631
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -92.21898647532028
+        }
+      ],
+      "truePeakDBTP" : -10.656244348071581
+    }
+  },
+  {
+    "file" : "paulina-clean.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -29.39316351412778,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 2.8189493106856327,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 6.205815781923087,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -0.977272764760534,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -11.178442092490839,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.437032529400247,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -17.93144134874292,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -21.0170998977673,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.207630906807974,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -101.0381189137261,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -6.775503425160423e-05,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -25.999999469791113,
+      "loudnessRangeLU" : 1.3576955275317992,
+      "momentaryMaxLUFS" : -22.344449298985648,
+      "noiseFloorDBFS" : -72.66873033258088,
+      "samplePeakDBFS" : -12.521309934576177,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -25.04476817171106,
+      "speechLevelDBFS" : -20.886763042731186,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -33.63608748371226
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -32.417622436489154
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -30.72693761456196
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -26.46846482515806
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -27.367968991387535
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -30.957102740632067
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -28.659254859828017
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -16.725740297505148
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -0.40337420666259916
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.345386017981141
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.499934062737667
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.7556941512344078
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.949144047190262
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.6480925983785264
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -5.208904204693962
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.578454157075981
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.451439272457081
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -11.57307125912885
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.385677132684737
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.648021491810473
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -12.54538670429458
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -15.738998960103148
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -15.449381698965333
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -24.179664219844184
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -24.207774669514038
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -22.961049821598273
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -15.983300700278653
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -17.82891918995643
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -96.42385129674864
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -102.65430697770441
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -88.90941525146283
+        }
+      ],
+      "truePeakDBTP" : -12.521309934576177
+    }
+  },
+  {
+    "file" : "paulina-harsh.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -29.41566657969418,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 2.7989607777031815,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 6.187404525982028,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -0.9831634520482262,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -11.109176418490774,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -13.944885558284575,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -15.816958155252895,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -17.6881302130528,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -15.925701271650365,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -100.9188520513141,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -6.775495421607047e-05,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -25.952357302642742,
+      "loudnessRangeLU" : 1.337607675312217,
+      "momentaryMaxLUFS" : -22.32603802948869,
+      "noiseFloorDBFS" : -71.85752054615722,
+      "samplePeakDBFS" : -12.404446632775443,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.998273531996407,
+      "speechLevelDBFS" : -20.875533032400426,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -33.65883156631601
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -32.44051789211481
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -30.749705911696346
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -26.491000879215434
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -27.390403260335514
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -30.979417029626166
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -28.681158602999016
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -16.74697100446672
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -0.42413010732642364
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.325876815921335
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.481670431911928
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.77043646143023
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.9389716976372315
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.6526069009217803
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -5.200873181274741
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.551811257429529
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.391770833991226
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -11.469745758023961
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.200916252899274
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.271616952709712
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -11.990183190927082
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -14.620814638755881
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -13.52712721719884
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -19.928147419061247
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -18.488702605176876
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -19.39070094525115
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -14.285793138364744
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.86055739478614
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -95.96471023261758
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -102.54450688967823
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -88.92065455719
+        }
+      ],
+      "truePeakDBTP" : -12.4006292564874
+    }
+  },
+  {
+    "file" : "paulina-hot.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -29.790901103113796,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 2.8458846691796436,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 6.2307859346520935,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -1.194300381462514,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -10.923056269542462,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.373530925943118,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -18.03204012096893,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -20.90252046821364,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.10398381860226,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -54.73745647380339,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 28298,
+      "dcOffset" : -0.0017925737192854285,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -10.117966372131756,
+      "loudnessRangeLU" : 1.3370039925247603,
+      "momentaryMaxLUFS" : -6.356485114578773,
+      "noiseFloorDBFS" : -56.668718256126596,
+      "samplePeakDBFS" : 0,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -9.17662875938561,
+      "speechLevelDBFS" : -5.020918280746552,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -33.02800241075182
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -33.00986191268022
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -31.330083391094774
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -26.987146381347525
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -27.74524306291341
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -31.07099210467515
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -28.569490446711097
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -16.610047503089362
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -0.3164388014483842
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.364724656145597
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.535321065397256
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.6933923585754003
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.79900388868005
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.8522352028574516
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -5.703219821640568
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.554587581812118
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.081886906126634
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -11.31722572899575
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.332697474820524
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.500960998962292
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -12.472359836008804
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -16.05306901091086
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -15.470003380326451
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -23.87186510045941
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -24.1051093177336
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -22.80791566921449
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -15.87538545738023
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -17.730430454706543
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -52.162772421727695
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -55.6470348198129
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -58.322831865390505
+        }
+      ],
+      "truePeakDBTP" : 0.08512530871639884
+    }
+  },
+  {
+    "file" : "paulina-hum.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -28.93776847637295,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 2.818925471169238,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 6.2058779762323315,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -0.9774788169163972,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -11.178614933780107,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.437205367472906,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -17.93161383686251,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -21.017272964884125,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.20780345558977,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -101.0394852636297,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -6.77514763083309e-05,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -25.99980069125784,
+      "loudnessRangeLU" : 1.3586744311238519,
+      "momentaryMaxLUFS" : -22.343975991095466,
+      "noiseFloorDBFS" : -66.316961660833,
+      "samplePeakDBFS" : -12.505828682696325,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -25.044510915328548,
+      "speechLevelDBFS" : -20.883366508454344,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -33.63601048109829
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -32.418128537294216
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -30.726764467931616
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -26.468304606430717
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -27.22454685714726
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -28.22899649550618
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -28.659344000037912
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -16.725805434228576
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -0.4025931663052824
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.345309853107135
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.5001402608890775
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.7558684964453306
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.948886987018542
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.648265443179054
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -5.2090770186997615
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.578627039015963
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.451612141656017
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -11.573244110290656
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.385849774432845
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.64819447731822
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -12.545559566792157
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -15.73917132184129
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -15.449554405093437
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -24.179836351164973
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -24.207947230950793
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -22.961222900498942
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -15.983473758066438
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -17.82909128717462
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -96.42497613686663
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -102.65608657711968
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -88.90858431358858
+        }
+      ],
+      "truePeakDBTP" : -12.505828682696325
+    }
+  },
+  {
+    "file" : "paulina-keyboard.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -27.55433879166015,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 2.8279622872682237,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 6.2002553754143905,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -0.9830340021528814,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -11.181417645825293,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.403369968023101,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -17.42734785668078,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -20.315955140511313,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.065487973458705,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -36.55325525383658,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : 4.5951637730468065e-06,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -25.988426484248027,
+      "loudnessRangeLU" : 1.3520607511901694,
+      "momentaryMaxLUFS" : -22.339947697019195,
+      "noiseFloorDBFS" : -65.30278651973042,
+      "samplePeakDBFS" : -11.404483084107568,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -25.030374891826753,
+      "speechLevelDBFS" : -20.886763042731186,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -32.04939743421458
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -31.180299982528524
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -29.649349363903372
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -25.560751866132783
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -26.051376582227135
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -27.879185070533463
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -23.64000634710721
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -15.648756804688961
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -0.3875329180028897
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.342395474025366
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.494893455286903
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.760798667977277
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.943543969790616
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.65377655821869
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -5.214969555078817
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.583300599196022
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.456782167530296
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -11.575254979770396
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.372145737787017
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.62145745610823
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -12.517399109086805
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -15.579506485113704
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -15.20388878570311
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -21.904184091287306
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -22.458860931477748
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -21.86845104800073
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -15.833332618800425
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -17.68184772945783
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -34.17884798842551
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -37.07968424668124
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -43.45539311062046
+        }
+      ],
+      "truePeakDBTP" : -11.404483084107568
+    }
+  },
+  {
+    "file" : "paulina-noisy.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -28.52782205938177,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 2.8193935594983084,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 6.204590749301157,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -0.977153419632074,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -11.166249924839438,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.408798910667791,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -17.867451051299945,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -20.88707013668211,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.15034507504322,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -36.11380070393024,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -9.640819916967303e-05,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -25.99768153544993,
+      "loudnessRangeLU" : 1.3559147329049104,
+      "momentaryMaxLUFS" : -22.341827719659577,
+      "noiseFloorDBFS" : -56.960484766891916,
+      "samplePeakDBFS" : -12.464579718380035,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -25.041390908296513,
+      "speechLevelDBFS" : -20.878539123241517,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -31.152529548249017
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -30.68763844210253
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -29.64446749759443
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -25.785468582594902
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -26.83763485205236
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -30.01444719666434
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -27.673773406057656
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -16.677034507557124
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -0.4047094140646702
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.345278840223308
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.4969587195495615
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.751036531868815
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.9497895577058846
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.648438825885164
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -5.210729153429994
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.568895021769393
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.44215598425797
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -11.555071579245759
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.354615596872199
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.609071375890162
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -12.527626957803033
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -15.701218109168655
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -15.411648793756827
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -23.92038469512196
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -23.938186847467687
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -22.760696952668987
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -15.942032842229976
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -17.76092942499725
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -36.125174762762434
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -36.117450955136455
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -36.09929819077206
+        }
+      ],
+      "truePeakDBTP" : -12.461991033015419
+    }
+  },
+  {
+    "file" : "paulina-quiet.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -29.392297594227088,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 2.81981757486978,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 6.20668396610311,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -0.9764115744625708,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -11.177641792693574,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.438239224368587,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -17.935475941209546,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -21.54300839357516,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.481808148111455,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -98.42091323168333,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -8.529845217708498e-06,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -43.99999996304075,
+      "loudnessRangeLU" : 1.3576954211984145,
+      "momentaryMaxLUFS" : -40.344449416268596,
+      "noiseFloorDBFS" : -90.66915876805939,
+      "samplePeakDBFS" : -30.521323462456074,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -43.044768748806135,
+      "speechLevelDBFS" : -38.88676349660158,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -33.635230938186716
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -32.41676169457566
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -30.72606890284495
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -26.46760027253805
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -27.367106483980645
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -30.95622956970037
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -28.658387085540472
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -16.724873005949078
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -0.40250622963737726
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.346254331830792
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.5008022880204
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.7548268717585342
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.9500109718397116
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.6472319876901134
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -5.208061473251872
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.577676704241785
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.450610665523053
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -11.572289984953883
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.384963794873697
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.650337929562097
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -12.546934739190473
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -15.739721765532735
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -15.450530527882766
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -24.20081458620125
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -24.32992649811296
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -24.011518015733074
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -16.294430937036623
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -18.088823518533374
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -95.68818309962616
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -99.16928719861505
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -88.62895864791236
+        }
+      ],
+      "truePeakDBTP" : -30.521323462456074
+    }
+  },
+  {
+    "file" : "paulina-room.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -29.671092915839576,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 3.0993412283198447,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 6.018157571942259,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -0.8747849486544773,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -10.6466016912466,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -14.119145441483711,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -17.71029012500685,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -21.04167809666622,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -17.250055123588275,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -101.13532272860793,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -0.00032603551517240703,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -25.53351205492816,
+      "loudnessRangeLU" : 1.4124363729287879,
+      "momentaryMaxLUFS" : -22.12962115187187,
+      "noiseFloorDBFS" : -43.17016651531282,
+      "samplePeakDBFS" : -12.296864673671879,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.449823904764905,
+      "speechLevelDBFS" : -20.362093536690047,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -31.57212983444041
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -31.90593579797082
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -32.19992136131894
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -29.340693257970692
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -27.515826639913612
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -27.644086093263027
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -28.664966904975884
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -18.390166086638512
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 0.5956544426643374
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.089375768434223
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.770322388224816
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.9743103682597596
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.926700488381844
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.3331698911351677
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -4.473489181198623
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.630323673787991
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.239974231833958
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.288494557131745
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.29575922211147
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.549343697424575
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -12.002673032938612
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -15.618730465747284
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -15.125301508399268
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -24.081997653659776
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -24.094440424704207
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -22.920580573618082
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -15.961177225071793
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -18.0075199115609
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -96.4989978257153
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -102.54664825080465
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -89.19488063697497
+        }
+      ],
+      "truePeakDBTP" : -12.293888946639642
+    }
+  },
+  {
+    "file" : "paulina-thin.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -31.819933721458455,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 1.2448722517784214,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.578972151426742,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : 2.0957998388948047,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -6.702361055328186,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -9.880443333943946,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -13.371122965302348,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -16.456662285233076,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -12.647192690987897,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -96.47528565481869,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -3.0265098757809028e-05,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -30.36734235815918,
+      "loudnessRangeLU" : 1.2964080311182151,
+      "momentaryMaxLUFS" : -27.15126033312406,
+      "noiseFloorDBFS" : -73.07417543135303,
+      "samplePeakDBFS" : -14.177821457754785,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -29.410955200800196,
+      "speechLevelDBFS" : -25.493449595456674,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -36.07600084206877
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -34.861458670232906
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -33.16787310081047
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -28.90234581309523
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -29.794898645782574
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -33.37034994314594
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -31.009443901836946
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -18.863027501344305
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : -2.337138552676706
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 9.039933309295877
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 5.947441592325316
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -2.5551241451100077
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 5.4993433527216515
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : 0.7541723779154457
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -1.1206077790620603
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -6.216304084976866
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -5.966359532655621
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -7.046004257989333
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -10.838223299005861
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -11.091622175223323
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -7.98670909692257
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -11.179233652661903
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -10.88922415822587
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -19.616968124087784
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -19.64722589372947
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -18.400628585352614
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -11.422889903941705
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -13.268453019304772
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -91.86347578111179
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -98.092713743492
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -84.34711018420509
+        }
+      ],
+      "truePeakDBTP" : -14.176131273498203
+    }
+  },
+  {
+    "file" : "paulina-usb-condenser-desk-aac96.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -27.119538498143946,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 3.08867216335808,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.995251595290561,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -0.8898154212059196,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -10.587813342608296,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -13.617814455966638,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -15.399829164089375,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -17.49580444974853,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -16.000109603317316,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -34.39141373579865,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -0.000283022498479113,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -25.477153286710678,
+      "loudnessRangeLU" : 1.4114299673086457,
+      "momentaryMaxLUFS" : -22.114250132166948,
+      "noiseFloorDBFS" : -42.230186052110184,
+      "samplePeakDBFS" : -11.636259932647228,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.3981528232981,
+      "speechLevelDBFS" : -20.34106373048388,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -29.46027019405459
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -29.771032228191245
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -29.964890499065007
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -27.15954282468827
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -25.846208601329064
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -24.905167780666915
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -23.576845192414304
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -17.068248565474985
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 0.5875524108395564
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.068331009094376
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.747676012491402
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.9910994657803327
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.9097274713222854
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.344216202816986
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -4.483344871958175
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.608870624002336
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.189688706123697
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.208238615137814
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.106424960230695
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.163514898395803
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -11.458757880338617
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -14.434547540082534
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -13.156666151899191
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -18.993325116797706
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -18.032541747664624
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -18.99695850226358
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -14.303533956111414
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -17.07584066507515
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -32.730972869406855
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -34.040786634032244
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -44.82586839213014
+        }
+      ],
+      "truePeakDBTP" : -11.596330703439284
+    }
+  },
+  {
+    "file" : "paulina-usb-condenser-desk.wav",
+    "measurement" : {
+      "bands" : [
+        {
+          "highHz" : 80,
+          "levelDB" : -27.11773228687288,
+          "lowHz" : 20,
+          "name" : "rumble"
+        },
+        {
+          "highHz" : 160,
+          "levelDB" : 3.0857427054171493,
+          "lowHz" : 80,
+          "name" : "body"
+        },
+        {
+          "highHz" : 300,
+          "levelDB" : 5.99309846882385,
+          "lowHz" : 160,
+          "name" : "warmth"
+        },
+        {
+          "highHz" : 600,
+          "levelDB" : -0.8864152434942265,
+          "lowHz" : 300,
+          "name" : "mud"
+        },
+        {
+          "highHz" : 1200,
+          "levelDB" : -10.569014747736853,
+          "lowHz" : 600,
+          "name" : "boxy"
+        },
+        {
+          "highHz" : 2500,
+          "levelDB" : -13.579259129335668,
+          "lowHz" : 1200,
+          "name" : "clarity"
+        },
+        {
+          "highHz" : 5000,
+          "levelDB" : -15.300458442133877,
+          "lowHz" : 2500,
+          "name" : "presence"
+        },
+        {
+          "highHz" : 8000,
+          "levelDB" : -17.32681934801556,
+          "lowHz" : 5000,
+          "name" : "sibilance"
+        },
+        {
+          "highHz" : 12000,
+          "levelDB" : -15.822212057886457,
+          "lowHz" : 8000,
+          "name" : "brilliance"
+        },
+        {
+          "highHz" : 20000,
+          "levelDB" : -33.734038788093216,
+          "lowHz" : 12000,
+          "name" : "air"
+        }
+      ],
+      "channelCount" : 1,
+      "clippedSamples" : 0,
+      "dcOffset" : -0.00028233425109647214,
+      "duration" : 41.45066666666666,
+      "integratedLUFS" : -25.47157998986264,
+      "loudnessRangeLU" : 1.414907991061913,
+      "momentaryMaxLUFS" : -22.103155033407496,
+      "noiseFloorDBFS" : -42.14951022833802,
+      "samplePeakDBFS" : -11.764644003602854,
+      "sampleRate" : 48000,
+      "shortTermMaxLUFS" : -24.38983064610457,
+      "speechLevelDBFS" : -20.342242348897376,
+      "thirdOctave" : [
+        {
+          "centerHz" : 19.7,
+          "levelDB" : -29.46732093303831
+        },
+        {
+          "centerHz" : 24.8,
+          "levelDB" : -29.77368084924474
+        },
+        {
+          "centerHz" : 31.3,
+          "levelDB" : -29.953815900700853
+        },
+        {
+          "centerHz" : 39.4,
+          "levelDB" : -27.153542596594992
+        },
+        {
+          "centerHz" : 49.6,
+          "levelDB" : -25.85104848656031
+        },
+        {
+          "centerHz" : 62.5,
+          "levelDB" : -24.907015661107366
+        },
+        {
+          "centerHz" : 78.7,
+          "levelDB" : -23.581212765596796
+        },
+        {
+          "centerHz" : 99.2,
+          "levelDB" : -17.060323733743466
+        },
+        {
+          "centerHz" : 125,
+          "levelDB" : 0.5792007338665979
+        },
+        {
+          "centerHz" : 157.5,
+          "levelDB" : 10.066772715518486
+        },
+        {
+          "centerHz" : 198.4,
+          "levelDB" : 6.744670121003066
+        },
+        {
+          "centerHz" : 250,
+          "levelDB" : -3.9911733247723316
+        },
+        {
+          "centerHz" : 315,
+          "levelDB" : 2.910704030760795
+        },
+        {
+          "centerHz" : 396.9,
+          "levelDB" : -2.3437442185290163
+        },
+        {
+          "centerHz" : 500,
+          "levelDB" : -4.472059420160117
+        },
+        {
+          "centerHz" : 630,
+          "levelDB" : -10.598564420554922
+        },
+        {
+          "centerHz" : 793.7,
+          "levelDB" : -10.177703269810435
+        },
+        {
+          "centerHz" : 1000,
+          "levelDB" : -10.17920641612253
+        },
+        {
+          "centerHz" : 1259.9,
+          "levelDB" : -15.073126880265132
+        },
+        {
+          "centerHz" : 1587.4,
+          "levelDB" : -15.126528197727636
+        },
+        {
+          "centerHz" : 2000,
+          "levelDB" : -11.419121116117987
+        },
+        {
+          "centerHz" : 2519.8,
+          "levelDB" : -14.37088688327134
+        },
+        {
+          "centerHz" : 3174.8,
+          "levelDB" : -13.057322883046176
+        },
+        {
+          "centerHz" : 4000,
+          "levelDB" : -18.86661144292986
+        },
+        {
+          "centerHz" : 5039.7,
+          "levelDB" : -17.85467532024472
+        },
+        {
+          "centerHz" : 6349.6,
+          "levelDB" : -18.81448398406823
+        },
+        {
+          "centerHz" : 8000,
+          "levelDB" : -14.149862726954334
+        },
+        {
+          "centerHz" : 10079.4,
+          "levelDB" : -16.877696003023665
+        },
+        {
+          "centerHz" : 12699.2,
+          "levelDB" : -32.47014665426026
+        },
+        {
+          "centerHz" : 16000,
+          "levelDB" : -33.96571449816188
+        },
+        {
+          "centerHz" : 20158.7,
+          "levelDB" : -35.736651205667144
+        }
+      ],
+      "truePeakDBTP" : -11.764644003602854
+    }
+  }
+]
