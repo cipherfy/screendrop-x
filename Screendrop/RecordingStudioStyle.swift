@@ -71,6 +71,9 @@ struct RecordingEditDocument: Codable, Equatable {
     var audioVolume: Double?
     /// Voice and system gains and the voice processing switch.
     var audioSettings: RecordingAudioSettings?
+    /// The narration's measured balance and loudness, kept so reopening a
+    /// project does not analyze it again.
+    var voiceAnalysis: VoiceAnalysisResult?
 
     private enum CodingKeys: String, CodingKey {
         case formatVersion
@@ -103,6 +106,7 @@ struct RecordingEditDocument: Codable, Equatable {
         case audioExportFormat
         case audioVolume
         case audioSettings
+        case voiceAnalysis
     }
 
     init(
@@ -127,7 +131,8 @@ struct RecordingEditDocument: Codable, Equatable {
         replacementAudioFileName: String? = nil,
         replacementAudioDisplayName: String? = nil,
         audioExportFormat: RecordingAudioFormat? = nil,
-        audioSettings: RecordingAudioSettings? = nil
+        audioSettings: RecordingAudioSettings? = nil,
+        voiceAnalysis: VoiceAnalysisResult? = nil
     ) {
         self.style = StoredRecordingStudioStyle(style)
         self.zoomEnabled = zoomEnabled
@@ -160,6 +165,7 @@ struct RecordingEditDocument: Codable, Equatable {
         self.replacementAudioDisplayName = replacementAudioDisplayName
         self.audioExportFormat = audioExportFormat.map(\.rawValue)
         self.audioSettings = audioSettings
+        self.voiceAnalysis = voiceAnalysis
     }
 
     var resolvedAudioSettings: RecordingAudioSettings {
@@ -256,6 +262,7 @@ struct RecordingEditDocument: Codable, Equatable {
         audioExportFormat = try container.decodeIfPresent(String.self, forKey: .audioExportFormat)
         audioVolume = try container.decodeIfPresent(Double.self, forKey: .audioVolume)
         audioSettings = try container.decodeIfPresent(RecordingAudioSettings.self, forKey: .audioSettings)
+        voiceAnalysis = try? container.decodeIfPresent(VoiceAnalysisResult.self, forKey: .voiceAnalysis)
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -290,6 +297,7 @@ struct RecordingEditDocument: Codable, Equatable {
         try container.encodeIfPresent(audioExportFormat, forKey: .audioExportFormat)
         try container.encodeIfPresent(audioVolume, forKey: .audioVolume)
         try container.encodeIfPresent(audioSettings, forKey: .audioSettings)
+        try container.encodeIfPresent(voiceAnalysis, forKey: .voiceAnalysis)
     }
 }
 

@@ -215,7 +215,15 @@ final class RecordingStudioModel {
     /// Narration and system audio gains in dB, shared by playback and
     /// every export; 0 preserves the source.
     var voiceGainDB: CGFloat = 0 {
-        didSet { audioSettingsDidChange() }
+        didSet {
+            audioSettingsDidChange()
+            // Moving the slider by hand takes the level back from the
+            // loudness target.
+            if !isApplyingDocument, !isApplyingAutomaticGain, voiceGainDB != oldValue,
+               voiceProfile.loudnessTarget != .off {
+                voiceProfile.loudnessTarget = .off
+            }
+        }
     }
     var systemGainDB: CGFloat = 0 {
         didSet { audioSettingsDidChange() }
@@ -251,11 +259,24 @@ final class RecordingStudioModel {
         session != nil && recordedAudioRoles.contains(.voice) && replacementAudio == nil
     }
 
-    /// Nil once the chain has been edited away from every preset.
-    var voiceChainPreset: VoiceChainSettings.Preset? {
-        get { voiceChain.matchingPreset }
-        set { if let newValue { voiceChain = newValue.settings } }
+    /// What the voice should sound like. The chain follows from it and
+    /// the take's analysis; with a loudness target, so does the voice gain.
+    var voiceProfile = VoiceProfileSettings() {
+        didSet {
+            guard voiceProfile != oldValue else { return }
+            audioSettingsDidChange()
+            guard !isApplyingDocument else { return }
+            VoiceProfileStore.remember(voiceProfile, forMicrophone: manifest?.microphoneDeviceID)
+            refreshVoiceProfile(after: .milliseconds(400))
+        }
     }
+    /// The narration's measured loudness and balance, saved with the project.
+    private(set) var voiceAnalysis: VoiceAnalysisResult?
+    /// What the profile did, or what it is doing, for the inspector.
+    private(set) var voiceProfileStatus: String?
+    private(set) var isOptimizingVoice = false
+    private var voiceProfileTask: Task<Void, Never>?
+    private var isApplyingAutomaticGain = false
     /// What the recording's own tracks carry, for the inspector.
     private(set) var recordedAudioRoles: Set<RecordingAudioRole> = []
     /// Read by the playback taps on the audio thread.
@@ -267,7 +288,8 @@ final class RecordingStudioModel {
             systemGainDB: Double(systemGainDB),
             voiceProcessingEnabled: voiceProcessingEnabled,
             voiceChain: voiceChain,
-            voiceIsolation: VoiceIsolationSettings(amount: voiceIsolationAmount)
+            voiceIsolation: VoiceIsolationSettings(amount: voiceIsolationAmount),
+            voiceProfile: voiceProfile
         )
     }
 
@@ -466,6 +488,14 @@ final class RecordingStudioModel {
                 appliedStylePresetID = defaultPreset.id
             }
         }
+        if document?.audioSettings?.voiceProfile == nil {
+            // A new recording, or one from before profiles: start from what
+            // this microphone used last time, or a guess from its name.
+            isApplyingDocument = true
+            voiceProfile = VoiceProfileStore.profile(forMicrophone: manifest?.microphoneDeviceID)
+                ?? VoiceProfileStore.defaultProfile(microphoneName: manifest?.microphoneName)
+            isApplyingDocument = false
+        }
 
         if let storedClips = document?.clips, !storedClips.isEmpty {
             clipTimeline = RecordingClipTimeline(segments: storedClips)
@@ -571,6 +601,10 @@ final class RecordingStudioModel {
         voiceProcessingEnabled = audio.voiceProcessingEnabled
         voiceChain = audio.voiceChain
         voiceIsolationAmount = audio.voiceIsolation.amount
+        if let profile = audio.voiceProfile {
+            voiceProfile = profile
+        }
+        voiceAnalysis = document.voiceAnalysis
     }
 
     func teardown() {
@@ -609,6 +643,8 @@ final class RecordingStudioModel {
         voiceIsolationTask?.cancel()
         voiceIsolationTask = nil
         isolatedSourceAsset = nil
+        voiceProfileTask?.cancel()
+        voiceProfileTask = nil
         screenVideoTrack = nil
         replacementAudio = nil
         editUndoManager.removeAllActions()
@@ -1292,7 +1328,8 @@ final class RecordingStudioModel {
             replacementAudioFileName: replacementAudio?.url.lastPathComponent,
             replacementAudioDisplayName: replacementAudio?.displayName,
             audioExportFormat: audioExportFormat,
-            audioSettings: audioSettings
+            audioSettings: audioSettings,
+            voiceAnalysis: voiceAnalysis
         )
     }
 
@@ -2303,6 +2340,7 @@ final class RecordingStudioModel {
                 isolatedSourceAsset = nil
                 try? rebuildScreenPlayerItem(preserving: currentTime)
             }
+            refreshVoiceProfile()
             return
         }
 
@@ -2338,6 +2376,8 @@ final class RecordingStudioModel {
                 self.voiceIsolationProgress = nil
                 self.isolatedSourceAsset = asset
                 try? self.rebuildScreenPlayerItem(preserving: self.currentTime)
+                // The voice changed, so its analysis and loudness do too.
+                self.refreshVoiceProfile()
             } catch is CancellationError {
                 return
             } catch {
@@ -2358,6 +2398,92 @@ final class RecordingStudioModel {
                 at: session.directoryURL.appendingPathComponent(name)
             )
         }
+    }
+
+    // MARK: - Voice profile
+
+    /// Resolves the chain from the profile, analyzing the narration the
+    /// project plays if it has not been analyzed yet, and with a loudness
+    /// target sets the voice gain that reaches it. Profile changes apply at
+    /// once when the analysis is current; only the loudness pass (and a
+    /// first analysis) runs in the background.
+    private func refreshVoiceProfile(after delay: Duration = .zero) {
+        guard isLoaded else { return }
+        voiceProfileTask?.cancel()
+        let profile = voiceProfile
+
+        guard let session, replacementAudio == nil, recordedAudioRoles.contains(.voice) else {
+            // An imported soundtrack, or nothing recorded to measure.
+            voiceChain = VoiceProfileResolver.chain(for: profile, analysis: nil)
+            isOptimizingVoice = false
+            voiceProfileStatus = nil
+            return
+        }
+
+        let isolation = VoiceIsolationSettings(amount: voiceIsolationAmount)
+        let key = VoiceAnalysisResult.sourceKey(for: isolation)
+        let current = voiceAnalysis?.sourceKey == key ? voiceAnalysis : nil
+        let target = profile.loudnessTarget.lufs
+        if let current {
+            voiceChain = VoiceProfileResolver.chain(for: profile, analysis: current)
+            if target == nil {
+                isOptimizingVoice = false
+                voiceProfileStatus = Self.voiceSummary(current, gain: nil, target: nil)
+                return
+            }
+        }
+
+        let screenURL = session.screenURL
+        isOptimizingVoice = true
+        voiceProfileStatus = current == nil ? "Analyzing the voice…" : "Matching loudness…"
+        voiceProfileTask = Task { [weak self] in
+            do {
+                if delay > .zero { try await Task.sleep(for: delay) }
+                let work = Task.detached(priority: .userInitiated) { () throws -> (VoiceAnalysisResult, Double?) in
+                    let samples = try await RecordingVoiceAnalysis.readVoice(screenURL: screenURL, isolation: isolation)
+                    try Task.checkCancellation()
+                    let analysis = current ?? RecordingVoiceAnalysis.analyze(samples, sourceKey: key)
+                    let chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
+                    let gain = target.flatMap {
+                        RecordingVoiceAnalysis.normalizationGain(samples, chain: chain, targetLUFS: $0)
+                    }
+                    return (analysis, gain)
+                }
+                let (analysis, gain) = try await withTaskCancellationHandler {
+                    try await work.value
+                } onCancel: {
+                    work.cancel()
+                }
+                guard let self, !Task.isCancelled, !self.isTornDown else { return }
+                self.voiceAnalysis = analysis
+                self.voiceChain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
+                if let gain {
+                    self.isApplyingAutomaticGain = true
+                    self.voiceGainDB = CGFloat(gain)
+                    self.isApplyingAutomaticGain = false
+                }
+                self.isOptimizingVoice = false
+                self.voiceProfileStatus = Self.voiceSummary(analysis, gain: gain, target: target)
+                self.scheduleProjectSave()
+            } catch is CancellationError {
+                return
+            } catch {
+                guard let self, !Task.isCancelled else { return }
+                self.isOptimizingVoice = false
+                self.voiceProfileStatus = error.localizedDescription
+            }
+        }
+    }
+
+    private static func voiceSummary(_ analysis: VoiceAnalysisResult, gain: Double?, target: Double?) -> String {
+        var parts: [String] = []
+        if let loudness = analysis.integratedLUFS {
+            parts.append(String(format: "Voice %.1f LUFS, trim %+.1f dB", loudness, VoiceProfileResolver.inputTrimDB(for: analysis)))
+        }
+        if let gain, let target {
+            parts.append(String(format: "out %.0f LUFS (%+.1f dB)", target, gain))
+        }
+        return parts.joined(separator: " · ")
     }
 
     // MARK: - Share to cloud

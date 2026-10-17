@@ -37,23 +37,28 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
     /// Rendered ahead of playback rather than in the tap; see
     /// RecordingVoiceIsolation.
     var voiceIsolation = VoiceIsolationSettings()
+    /// The profile the voice chain was resolved from; nil in projects saved
+    /// before profiles, whose chain stands as it was saved.
+    var voiceProfile: VoiceProfileSettings?
 
     init(
         voiceGainDB: Double = 0,
         systemGainDB: Double = 0,
         voiceProcessingEnabled: Bool = true,
         voiceChain: VoiceChainSettings = VoiceChainSettings(),
-        voiceIsolation: VoiceIsolationSettings = VoiceIsolationSettings()
+        voiceIsolation: VoiceIsolationSettings = VoiceIsolationSettings(),
+        voiceProfile: VoiceProfileSettings? = nil
     ) {
         self.voiceGainDB = voiceGainDB
         self.systemGainDB = systemGainDB
         self.voiceProcessingEnabled = voiceProcessingEnabled
         self.voiceChain = voiceChain
         self.voiceIsolation = voiceIsolation
+        self.voiceProfile = voiceProfile
     }
 
     private enum CodingKeys: String, CodingKey {
-        case voiceGainDB, systemGainDB, voiceProcessingEnabled, voiceChain, voiceIsolation
+        case voiceGainDB, systemGainDB, voiceProcessingEnabled, voiceChain, voiceIsolation, voiceProfile
     }
 
     init(from decoder: any Decoder) throws {
@@ -63,7 +68,8 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
             systemGainDB: c.value(.systemGainDB, default: 0),
             voiceProcessingEnabled: c.value(.voiceProcessingEnabled, default: true),
             voiceChain: c.value(.voiceChain, default: VoiceChainSettings()),
-            voiceIsolation: c.value(.voiceIsolation, default: VoiceIsolationSettings())
+            voiceIsolation: c.value(.voiceIsolation, default: VoiceIsolationSettings()),
+            voiceProfile: c.value(.voiceProfile, default: nil)
         )
     }
 
@@ -79,7 +85,8 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
             systemGainDB: Self.clamp(systemGainDB, to: Self.systemGainRange),
             voiceProcessingEnabled: voiceProcessingEnabled,
             voiceChain: voiceChain,
-            voiceIsolation: voiceIsolation
+            voiceIsolation: voiceIsolation,
+            voiceProfile: voiceProfile
         )
     }
 

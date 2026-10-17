@@ -1008,6 +1008,63 @@ struct StudioInspector: View {
 
     // MARK: Audio
 
+    /// Microphone, character, intensity, match EQ, and loudness: the voice
+    /// profile the chain is resolved from.
+    private var voiceProfileControls: some View {
+        VStack(alignment: .leading, spacing: InspectorMetrics.rowSpacing) {
+            InspectorRow("Mic") {
+                InspectorSegmented(
+                    options: VoiceProfileSettings.Microphone.allCases,
+                    isSelected: { $0 == model.voiceProfile.microphone },
+                    onTap: { model.voiceProfile.microphone = $0 },
+                    label: { option in
+                        Text(option.title).font(.inspectorSegment).lineLimit(1).minimumScaleFactor(0.7).help(option.help)
+                    }
+                )
+            }
+            InspectorRow("Character") {
+                InspectorSegmented(
+                    options: VoiceProfileSettings.Character.allCases,
+                    isSelected: { $0 == model.voiceProfile.character },
+                    onTap: { model.voiceProfile.character = $0 },
+                    label: { option in
+                        Text(option.title).font(.inspectorSegment).lineLimit(1).minimumScaleFactor(0.7).help(option.help)
+                    }
+                )
+            }
+            InspectorSlider(
+                "Intensity",
+                value: Binding(
+                    get: { CGFloat(model.voiceProfile.intensity) },
+                    set: { model.voiceProfile.intensity = Double($0) }
+                ),
+                range: 0...1,
+                format: .percent()
+            )
+            InspectorToggleRow(
+                "Match Target EQ",
+                isOn: Binding(
+                    get: { model.voiceProfile.matchesTarget },
+                    set: { model.voiceProfile.matchesTarget = $0 }
+                )
+            )
+            .help("Measures the voice's balance and gently corrects it toward a reference narration curve")
+            InspectorRow("Loudness") {
+                InspectorSegmented(
+                    options: VoiceProfileSettings.LoudnessTarget.allCases,
+                    isSelected: { $0 == model.voiceProfile.loudnessTarget },
+                    onTap: { model.voiceProfile.loudnessTarget = $0 },
+                    label: { option in
+                        Text(option.title).font(.inspectorSegment).lineLimit(1).minimumScaleFactor(0.7).help(option.help)
+                    }
+                )
+            }
+            if let status = model.voiceProfileStatus {
+                InspectorHint(status)
+            }
+        }
+    }
+
     private static func range(_ range: ClosedRange<Double>) -> ClosedRange<CGFloat> {
         CGFloat(range.lowerBound)...CGFloat(range.upperBound)
     }
@@ -1063,19 +1120,8 @@ struct StudioInspector: View {
                 InspectorToggleRow("Voice Processing", isOn: $model.voiceProcessingEnabled)
                     .help("Turn off to hear the voice without processing, at the same loudness, then back on to compare")
 
-                InspectorSegmented(
-                    options: VoiceChainSettings.Preset.allCases,
-                    isSelected: { $0 == model.voiceChainPreset },
-                    onTap: { preset in model.voiceChainPreset = preset },
-                    label: { preset in
-                        Text(preset.title)
-                            .font(.inspectorSegment)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                            .help(preset.help)
-                    }
-                )
-                .disabled(!model.voiceProcessingEnabled)
+                voiceProfileControls
+                    .disabled(!model.voiceProcessingEnabled)
             }
 
             HStack(spacing: InspectorMetrics.rowSpacing) {
