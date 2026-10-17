@@ -308,6 +308,13 @@ struct RecordingPickerControls: View {
                     )
                 }
             }
+
+            Divider()
+
+            Button("Check Microphone…") {
+                MicrophoneCheckPresenter.shared.present(deviceID: microphoneID)
+            }
+            .disabled(microphoneID.isEmpty || RecordingDeviceCatalog.microphone(withID: microphoneID) == nil)
         } label: {
             BarActionLabel(
                 id: .microphone,
