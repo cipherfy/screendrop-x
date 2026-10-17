@@ -25,7 +25,7 @@ final class CloudCredentialStore {
     static let shared = CloudCredentialStore()
 
     private let defaults = UserDefaults.standard
-    private static let keychainService = "com.fayazahmed.Screendrop"
+    private static let keychainService = AppIdentity.keychainService
 
     // MARK: - Keys
 

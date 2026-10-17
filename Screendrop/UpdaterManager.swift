@@ -42,6 +42,7 @@ final class UpdaterManager: NSObject, ObservableObject {
         #if DEBUG
         return
         #else
+        guard AppIdentity.updatesEnabled else { return }
         controller.startUpdater()
         #endif
     }
@@ -50,6 +51,7 @@ final class UpdaterManager: NSObject, ObservableObject {
         #if DEBUG
         return
         #else
+        guard AppIdentity.updatesEnabled else { return }
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         controller.checkForUpdates(nil)
