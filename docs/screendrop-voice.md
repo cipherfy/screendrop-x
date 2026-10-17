@@ -46,7 +46,7 @@ El inspector describe la voz que se quiere, y Studio resuelve a partir de eso un
 
 | Control | Opciones | Qué hace |
 |---|---|---|
-| **Character** | Clear, Broadcast | EQ, compresión y saturación con carácter |
+| **Character** | Clear, Broadcast | **Clear**: casi neutral, pensado para la inteligibilidad. **Broadcast**: locución pulida calibrada con referencias reales, con su propia curva objetivo, presencia en medios (1.4 kHz), compresión estable y saturación ligera |
 | **Intensity** | 0–100 % (60 % por defecto) | Escala solo el carácter |
 | **Loudness** | Off, -16 LUFS, -14 LUFS (por defecto) | Ajusta el fader de voz para llegar al objetivo |
 
@@ -81,6 +81,16 @@ Hasta 3 minutos analiza la narración completa; en grabaciones más largas toma 
 - Mover el slider **Voice** a mano pasa el objetivo a *Off*.
 - Ajusta la voz, no la mezcla completa: el audio del sistema queda relativo a su propio fader.
 
+### Calibrar un carácter con referencias
+
+Broadcast se calibró con dos locuciones de referencia: su curva objetivo es el promedio de ambas, y su EQ y su dinámica se ajustaron para acercarse a ellas. Para comparar los caracteres sobre una grabación propia, a -14 LUFS y en tu Mac:
+
+```bash
+build/render-voice-ab "RUTA/AL/PROYECTO.screendroprec" "RUTA/DE/SALIDA"
+```
+
+Genera tres WAV: Clear, Broadcast y la versión anterior de Broadcast. No modifica el proyecto.
+
 ### Memoria por micrófono
 
 Se recuerda el último perfil (carácter, intensidad, loudness) usado con cada micrófono. Un micrófono nuevo empieza con los valores por defecto.
@@ -108,7 +118,7 @@ Se recuerda el último perfil (carácter, intensidad, loudness) usado con cada m
 
 - **Faders separados**: *Voice* (-24 a +24 dB) y *System Audio* (-60, que silencia, a +12 dB). Antes había un único volumen para todo.
 - **Limitador de true peak a -1 dBTP**, con lookahead, en cada pista y sobre la mezcla al exportar. Sustituye al clipping duro del original.
-- **Latencia uniforme.** Todas las pistas se retrasan lo mismo (3.25 ms), así que voz y sistema siguen alineados con cualquier ajuste. En el export el audio queda unos 6 ms detrás de la imagen, algo imperceptible.
+- **Latencia uniforme.** Todas las pistas se retrasan lo mismo (3.8 ms), así que voz y sistema siguen alineados con cualquier ajuste. En el export el audio queda unos 7 ms detrás de la imagen, algo imperceptible.
 - **Voice Processing (A/B)**: al apagarlo se oye la voz sin procesar, **al mismo loudness** y con la misma latencia, para comparar el sonido sin que influya el volumen.
 - **Medidores en vivo**, en un acordeón *Meters* del panel (cerrado por defecto) y siempre visibles en el channel strip:
   - entrada y salida, con caída tipo PPM;

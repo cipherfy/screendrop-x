@@ -87,7 +87,7 @@ xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceChain.
 build/check-audio-processing build/voice-bank/variants/paulina-clean.wav
 ```
 
-Latency: every tap delays its track by the same 156 frames at 48 kHz (3.25 ms: 12 for the voice chain's oversampling, 144 for the limiter's look-ahead), so voice and system audio stay aligned. Exports add the mix limiter's 3 ms, so exported audio lands about 6 ms after the picture, well below what can be perceived. Stages that need more look-ahead should share this budget rather than add to it.
+Latency: every tap delays its track by the same 184 frames at 48 kHz (3.8 ms: 40 for the voice chain's oversampling, 144 for the limiter's look-ahead), so voice and system audio stay aligned. Exports add the mix limiter's 3 ms, so exported audio lands about 7 ms after the picture, well below what can be perceived. Stages that need more look-ahead should share this budget rather than add to it.
 
 ## Voice chain check
 
@@ -97,16 +97,17 @@ Latency: every tap delays its track by the same 156 frames at 48 kHz (3.25 ms: 1
 
 | Check | Result |
 |---|---|
-| Flat chain | Bit-transparent; delay, oversampler, and bypass all land at 12 frames |
+| Flat chain | Bit-transparent; delay, oversampler, and bypass all land at 40 frames |
 | High-pass an octave below the corner | -12.3 dB (12 dB/oct), -24.1 dB (24 dB/oct), as Butterworth theory gives |
 | EQ bell, shelf, cut | +5.99, +3.94, -2.73 dB for +6, +4, -3 settings |
 | Compressor 3:1 at -24 dB | -6 dBFS in, -18.0 out; -30 in, -30.0 out |
 | Expander 2:1 at -45 dB, 8 dB range | -50 in, -54.9 out; -70 in, -77.7 out |
 | De-esser and dynamic low band | Full range on loud bands, nothing on others |
-| Aliasing, 9 kHz driven 12 dB | -88 dB with 4x oversampling, -13 dB without |
+| Aliasing, 9 kHz driven 12 dB | -91 dB with 4x oversampling, -13 dB without |
+| Saturation passband | Within 0.00 dB from 1 to 18 kHz (a 161-tap Kaiser kernel; the first, 49-tap kernel took 9 dB off 10 kHz and dulled every voice with saturation on) |
 | Limiter on inter-sample peaks | -1.16 dBTP with true-peak detection, +1.52 dBTP sample-based |
 | A/B loudness | Within 0.03 LU |
-| Speed | About 100x real time on one core |
+| Speed | About 50x real time on one core with saturation on |
 
 ```bash
 xcrun swiftc -O Screendrop/VoiceChain.swift Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceProfile.swift \
@@ -135,7 +136,7 @@ On the bank's USB-condenser-at-a-desk take, full isolation took SNR from 23.4 to
 
 ## Voice profile check
 
-A voice profile (`Screendrop/VoiceProfile.swift`) is what the inspector asks for: a character (Clear or Broadcast), how strongly to apply it, and a loudness target (-14 LUFS by default, where video platforms normalize, or -16 LUFS for spoken word). Match EQ is on by default; its switch lives in the channel strip. Projects start with voice isolation at 75%. `VoiceProfileResolver` turns the profile and an analysis of the take into the chain:
+A voice profile (`Screendrop/VoiceProfile.swift`) is what the inspector asks for: a character (Clear, or Broadcast, which matches toward its own target curve averaged from two reference narrations, at 85% instead of 70%), how strongly to apply it, and a loudness target (-14 LUFS by default, where video platforms normalize, or -16 LUFS for spoken word). Match EQ is on by default; its switch lives in the channel strip. Projects start with voice isolation at 75%. `VoiceProfileResolver` turns the profile and an analysis of the take into the chain:
 
 - **Input trim** brings the take to -26 LUFS, the level the chain's thresholds are written for.
 - **Base corrections** for every voice (80 Hz high-pass, proximity control, de-esser, a gentle expander) apply in full, whatever the microphone. Mud and harshness are left to match EQ, which measures them.
@@ -187,4 +188,16 @@ xcrun swiftc -O Screendrop/VoiceChain.swift Screendrop/RecordingAudioProcessing.
   Screendrop/VoiceProfile.swift Screendrop/VoiceMeasurement.swift Screendrop/MicrophoneCheckAnalyzer.swift \
   scripts/check-voice-tools.swift -o build/check-voice-tools
 build/check-voice-tools build/voice-bank/variants
+```
+
+## Comparing characters by ear
+
+`scripts/render-voice-ab.swift` renders a narration (a project package or any audio file) through Clear, Broadcast, and Broadcast as it was before being rebuilt from references, each at -14 LUFS through the true-peak limiter, with 75% isolation for a project. It writes WAVs only; the project is read, never changed.
+
+```bash
+xcrun swiftc -O Screendrop/VoiceProfile.swift Screendrop/RecordingVoiceAnalysis.swift \
+  Screendrop/RecordingVoiceIsolation.swift Screendrop/RecordingAudioProcessing.swift \
+  Screendrop/VoiceChain.swift Screendrop/VoiceMeasurement.swift scripts/render-voice-ab.swift \
+  -o build/render-voice-ab
+build/render-voice-ab path/to/recording.screendroprec path/to/output
 ```
