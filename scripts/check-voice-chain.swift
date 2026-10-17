@@ -164,6 +164,21 @@ struct VoiceChainCheck {
         let naiveAlias = aliases(naive)
         precondition(oversampledAlias < naiveAlias - 25, "oversampling must suppress aliasing")
         print(String(format: "ok  aliasing from 9 kHz driven hard: %.0f dB with 4x oversampling, %.0f dB without", oversampledAlias, naiveAlias))
+
+        // Passband: with saturation on, the oversampler's filters must not
+        // dull the voice (small signal, so the curve itself stays linear).
+        var gentle = VoiceChainSettings.flat
+        gentle.saturation = .init(isEnabled: true, driveDB: 6, mix: 0.25, warmth: 0.3)
+        var worst = 0.0
+        var worstFrequency = 0.0
+        for frequency in [1_000.0, 5_000, 8_000, 10_000, 12_000, 16_000, 18_000] {
+            let input = sine(frequency, levelDB: -40)
+            let output = run(input, gentle)
+            let change = rmsDB(output) - rmsDB(input)
+            if abs(change) > abs(worst) { worst = change; worstFrequency = frequency }
+        }
+        precondition(abs(worst) < 0.2, "saturation changes \(worstFrequency) Hz by \(worst) dB")
+        print(String(format: "ok  saturation keeps the voice's top end: within %.2f dB from 1 to 18 kHz", abs(worst)))
     }
 
     static func checkTruePeakLimiter() {
@@ -280,6 +295,12 @@ struct VoiceChainCheck {
     }
 
     /// Steady-state peak after the first half second.
+    static func rmsDB(_ signal: [Float]) -> Double {
+        let steady = signal.dropFirst(Int(rate / 2))
+        let meanSquare = steady.reduce(0.0) { $0 + Double($1 * $1) } / Double(steady.count)
+        return VoiceAnalyzer.decibels(amplitude: meanSquare.squareRoot())
+    }
+
     static func peakDB(_ signal: [Float]) -> Double {
         VoiceAnalyzer.decibels(amplitude: Double(signal.dropFirst(Int(rate / 2)).map(abs).max() ?? 0))
     }
