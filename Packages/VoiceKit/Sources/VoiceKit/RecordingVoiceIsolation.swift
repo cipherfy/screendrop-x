@@ -15,14 +15,15 @@
 
 import AVFoundation
 import AudioToolbox
+import Synchronization
 
-nonisolated enum RecordingVoiceIsolation {
-    enum IsolationError: LocalizedError {
+public nonisolated enum RecordingVoiceIsolation {
+    public enum IsolationError: LocalizedError {
         case unavailable
         case noNarrationTrack
         case renderFailed(String)
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .unavailable: "Voice isolation is not available on this Mac."
             case .noNarrationTrack: "This recording has no microphone track to isolate."
@@ -38,19 +39,33 @@ nonisolated enum RecordingVoiceIsolation {
 
     // MARK: Files
 
-    static func renderURL(in directory: URL, settings: VoiceIsolationSettings) -> URL {
+    public static func renderURL(in directory: URL, settings: VoiceIsolationSettings) -> URL {
         directory.appendingPathComponent("\(filePrefix)-hq-v\(renderVersion)-\(settings.amount).caf")
+    }
+
+    /// Recognizes a project package, the only place a render can be kept.
+    /// The default is Screendrop's rule (a `.screendroprec` folder holding
+    /// `screen.mov`); the app installs `RecordingSession.isSessionDirectory`
+    /// so the package never has to know about sessions.
+    public static var isProjectDirectory: @Sendable (URL) -> Bool {
+        get { projectDirectoryRule.withLock { $0 } }
+        set { projectDirectoryRule.withLock { $0 = newValue } }
+    }
+
+    private static let projectDirectoryRule = Mutex<@Sendable (URL) -> Bool> { url in
+        url.pathExtension == "screendroprec"
+            && FileManager.default.fileExists(atPath: url.appendingPathComponent("screen.mov").path)
     }
 
     /// The package that holds `screen.mov`, when there is one; bare movies
     /// opened from disk have nowhere to keep a render.
-    static func projectDirectory(forScreenURL screenURL: URL) -> URL? {
+    public static func projectDirectory(forScreenURL screenURL: URL) -> URL? {
         let directory = screenURL.deletingLastPathComponent()
-        return RecordingSession.isSessionDirectory(directory) ? directory : nil
+        return isProjectDirectory(directory) ? directory : nil
     }
 
     /// Keeps one render: the one in use.
-    static func removeRenders(in directory: URL, keeping kept: URL?) {
+    public static func removeRenders(in directory: URL, keeping kept: URL?) {
         let names = (try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []
         for name in names where name.hasPrefix(filePrefix) && name != kept?.lastPathComponent {
             try? FileManager.default.removeItem(at: directory.appendingPathComponent(name))
@@ -62,7 +77,7 @@ nonisolated enum RecordingVoiceIsolation {
     /// The recording as exports should read it: with isolation on, the
     /// microphone track comes from the render (rendering it first if it is
     /// missing), everything else from the master.
-    static func sourceAsset(screenURL: URL, settings: VoiceIsolationSettings) async throws -> AVAsset {
+    public static func sourceAsset(screenURL: URL, settings: VoiceIsolationSettings) async throws -> AVAsset {
         guard settings.isEnabled, let directory = projectDirectory(forScreenURL: screenURL) else {
             return AVURLAsset(url: screenURL)
         }
@@ -75,7 +90,7 @@ nonisolated enum RecordingVoiceIsolation {
 
     /// A composition of the master with its mono narration track replaced
     /// by `isolatedURL`, at the same position on the timeline.
-    static func asset(screenURL: URL, isolatedURL: URL?) async throws -> AVAsset {
+    public static func asset(screenURL: URL, isolatedURL: URL?) async throws -> AVAsset {
         let source = AVURLAsset(url: screenURL)
         guard let isolatedURL else { return source }
         let isolated = AVURLAsset(url: isolatedURL)
@@ -117,7 +132,7 @@ nonisolated enum RecordingVoiceIsolation {
     /// (the unit's latency is measured and removed). Written to a temporary
     /// file and moved into place, so a cancelled or failed render never
     /// leaves a partial file behind.
-    static func render(
+    public static func render(
         screenURL: URL,
         to outputURL: URL,
         settings: VoiceIsolationSettings,

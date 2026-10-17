@@ -16,20 +16,20 @@
 
 import AVFoundation
 
-nonisolated enum RecordingVoiceAnalysis {
-    static let sampleRate = 48_000.0
+public nonisolated enum RecordingVoiceAnalysis {
+    public static let sampleRate = 48_000.0
 
-    enum AnalysisError: LocalizedError {
+    public enum AnalysisError: LocalizedError {
         case noNarration
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             "This recording has no microphone narration to analyze."
         }
     }
 
     /// The narration as the voice tap will hear it, mono at 48 kHz:
     /// sampled as described above, stretches joined end to end.
-    static func readVoice(screenURL: URL, isolation: VoiceIsolationSettings) async throws -> [Float] {
+    public static func readVoice(screenURL: URL, isolation: VoiceIsolationSettings) async throws -> [Float] {
         let asset = try await RecordingVoiceIsolation.sourceAsset(screenURL: screenURL, settings: isolation)
         let tracks = try await asset.loadTracks(withMediaType: .audio)
         let roles = try await RecordingAudioProcessing.roles(for: tracks, isReplacement: false)
@@ -45,12 +45,12 @@ nonisolated enum RecordingVoiceAnalysis {
         return samples
     }
 
-    static let sampledSeconds = 180.0
-    static let stretchCount = 6
+    public static let sampledSeconds = 180.0
+    public static let stretchCount = 6
 
     /// The whole range when short, otherwise evenly spaced stretches that
     /// include the very start and the very end.
-    static func sampleRanges(of range: CMTimeRange) -> [CMTimeRange] {
+    public static func sampleRanges(of range: CMTimeRange) -> [CMTimeRange] {
         let duration = range.duration.seconds
         guard duration > sampledSeconds, duration.isFinite else { return [range] }
         let length = sampledSeconds / Double(stretchCount)
@@ -93,7 +93,7 @@ nonisolated enum RecordingVoiceAnalysis {
         if reader.status == .failed { throw reader.error ?? AnalysisError.noNarration }
     }
 
-    static func analyze(_ samples: [Float], sourceKey: String) throws -> VoiceAnalysisResult {
+    public static func analyze(_ samples: [Float], sourceKey: String) throws -> VoiceAnalysisResult {
         let measurement = VoiceAnalyzer.measure(channels: [samples], sampleRate: sampleRate)
         return VoiceAnalysisResult(
             sourceKey: sourceKey,
@@ -111,7 +111,7 @@ nonisolated enum RecordingVoiceAnalysis {
     /// just above the fundamental and differs by an octave between voices.
     /// The spectrum cannot say this: in speech the first formant, not the
     /// fundamental, carries the most low-frequency energy.
-    static func fundamental(of samples: [Float]) throws -> Double? {
+    public static func fundamental(of samples: [Float]) throws -> Double? {
         let factor = Int(sampleRate / 8_000)
         let rate = sampleRate / Double(factor)
         var decimated: [Float] = []
@@ -165,7 +165,7 @@ nonisolated enum RecordingVoiceAnalysis {
     /// The chain runs once; the fader and limiter are refined until the
     /// loudness the limiter takes off has been added back. Nil when the
     /// voice is too quiet to measure.
-    static func normalizationGain(
+    public static func normalizationGain(
         _ samples: [Float],
         chain: VoiceChainSettings,
         targetLUFS: Double
@@ -216,18 +216,18 @@ nonisolated enum RecordingVoiceAnalysis {
 
 /// The last voice profile chosen for each microphone, so a new recording
 /// from the same microphone starts where the previous one was left.
-nonisolated enum VoiceProfileStore {
+public nonisolated enum VoiceProfileStore {
     /// Versioned: profiles remembered before the microphone choice and the
     /// Warm and Bright characters went away start over from the defaults.
     private static func key(_ deviceID: String) -> String { "voiceProfile.v2.\(deviceID)" }
 
-    static func profile(forMicrophone deviceID: String?) -> VoiceProfileSettings? {
+    public static func profile(forMicrophone deviceID: String?) -> VoiceProfileSettings? {
         guard let deviceID,
               let data = UserDefaults.standard.data(forKey: key(deviceID)) else { return nil }
         return try? JSONDecoder().decode(VoiceProfileSettings.self, from: data)
     }
 
-    static func remember(_ profile: VoiceProfileSettings, forMicrophone deviceID: String?) {
+    public static func remember(_ profile: VoiceProfileSettings, forMicrophone deviceID: String?) {
         guard let deviceID, let data = try? JSONEncoder().encode(profile) else { return }
         UserDefaults.standard.set(data, forKey: key(deviceID))
     }

@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import VoiceKit
 
 struct VoiceChannelStripView: View {
     let model: RecordingStudioModel

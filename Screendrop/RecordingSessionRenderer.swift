@@ -10,6 +10,7 @@
 import AppKit
 import AVFoundation
 import CoreGraphics
+import VoiceKit
 
 @MainActor
 enum RecordingSessionRenderer {

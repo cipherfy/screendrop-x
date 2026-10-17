@@ -9,6 +9,7 @@
 //
 
 import SwiftUI
+import VoiceKit
 
 struct VoiceMetersView: View {
     let meters: RecordingAudioMeters

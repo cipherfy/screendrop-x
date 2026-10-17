@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		31A100022F9DC05A002A7AF3 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 31A100012F9DC05A002A7AF3 /* Sparkle */; };
 		5EB13EE1F16DFCBCFE9A3449 /* DockProgress in Frameworks */ = {isa = PBXBuildFile; productRef = 6711E7AD88BD96C1258D3CE6 /* DockProgress */; };
+		7C0A11032FD0000000000001 /* VoiceKit in Frameworks */ = {isa = PBXBuildFile; productRef = 7C0A11022FD0000000000001 /* VoiceKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 			files = (
 				31A100022F9DC05A002A7AF3 /* Sparkle in Frameworks */,
 				5EB13EE1F16DFCBCFE9A3449 /* DockProgress in Frameworks */,
+				7C0A11032FD0000000000001 /* VoiceKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,6 +76,7 @@
 			packageProductDependencies = (
 				31A100012F9DC05A002A7AF3 /* Sparkle */,
 				6711E7AD88BD96C1258D3CE6 /* DockProgress */,
+				7C0A11022FD0000000000001 /* VoiceKit */,
 			);
 			productName = Screendrop;
 			productReference = 3163891D2F9DC05A002A7AF3 /* Screendrop.app */;
@@ -106,6 +109,7 @@
 			packageReferences = (
 				31A100002F9DC05A002A7AF3 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				BAD69099DE38A64197B1CFDA /* XCRemoteSwiftPackageReference "DockProgress" */,
+				7C0A11012FD0000000000001 /* XCLocalSwiftPackageReference "Packages/VoiceKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3163891E2F9DC05A002A7AF3 /* Products */;
@@ -473,6 +477,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		7C0A11012FD0000000000001 /* XCLocalSwiftPackageReference "Packages/VoiceKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/VoiceKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		31A100002F9DC05A002A7AF3 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -502,6 +513,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BAD69099DE38A64197B1CFDA /* XCRemoteSwiftPackageReference "DockProgress" */;
 			productName = DockProgress;
+		};
+		7C0A11022FD0000000000001 /* VoiceKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VoiceKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

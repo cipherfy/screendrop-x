@@ -16,6 +16,7 @@
 import AVFoundation
 import Foundation
 import UniformTypeIdentifiers
+import VoiceKit
 
 nonisolated enum RecordingAudioFormat: String, CaseIterable, Identifiable, Codable, Sendable {
     /// AAC in an MP4 container. Screen recordings capture AAC already, so

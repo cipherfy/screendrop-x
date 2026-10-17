@@ -9,34 +9,34 @@
 
 import Foundation
 
-nonisolated struct MicrophoneCheckResult: Sendable, Equatable {
-    struct Finding: Sendable, Equatable, Identifiable {
-        enum Severity: Sendable { case good, advice, problem }
+public nonisolated struct MicrophoneCheckResult: Sendable, Equatable {
+    public struct Finding: Sendable, Equatable, Identifiable {
+        public enum Severity: Sendable { case good, advice, problem }
 
-        let severity: Severity
-        let title: String
-        let detail: String
+        public let severity: Severity
+        public let title: String
+        public let detail: String
 
-        var id: String { title }
+        public var id: String { title }
     }
 
-    var speechPeakDBFS: Double
-    var speechLUFS: Double?
-    var noiseFloorDBFS: Double
-    var signalToNoiseDB: Double?
-    var clippedSamples: Int
-    var humDB: Double
-    var findings: [Finding]
+    public var speechPeakDBFS: Double
+    public var speechLUFS: Double?
+    public var noiseFloorDBFS: Double
+    public var signalToNoiseDB: Double?
+    public var clippedSamples: Int
+    public var humDB: Double
+    public var findings: [Finding]
 
-    var isReady: Bool { !findings.contains { $0.severity == .problem } }
+    public var isReady: Bool { !findings.contains { $0.severity == .problem } }
 }
 
-nonisolated enum MicrophoneCheckAnalyzer {
+public nonisolated enum MicrophoneCheckAnalyzer {
     /// Peaks between -12 and -6 dBFS while speaking: headroom for a laugh,
     /// level well above the noise.
-    static let idealPeak: ClosedRange<Double> = -12...(-6)
+    public static let idealPeak: ClosedRange<Double> = -12...(-6)
 
-    static func evaluate(silence: [Float], speech: [Float], sampleRate: Double) -> MicrophoneCheckResult {
+    public static func evaluate(silence: [Float], speech: [Float], sampleRate: Double) -> MicrophoneCheckResult {
         let speechPeak = VoiceAnalyzer.decibels(amplitude: Double(speech.map(abs).max() ?? 0))
         let lufs = LoudnessMeter.measure(channels: [speech], sampleRate: sampleRate).integrated
         let noise = noiseFloor(silence, sampleRate: sampleRate)
@@ -101,7 +101,7 @@ nonisolated enum MicrophoneCheckAnalyzer {
     }
 
     /// Median 50 ms RMS of the silent part: the room, not a cough in it.
-    static func noiseFloor(_ samples: [Float], sampleRate: Double) -> Double {
+    public static func noiseFloor(_ samples: [Float], sampleRate: Double) -> Double {
         let block = max(1, Int(sampleRate * 0.05))
         guard samples.count >= block else { return VoiceAnalyzer.silenceDB }
         let levels = stride(from: 0, through: samples.count - block, by: block).map { start -> Double in
@@ -114,7 +114,7 @@ nonisolated enum MicrophoneCheckAnalyzer {
 
     /// Share of the silent part's energy at 50, 60, 100, 120, 150, and
     /// 180 Hz (mains and its harmonics), from 0 to 1.
-    static func humRatio(_ samples: [Float], sampleRate: Double) -> Double {
+    public static func humRatio(_ samples: [Float], sampleRate: Double) -> Double {
         guard samples.count > Int(sampleRate * 0.5) else { return 0 }
         let total = samples.reduce(0.0) { $0 + Double($1 * $1) }
         guard total > 0 else { return 0 }

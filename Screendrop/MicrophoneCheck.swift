@@ -13,6 +13,7 @@ import AVFoundation
 import AppKit
 import Synchronization
 import SwiftUI
+import VoiceKit
 
 // MARK: - Capture
 

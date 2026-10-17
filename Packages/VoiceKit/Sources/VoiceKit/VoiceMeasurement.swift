@@ -11,52 +11,52 @@
 import Accelerate
 import Foundation
 
-nonisolated struct VoiceMeasurement: Codable, Sendable {
-    struct Band: Codable, Sendable, Equatable {
-        let name: String
-        let lowHz: Double
-        let highHz: Double
+public nonisolated struct VoiceMeasurement: Codable, Sendable {
+    public struct Band: Codable, Sendable, Equatable {
+        public let name: String
+        public let lowHz: Double
+        public let highHz: Double
         /// Energy per octave relative to the 100 Hz-10 kHz average, in dB.
         /// Zero everywhere would be a pink-balanced voice.
-        let levelDB: Double
+        public let levelDB: Double
     }
 
-    struct SpectrumPoint: Codable, Sendable, Equatable {
-        let centerHz: Double
-        let levelDB: Double
+    public struct SpectrumPoint: Codable, Sendable, Equatable {
+        public let centerHz: Double
+        public let levelDB: Double
     }
 
-    var sampleRate: Double
-    var channelCount: Int
-    var duration: Double
+    public var sampleRate: Double
+    public var channelCount: Int
+    public var duration: Double
     /// Nil when nothing in the file clears the -70 LUFS absolute gate.
-    var integratedLUFS: Double?
-    var momentaryMaxLUFS: Double?
-    var shortTermMaxLUFS: Double?
-    var loudnessRangeLU: Double?
-    var samplePeakDBFS: Double
-    var truePeakDBTP: Double
+    public var integratedLUFS: Double?
+    public var momentaryMaxLUFS: Double?
+    public var shortTermMaxLUFS: Double?
+    public var loudnessRangeLU: Double?
+    public var samplePeakDBFS: Double
+    public var truePeakDBTP: Double
     /// 95th percentile of 50 ms RMS blocks: how loud speech sits.
-    var speechLevelDBFS: Double
+    public var speechLevelDBFS: Double
     /// 10th percentile of 50 ms RMS blocks: the room between words.
-    var noiseFloorDBFS: Double
+    public var noiseFloorDBFS: Double
     /// Samples inside runs of three or more at full scale.
-    var clippedSamples: Int
-    var dcOffset: Double
-    var bands: [Band]
-    var thirdOctave: [SpectrumPoint]
+    public var clippedSamples: Int
+    public var dcOffset: Double
+    public var bands: [Band]
+    public var thirdOctave: [SpectrumPoint]
 
     /// Nil when the pauses are digital silence, where the ratio means nothing.
-    var signalToNoiseDB: Double? {
+    public var signalToNoiseDB: Double? {
         noiseFloorDBFS > -140 ? speechLevelDBFS - noiseFloorDBFS : nil
     }
 }
 
-nonisolated enum VoiceAnalyzer {
-    static let silenceDB = -150.0
+public nonisolated enum VoiceAnalyzer {
+    public static let silenceDB = -150.0
 
     /// `channels` holds one non-interleaved sample array per channel.
-    static func measure(channels: [[Float]], sampleRate: Double) -> VoiceMeasurement {
+    public static func measure(channels: [[Float]], sampleRate: Double) -> VoiceMeasurement {
         let frameCount = channels.map(\.count).min() ?? 0
         let mono = mixdown(channels, frameCount: frameCount)
         let loudness = LoudnessMeter.measure(channels: channels, sampleRate: sampleRate)
@@ -87,15 +87,15 @@ nonisolated enum VoiceAnalyzer {
         )
     }
 
-    static func decibels(amplitude: Double) -> Double {
+    public static func decibels(amplitude: Double) -> Double {
         amplitude > 0 ? max(silenceDB, 20 * log10(amplitude)) : silenceDB
     }
 
-    static func decibels(power: Double) -> Double {
+    public static func decibels(power: Double) -> Double {
         power > 0 ? max(silenceDB, 10 * log10(power)) : silenceDB
     }
 
-    static func percentile(_ values: [Double], _ fraction: Double) -> Double? {
+    public static func percentile(_ values: [Double], _ fraction: Double) -> Double? {
         guard !values.isEmpty else { return nil }
         let sorted = values.sorted()
         let index = Int((Double(sorted.count - 1) * fraction).rounded())
@@ -140,17 +140,17 @@ nonisolated enum VoiceAnalyzer {
 
 // MARK: - Loudness
 
-nonisolated enum LoudnessMeter {
-    struct Result: Sendable {
-        var integrated: Double?
-        var momentaryMax: Double?
-        var shortTermMax: Double?
-        var range: Double?
+public nonisolated enum LoudnessMeter {
+    public struct Result: Sendable {
+        public var integrated: Double?
+        public var momentaryMax: Double?
+        public var shortTermMax: Double?
+        public var range: Double?
     }
 
     /// Channel weights are 1.0 for mono and stereo, so a mono file reads
     /// about 3 LU lower than the same signal as dual-mono stereo.
-    static func measure(channels: [[Float]], sampleRate: Double) -> Result {
+    public static func measure(channels: [[Float]], sampleRate: Double) -> Result {
         let segmentLength = Int((sampleRate * 0.1).rounded())
         let frameCount = channels.map(\.count).min() ?? 0
         guard segmentLength > 0, frameCount >= segmentLength * 4 else { return Result() }
@@ -227,11 +227,11 @@ nonisolated enum LoudnessMeter {
 
 /// BS.1770 pre-filter (high shelf) and RLB high-pass, with coefficients
 /// derived for any sample rate rather than the tabulated 48 kHz values.
-nonisolated struct KWeightingFilter {
+public nonisolated struct KWeightingFilter {
     private var shelf: Biquad
     private var highPass: Biquad
 
-    init(sampleRate: Double) {
+    public init(sampleRate: Double) {
         var k = tan(.pi * 1681.974450955533 / sampleRate)
         let q = 0.7071752369554196
         let vh = pow(10, 3.999843853973347 / 20)
@@ -255,20 +255,20 @@ nonisolated struct KWeightingFilter {
         )
     }
 
-    mutating func process(_ x: Double) -> Double {
+    public mutating func process(_ x: Double) -> Double {
         highPass.process(shelf.process(x))
     }
 
     private struct Biquad {
-        let b0, b1, b2, a1, a2: Double
-        var z1 = 0.0
-        var z2 = 0.0
+        public let b0, b1, b2, a1, a2: Double
+        public var z1 = 0.0
+        public var z2 = 0.0
 
-        init(b0: Double, b1: Double, b2: Double, a1: Double, a2: Double) {
+        public init(b0: Double, b1: Double, b2: Double, a1: Double, a2: Double) {
             self.b0 = b0; self.b1 = b1; self.b2 = b2; self.a1 = a1; self.a2 = a2
         }
 
-        mutating func process(_ x: Double) -> Double {
+        public mutating func process(_ x: Double) -> Double {
             let y = b0 * x + z1
             z1 = b1 * x - a1 * y + z2
             z2 = b2 * x - a2 * y
@@ -279,10 +279,10 @@ nonisolated struct KWeightingFilter {
 
 // MARK: - True peak
 
-nonisolated enum TruePeakMeter {
+public nonisolated enum TruePeakMeter {
     /// Peak of the signal reconstructed between samples, by polyphase
     /// windowed-sinc oversampling (4x below 96 kHz, as BS.1770 asks).
-    static func peak(_ samples: [Float], sampleRate: Double) -> Double {
+    public static func peak(_ samples: [Float], sampleRate: Double) -> Double {
         guard !samples.isEmpty else { return 0 }
         let factor = sampleRate < 96_000 ? 4 : 2
         let tapsPerPhase = 24
@@ -319,10 +319,10 @@ nonisolated enum TruePeakMeter {
 
 // MARK: - Spectrum
 
-nonisolated enum SpectrumAnalyzer {
+public nonisolated enum SpectrumAnalyzer {
     /// Bands named for what they do to a voice, which is how the EQ and
     /// the voice profiles talk about them.
-    static let voiceBands: [(name: String, low: Double, high: Double)] = [
+    public static let voiceBands: [(name: String, low: Double, high: Double)] = [
         ("rumble", 20, 80),
         ("body", 80, 160),
         ("warmth", 160, 300),
@@ -337,7 +337,7 @@ nonisolated enum SpectrumAnalyzer {
 
     /// Long-term average spectrum over speech frames only, so pauses and
     /// room tone do not pull the balance toward the noise.
-    static func measure(
+    public static func measure(
         _ mono: [Float],
         sampleRate: Double
     ) -> (bands: [VoiceMeasurement.Band], thirdOctave: [VoiceMeasurement.SpectrumPoint]) {

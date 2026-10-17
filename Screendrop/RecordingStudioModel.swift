@@ -14,6 +14,7 @@ import AVFoundation
 import CoreGraphics
 import Foundation
 import Observation
+import VoiceKit
 
 enum RecordingTranscriptionState: Equatable {
     case idle

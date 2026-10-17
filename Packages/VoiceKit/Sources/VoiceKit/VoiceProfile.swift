@@ -13,21 +13,21 @@ import Foundation
 
 // MARK: - Profile
 
-nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
-    nonisolated enum Character: String, Codable, CaseIterable, Identifiable, Sendable {
+public nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
+    public nonisolated enum Character: String, Codable, CaseIterable, Identifiable, Sendable {
         case clear
         case broadcast
 
-        var id: Self { self }
+        public var id: Self { self }
 
-        var title: String {
+        public var title: String {
             switch self {
             case .clear: "Clear"
             case .broadcast: "Broadcast"
             }
         }
 
-        var help: String {
+        public var help: String {
             switch self {
             case .clear: "Close to neutral, tuned for intelligibility: light compression, a touch of presence"
             case .broadcast: "Forward, polished narration: the balance of the reference recordings, mid presence that cuts through, steady compression, light saturation"
@@ -35,14 +35,14 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
         }
     }
 
-    nonisolated enum LoudnessTarget: String, Codable, CaseIterable, Identifiable, Sendable {
+    public nonisolated enum LoudnessTarget: String, Codable, CaseIterable, Identifiable, Sendable {
         case off
         case podcast
         case platforms
 
-        var id: Self { self }
+        public var id: Self { self }
 
-        var lufs: Double? {
+        public var lufs: Double? {
             switch self {
             case .off: nil
             case .podcast: -16
@@ -50,7 +50,7 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
             }
         }
 
-        var title: String {
+        public var title: String {
             switch self {
             case .off: "Off"
             case .podcast: "-16 LUFS"
@@ -58,7 +58,7 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
             }
         }
 
-        var help: String {
+        public var help: String {
             switch self {
             case .off: "Leave the voice level to the Voice slider"
             case .podcast: "Spoken-word standard (Apple Podcasts, AES); a comfortable level for tutorials"
@@ -67,17 +67,17 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
         }
     }
 
-    var character: Character = .clear
+    public var character: Character = .clear
     /// 0...1: how strongly the character is applied. The base corrections
     /// and the match EQ do not scale with it.
-    var intensity = 0.6
-    var matchesTarget = true
-    var loudnessTarget: LoudnessTarget = .platforms
+    public var intensity = 0.6
+    public var matchesTarget = true
+    public var loudnessTarget: LoudnessTarget = .platforms
     /// A chain edited by hand in the channel strip. While set, it stands in
     /// for the resolved chain; the loudness target still applies.
-    var customChain: VoiceChainSettings?
+    public var customChain: VoiceChainSettings?
 
-    init(
+    public init(
         character: Character = .clear,
         intensity: Double = 0.6,
         matchesTarget: Bool = true,
@@ -95,7 +95,7 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
         case character, intensity, matchesTarget, loudnessTarget, customChain
     }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = Self()
         self.init(
@@ -112,16 +112,16 @@ nonisolated struct VoiceProfileSettings: Codable, Sendable, Equatable {
 
 /// What the take sounds like before processing, measured once per source
 /// (the microphone track, or an isolation render of it).
-nonisolated struct VoiceAnalysisResult: Codable, Sendable, Equatable {
+public nonisolated struct VoiceAnalysisResult: Codable, Sendable, Equatable {
     /// Which audio was measured: "microphone" or "isolated-<amount>".
-    var sourceKey: String
-    var integratedLUFS: Double?
-    var speechLevelDBFS: Double
-    var noiseFloorDBFS: Double
-    var fundamentalHz: Double?
-    var thirdOctave: [VoiceMeasurement.SpectrumPoint]
+    public var sourceKey: String
+    public var integratedLUFS: Double?
+    public var speechLevelDBFS: Double
+    public var noiseFloorDBFS: Double
+    public var fundamentalHz: Double?
+    public var thirdOctave: [VoiceMeasurement.SpectrumPoint]
 
-    static func sourceKey(for isolation: VoiceIsolationSettings) -> String {
+    public static func sourceKey(for isolation: VoiceIsolationSettings) -> String {
         isolation.isEnabled ? "isolated-\(isolation.amount)" : "microphone"
     }
 }
@@ -135,17 +135,17 @@ nonisolated struct VoiceAnalysisResult: Codable, Sendable, Equatable {
 /// The default is the average of the voice bank's clean studio voices
 /// (Paulina, Mónica, Eddy). It is a starting point: rebuild it from
 /// narration you like with `voice-bank target <files>`.
-nonisolated enum VoiceTargetCurve {
-    static let range: ClosedRange<Double> = 200...8_000
+public nonisolated enum VoiceTargetCurve {
+    public static let range: ClosedRange<Double> = 200...8_000
 
-    static func points(for character: VoiceProfileSettings.Character) -> [VoiceMeasurement.SpectrumPoint] {
+    public static func points(for character: VoiceProfileSettings.Character) -> [VoiceMeasurement.SpectrumPoint] {
         switch character {
         case .clear: points
         case .broadcast: broadcast
         }
     }
 
-    static let points: [VoiceMeasurement.SpectrumPoint] = [
+    public static let points: [VoiceMeasurement.SpectrumPoint] = [
         .init(centerHz: 250.0, levelDB: 10.1),
         .init(centerHz: 315.0, levelDB: 13.4),
         .init(centerHz: 396.9, levelDB: 10.2),
@@ -169,7 +169,7 @@ nonisolated enum VoiceTargetCurve {
     /// Against the default curve it has more 400-630 Hz and 1.2-1.6 kHz and
     /// less 3-8 kHz: body in the low mids and presence in the mids, rather
     /// than bass and bright highs.
-    static let broadcast: [VoiceMeasurement.SpectrumPoint] = [
+    public static let broadcast: [VoiceMeasurement.SpectrumPoint] = [
         .init(centerHz: 250.0, levelDB: 9.7),
         .init(centerHz: 315.0, levelDB: 10.8),
         .init(centerHz: 396.9, levelDB: 12.1),
@@ -191,22 +191,22 @@ nonisolated enum VoiceTargetCurve {
 
 // MARK: - Resolver
 
-nonisolated enum VoiceProfileResolver {
+public nonisolated enum VoiceProfileResolver {
     /// The narration level the chain's thresholds are written for. Input
     /// trim brings every take here first.
-    static let referenceLUFS = -26.0
+    public static let referenceLUFS = -26.0
     /// Match EQ corrects this share of the measured difference: enough to
     /// fix a microphone or a room, not enough to erase the voice.
-    static let matchStrength = 0.7
+    public static let matchStrength = 0.7
     /// Cuts are safer than boosts: a boost also raises whatever noise
     /// lives in the band.
-    static let matchCutLimitDB = 6.0
-    static let matchBoostLimitDB = 4.5
+    public static let matchCutLimitDB = 6.0
+    public static let matchBoostLimitDB = 4.5
     /// A band this far under the target is missing, not quiet (a dull or
     /// narrowband source); boosting it would only raise hiss.
-    static let missingBandDB = 12.0
+    public static let missingBandDB = 12.0
 
-    static func inputTrimDB(for analysis: VoiceAnalysisResult) -> Double {
+    public static func inputTrimDB(for analysis: VoiceAnalysisResult) -> Double {
         guard let loudness = analysis.integratedLUFS else { return 0 }
         return min(18, max(-18, referenceLUFS - loudness))
     }
@@ -215,7 +215,7 @@ nonisolated enum VoiceProfileResolver {
     /// neutral (the average difference is removed), each averaged over the
     /// three third-octaves around its center, scaled and limited. Bands with
     /// no content to speak of are left alone.
-    static func matchEQ(
+    public static func matchEQ(
         measured: [VoiceMeasurement.SpectrumPoint],
         target: [VoiceMeasurement.SpectrumPoint] = VoiceTargetCurve.points,
         strength: Double = matchStrength
@@ -247,7 +247,7 @@ nonisolated enum VoiceProfileResolver {
     }
 
     /// The chain for a profile and (when there is one) an analysis.
-    static func chain(for profile: VoiceProfileSettings, analysis: VoiceAnalysisResult?) -> VoiceChainSettings {
+    public static func chain(for profile: VoiceProfileSettings, analysis: VoiceAnalysisResult?) -> VoiceChainSettings {
         if let custom = profile.customChain { return custom }
         var chain = VoiceChainSettings()
         let intensity = min(1, max(0, profile.intensity))
@@ -305,25 +305,25 @@ nonisolated enum VoiceProfileResolver {
 
     /// Each character at full intensity.
     private struct CharacterCurve {
-        var body = 0.0
-        var bodyScale = 1.0
-        var mud = 0.0
-        var presence = 0.0
-        var presenceHz = 3_200.0
-        var presenceQ = 1.0
-        var air = 0.0
-        var airHz = 10_000.0
-        var ratio = 2.0
-        var threshold = -26.0
-        var makeup = 2.0
-        var attack = 10.0
-        var release = 100.0
-        var matchStrength = VoiceProfileResolver.matchStrength
-        var saturationDrive = 6.0
-        var saturationMix = 0.0
-        var saturationWarmth = 0.3
+        public var body = 0.0
+        public var bodyScale = 1.0
+        public var mud = 0.0
+        public var presence = 0.0
+        public var presenceHz = 3_200.0
+        public var presenceQ = 1.0
+        public var air = 0.0
+        public var airHz = 10_000.0
+        public var ratio = 2.0
+        public var threshold = -26.0
+        public var makeup = 2.0
+        public var attack = 10.0
+        public var release = 100.0
+        public var matchStrength = VoiceProfileResolver.matchStrength
+        public var saturationDrive = 6.0
+        public var saturationMix = 0.0
+        public var saturationWarmth = 0.3
 
-        init(_ character: VoiceProfileSettings.Character) {
+        public init(_ character: VoiceProfileSettings.Character) {
             switch character {
             case .clear:
                 body = 1; presence = 1.5; air = 1

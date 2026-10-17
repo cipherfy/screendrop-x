@@ -13,6 +13,7 @@
 import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
+import VoiceKit
 
 private extension ZoomAnchorMode {
     var inspectorTitle: String {

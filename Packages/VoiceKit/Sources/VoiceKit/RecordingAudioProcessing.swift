@@ -17,31 +17,31 @@ import Synchronization
 
 /// What a recorded audio track carries. The recorder writes system audio
 /// as stereo and the microphone as mono, so channel count tells them apart.
-nonisolated enum RecordingAudioRole: Sendable {
+public nonisolated enum RecordingAudioRole: Sendable {
     case voice
     case system
 }
 
 /// The project's audio settings, saved in the project document.
-nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
-    static let voiceGainRange: ClosedRange<Double> = -24...24
+public nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
+    public static let voiceGainRange: ClosedRange<Double> = -24...24
     /// The bottom of the range mutes system audio.
-    static let systemGainRange: ClosedRange<Double> = -60...12
+    public static let systemGainRange: ClosedRange<Double> = -60...12
 
-    var voiceGainDB: Double = 0
-    var systemGainDB: Double = 0
+    public var voiceGainDB: Double = 0
+    public var systemGainDB: Double = 0
     /// Off leaves the voice with its gain alone, the "before" side of an
     /// A/B comparison. Exports follow it, so they match what was heard.
-    var voiceProcessingEnabled: Bool = true
-    var voiceChain = VoiceChainSettings()
+    public var voiceProcessingEnabled: Bool = true
+    public var voiceChain = VoiceChainSettings()
     /// Rendered ahead of playback rather than in the tap; see
     /// RecordingVoiceIsolation.
-    var voiceIsolation = VoiceIsolationSettings()
+    public var voiceIsolation = VoiceIsolationSettings()
     /// The profile the voice chain was resolved from; nil in projects saved
     /// before profiles, whose chain stands as it was saved.
-    var voiceProfile: VoiceProfileSettings?
+    public var voiceProfile: VoiceProfileSettings?
 
-    init(
+    public init(
         voiceGainDB: Double = 0,
         systemGainDB: Double = 0,
         voiceProcessingEnabled: Bool = true,
@@ -61,7 +61,7 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
         case voiceGainDB, systemGainDB, voiceProcessingEnabled, voiceChain, voiceIsolation, voiceProfile
     }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         self.init(
             voiceGainDB: c.value(.voiceGainDB, default: 0),
@@ -74,7 +74,7 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
     }
 
     /// Projects saved with one linear volume (0...2) for everything.
-    init(legacyVolume volume: Double) {
+    public init(legacyVolume volume: Double) {
         let decibels = volume.isFinite && volume > 0 ? 20 * log10(min(2, volume)) : Self.systemGainRange.lowerBound
         self.init(
             voiceGainDB: max(Self.voiceGainRange.lowerBound, decibels),
@@ -84,11 +84,11 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
     }
 
     /// What a project without saved audio settings starts with.
-    static var projectDefault: RecordingAudioSettings {
+    public static var projectDefault: RecordingAudioSettings {
         RecordingAudioSettings(voiceIsolation: .projectDefault)
     }
 
-    var normalized: Self {
+    public var normalized: Self {
         Self(
             voiceGainDB: Self.clamp(voiceGainDB, to: Self.voiceGainRange),
             systemGainDB: Self.clamp(systemGainDB, to: Self.systemGainRange),
@@ -99,7 +99,7 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
         )
     }
 
-    func linearGain(for role: RecordingAudioRole) -> Float {
+    public func linearGain(for role: RecordingAudioRole) -> Float {
         switch role {
         case .voice:
             Float(pow(10, voiceGainDB / 20))
@@ -115,26 +115,26 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
 
 /// Voice isolation is rendered ahead of playback rather than run in a
 /// tap; see RecordingVoiceIsolation.
-nonisolated struct VoiceIsolationSettings: Codable, Sendable, Equatable {
+public nonisolated struct VoiceIsolationSettings: Codable, Sendable, Equatable {
     /// How much of the isolated voice replaces the original, in percent.
     /// The blend is linear, so 75% lowers the room by about 12 dB and 90% by
     /// about 20 dB; keeping a little can sound more natural than none.
-    static let amounts = [0, 75, 90, 100]
+    public static let amounts = [0, 75, 90, 100]
     /// Where a project starts: enough to clear the room and the keyboard
     /// while keeping the voice natural.
-    static let projectDefault = VoiceIsolationSettings(amount: 75)
+    public static let projectDefault = VoiceIsolationSettings(amount: 75)
 
-    var amount = 0
+    public var amount = 0
 
-    var isEnabled: Bool { amount > 0 }
+    public var isEnabled: Bool { amount > 0 }
 
-    init(amount: Int = 0) {
+    public init(amount: Int = 0) {
         self.amount = min(100, max(0, amount))
     }
 
     private enum CodingKeys: String, CodingKey { case amount }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         self.init(amount: c.value(.amount, default: 0))
     }
@@ -143,7 +143,7 @@ nonisolated struct VoiceIsolationSettings: Codable, Sendable, Equatable {
 /// Settings as the audio threads read them. Studio updates these while
 /// playback runs; taps pick changes up on their next buffer and glide to
 /// them, so dragging a slider never rebuilds the player item or clicks.
-nonisolated final class RecordingAudioParameters: Sendable {
+public nonisolated final class RecordingAudioParameters: Sendable {
     private let voiceGain: Atomic<UInt32>
     private let systemGain: Atomic<UInt32>
     private let processing: Atomic<Bool>
@@ -152,9 +152,9 @@ nonisolated final class RecordingAudioParameters: Sendable {
     /// tap keeps its current settings for one more buffer.
     private let chain: Mutex<(settings: VoiceChainSettings, version: Int)>
     /// Filled by the voice tap during playback; exports ignore it.
-    let meters = RecordingAudioMeters()
+    public let meters = RecordingAudioMeters()
 
-    init(_ settings: RecordingAudioSettings = RecordingAudioSettings()) {
+    public init(_ settings: RecordingAudioSettings = RecordingAudioSettings()) {
         let normalized = settings.normalized
         voiceGain = Atomic(normalized.linearGain(for: .voice).bitPattern)
         systemGain = Atomic(normalized.linearGain(for: .system).bitPattern)
@@ -162,7 +162,7 @@ nonisolated final class RecordingAudioParameters: Sendable {
         chain = Mutex((normalized.voiceChain, 0))
     }
 
-    func update(_ settings: RecordingAudioSettings) {
+    public func update(_ settings: RecordingAudioSettings) {
         let normalized = settings.normalized
         voiceGain.store(normalized.linearGain(for: .voice).bitPattern, ordering: .relaxed)
         systemGain.store(normalized.linearGain(for: .system).bitPattern, ordering: .relaxed)
@@ -175,35 +175,35 @@ nonisolated final class RecordingAudioParameters: Sendable {
     }
 
     /// Nil when Studio is writing at this instant; never blocks.
-    func voiceChainIfAvailable() -> (settings: VoiceChainSettings, version: Int)? {
+    public func voiceChainIfAvailable() -> (settings: VoiceChainSettings, version: Int)? {
         chain.withLockIfAvailable { $0 }
     }
 
-    func gain(for role: RecordingAudioRole) -> Float {
+    public func gain(for role: RecordingAudioRole) -> Float {
         switch role {
         case .voice: Float(bitPattern: voiceGain.load(ordering: .relaxed))
         case .system: Float(bitPattern: systemGain.load(ordering: .relaxed))
         }
     }
 
-    var isVoiceProcessingEnabled: Bool {
+    public var isVoiceProcessingEnabled: Bool {
         processing.load(ordering: .relaxed)
     }
 }
 
 /// What the voice tap is doing, for Studio's meters. The tap stores after
 /// every buffer; Studio reads at display rate. Plain atomics, no locks.
-nonisolated final class RecordingAudioMeters: Sendable {
-    struct Snapshot: Equatable, Sendable {
-        var inputPeakDB = -120.0
-        var outputPeakDB = -120.0
-        var expanderDB = 0.0
-        var compressorDB = 0.0
-        var deEsserDB = 0.0
-        var limiterDB = 0.0
-        var shortTermLUFS: Double?
+public nonisolated final class RecordingAudioMeters: Sendable {
+    public struct Snapshot: Equatable, Sendable {
+        public var inputPeakDB = -120.0
+        public var outputPeakDB = -120.0
+        public var expanderDB = 0.0
+        public var compressorDB = 0.0
+        public var deEsserDB = 0.0
+        public var limiterDB = 0.0
+        public var shortTermLUFS: Double?
         /// Changes with every buffer, so a reader can tell playback stopped.
-        var sequence: UInt32 = 0
+        public var sequence: UInt32 = 0
     }
 
     private let inputPeak = Atomic<UInt32>(0)
@@ -215,7 +215,7 @@ nonisolated final class RecordingAudioMeters: Sendable {
     private let loudness = Atomic<UInt32>(Float.nan.bitPattern)
     private let sequence = Atomic<UInt32>(0)
 
-    func store(
+    public func store(
         inputPeak: Float, outputPeak: Float,
         expanderDB: Float, compressorDB: Float, deEsserDB: Float, limiterDB: Float,
         shortTermLUFS: Float?
@@ -230,7 +230,7 @@ nonisolated final class RecordingAudioMeters: Sendable {
         sequence.add(1, ordering: .relaxed)
     }
 
-    func snapshot() -> Snapshot {
+    public func snapshot() -> Snapshot {
         func value(_ atomic: borrowing Atomic<UInt32>) -> Double {
             Double(Float(bitPattern: atomic.load(ordering: .relaxed)))
         }
@@ -251,7 +251,7 @@ nonisolated final class RecordingAudioMeters: Sendable {
 
 /// Short-term loudness (EBU R128: K-weighted, 3 s window) for the render
 /// thread: fixed buffers, updated every 100 ms.
-nonisolated struct ShortTermLoudness {
+public nonisolated struct ShortTermLoudness {
     private var filters: [KWeightingFilter]
     private var segments: [Double]
     private let segmentLength: Int
@@ -259,15 +259,15 @@ nonisolated struct ShortTermLoudness {
     private var filledSegments = 0
     private var accumulated = 0.0
     private var accumulatedFrames = 0
-    private(set) var lufs: Double?
+    public private(set) var lufs: Double?
 
-    init(sampleRate: Double, channelCount: Int) {
+    public init(sampleRate: Double, channelCount: Int) {
         filters = Array(repeating: KWeightingFilter(sampleRate: sampleRate), count: max(1, channelCount))
         segments = [Double](repeating: 0, count: 30)
         segmentLength = max(1, Int(sampleRate * 0.1))
     }
 
-    mutating func process(frameCount: Int, read: (Int, Int) -> Float) {
+    public mutating func process(frameCount: Int, read: (Int, Int) -> Float) {
         for frame in 0..<frameCount {
             for channel in filters.indices {
                 let y = filters[channel].process(Double(read(frame, channel)))
@@ -292,25 +292,25 @@ nonisolated struct ShortTermLoudness {
     }
 }
 
-nonisolated enum RecordingAudioProcessing {
+public nonisolated enum RecordingAudioProcessing {
     /// Ceiling for every limiter: 1 dB under full scale.
-    static let ceilingDB = -1.0
+    public static let ceilingDB = -1.0
 
     /// Frames every tap delays its track by: the voice chain's oversampling
     /// plus the limiter's look-ahead. System audio is delayed the same, so
     /// the tracks stay aligned.
-    static func tapLatency(sampleRate: Double) -> Int {
+    public static func tapLatency(sampleRate: Double) -> Int {
         VoiceChainProcessor.latency + PeakLimiter.lookaheadFrames(sampleRate: sampleRate)
     }
 
     // MARK: Roles
 
     /// A replacement soundtrack is the narration, whatever its layout.
-    static func role(channelCount: UInt32, isReplacement: Bool) -> RecordingAudioRole {
+    public static func role(channelCount: UInt32, isReplacement: Bool) -> RecordingAudioRole {
         isReplacement || channelCount == 1 ? .voice : .system
     }
 
-    static func roles(for tracks: [AVAssetTrack], isReplacement: Bool) async throws -> [RecordingAudioRole] {
+    public static func roles(for tracks: [AVAssetTrack], isReplacement: Bool) async throws -> [RecordingAudioRole] {
         var roles: [RecordingAudioRole] = []
         for track in tracks {
             let descriptions = try await track.load(.formatDescriptions)
@@ -321,7 +321,7 @@ nonisolated enum RecordingAudioProcessing {
 
     /// Synchronous, for rebuilding a player item while a trim handle drags;
     /// composition tracks answer without loading.
-    static func rolesSynchronously(for tracks: [AVAssetTrack], isReplacement: Bool) -> [RecordingAudioRole] {
+    public static func rolesSynchronously(for tracks: [AVAssetTrack], isReplacement: Bool) -> [RecordingAudioRole] {
         tracks.map { track in
             role(channelCount: channelCount(track.formatDescriptions as? [CMFormatDescription] ?? []), isReplacement: isReplacement)
         }
@@ -334,7 +334,7 @@ nonisolated enum RecordingAudioProcessing {
     // MARK: Mix
 
     /// One tap per track, all reading the same live parameters.
-    static func makeMix(
+    public static func makeMix(
         tracks: [AVAssetTrack],
         roles: [RecordingAudioRole],
         parameters: RecordingAudioParameters
@@ -350,7 +350,7 @@ nonisolated enum RecordingAudioProcessing {
     }
 
     /// Reader settings for mixes the exporters limit before encoding.
-    static var mixOutputSettings: [String: Any] {
+    public static var mixOutputSettings: [String: Any] {
         [
             AVFormatIDKey: kAudioFormatLinearPCM,
             AVSampleRateKey: 48_000,
@@ -364,7 +364,7 @@ nonisolated enum RecordingAudioProcessing {
 
     /// Limits a buffer of the summed mix (interleaved float, as
     /// `mixOutputSettings` reads it) and returns the limited copy.
-    static func limitMix(_ sampleBuffer: CMSampleBuffer, with limiter: inout PeakLimiter) throws -> CMSampleBuffer {
+    public static func limitMix(_ sampleBuffer: CMSampleBuffer, with limiter: inout PeakLimiter) throws -> CMSampleBuffer {
         guard let format = CMSampleBufferGetFormatDescription(sampleBuffer),
               let description = format.audioStreamBasicDescription,
               description.mFormatFlags & kAudioFormatFlagIsFloat != 0,
@@ -415,17 +415,17 @@ nonisolated enum RecordingAudioProcessing {
     // MARK: Tap
 
     private final class TapContext {
-        let role: RecordingAudioRole
-        let parameters: RecordingAudioParameters
-        var format = AudioStreamBasicDescription()
-        var currentGain: Float
-        var gainSmoothing: Float = 0
-        var limiter: PeakLimiter?
-        var chain: VoiceChainProcessor?
-        var systemDelay: DelayLine?
-        var loudness: ShortTermLoudness?
+        public let role: RecordingAudioRole
+        public let parameters: RecordingAudioParameters
+        public var format = AudioStreamBasicDescription()
+        public var currentGain: Float
+        public var gainSmoothing: Float = 0
+        public var limiter: PeakLimiter?
+        public var chain: VoiceChainProcessor?
+        public var systemDelay: DelayLine?
+        public var loudness: ShortTermLoudness?
 
-        init(role: RecordingAudioRole, parameters: RecordingAudioParameters) {
+        public init(role: RecordingAudioRole, parameters: RecordingAudioParameters) {
             self.role = role
             self.parameters = parameters
             currentGain = parameters.gain(for: role)
@@ -627,8 +627,8 @@ nonisolated enum RecordingAudioProcessing {
 ///
 /// The look-ahead delays the track by 3 ms whether or not it is limiting,
 /// so nothing shifts in time when settings change.
-nonisolated struct PeakLimiter {
-    let ceiling: Float
+public nonisolated struct PeakLimiter {
+    public let ceiling: Float
     /// The envelope aims 0.1 dB under the ceiling, so it lands before the
     /// clamp has to act; a clamped sample would itself overshoot between
     /// samples.
@@ -656,13 +656,13 @@ nonisolated struct PeakLimiter {
 
     /// Interpolates up to 22 kHz at 48 kHz, so high-frequency inter-sample
     /// peaks are not underestimated.
-    static let detectionKernel = Oversampler.makeKernel(length: 97, cutoff: 0.92)
+    public static let detectionKernel = Oversampler.makeKernel(length: 97, cutoff: 0.92)
 
-    static func lookaheadFrames(sampleRate: Double, milliseconds: Double = 3) -> Int {
+    public static func lookaheadFrames(sampleRate: Double, milliseconds: Double = 3) -> Int {
         max(1, Int(sampleRate * milliseconds / 1_000))
     }
 
-    init(
+    public init(
         sampleRate: Double,
         channelCount: Int,
         ceilingDB: Double = -1,
@@ -686,9 +686,9 @@ nonisolated struct PeakLimiter {
     }
 
     /// Current gain reduction, in dB (zero or negative).
-    var gainReductionDB: Double { 20 * log10(Double(gain)) }
+    public var gainReductionDB: Double { 20 * log10(Double(gain)) }
 
-    mutating func reset() {
+    public mutating func reset() {
         for index in delay.indices { delay[index] = 0 }
         for index in history.indices { history[index] = 0 }
         position = 0
@@ -699,14 +699,14 @@ nonisolated struct PeakLimiter {
         gain = 1
     }
 
-    mutating func process(interleaved samples: UnsafeMutablePointer<Float>, frameCount: Int) {
+    public mutating func process(interleaved samples: UnsafeMutablePointer<Float>, frameCount: Int) {
         let channels = channelCount
         process(frameCount: frameCount,
                 read: { frame, channel in samples[frame * channels + channel] },
                 write: { frame, channel, value in samples[frame * channels + channel] = value })
     }
 
-    mutating func process(
+    public mutating func process(
         frameCount: Int,
         read: (Int, Int) -> Float,
         write: (Int, Int, Float) -> Void

@@ -9,6 +9,7 @@
 
 import CoreGraphics
 import Foundation
+import VoiceKit
 
 /// The floating talking-head bubble composited over the recording.
 struct RecordingCameraBubbleSettings: Equatable {

@@ -25,6 +25,7 @@ import ImageIO
 import OSLog
 import SwiftUI
 import VideoToolbox
+import VoiceKit
 
 nonisolated final class RecordingStudioExporter: @unchecked Sendable {
     private static let logger = Logger(subsystem: "com.fayazahmed.Screendrop", category: "StudioExport")

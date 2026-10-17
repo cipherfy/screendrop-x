@@ -16,136 +16,136 @@ import Foundation
 
 // MARK: - Settings
 
-nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
-    nonisolated enum FilterKind: String, Codable, Sendable {
+public nonisolated struct VoiceChainSettings: Codable, Sendable, Equatable {
+    public nonisolated enum FilterKind: String, Codable, Sendable {
         case lowShelf
         case peak
         case highShelf
     }
 
-    struct HighPass: Codable, Sendable, Equatable {
-        var isEnabled = true
-        var frequency = 80.0
+    public struct HighPass: Codable, Sendable, Equatable {
+        public var isEnabled = true
+        public var frequency = 80.0
         /// 24 dB per octave instead of 12.
-        var isSteep = false
+        public var isSteep = false
     }
 
     /// A gain of 0 dB leaves the band out of the sound entirely.
-    struct Band: Codable, Sendable, Equatable {
-        var kind: FilterKind
-        var frequency: Double
-        var gainDB = 0.0
-        var q = 0.7
+    public struct Band: Codable, Sendable, Equatable {
+        public var kind: FilterKind
+        public var frequency: Double
+        public var gainDB = 0.0
+        public var q = 0.7
     }
 
     /// Octave bells that pull the voice's long-term balance toward a target
     /// curve. Fixed fields rather than an array, so the render thread can
     /// copy settings without touching the heap.
-    struct MatchEQ: Codable, Sendable, Equatable {
-        static let centers: [Double] = [250, 500, 1_000, 2_000, 4_000, 8_000]
-        static let q = 1.2
+    public struct MatchEQ: Codable, Sendable, Equatable {
+        public static let centers: [Double] = [250, 500, 1_000, 2_000, 4_000, 8_000]
+        public static let q = 1.2
 
-        var gain250 = 0.0
-        var gain500 = 0.0
-        var gain1k = 0.0
-        var gain2k = 0.0
-        var gain4k = 0.0
-        var gain8k = 0.0
+        public var gain250 = 0.0
+        public var gain500 = 0.0
+        public var gain1k = 0.0
+        public var gain2k = 0.0
+        public var gain4k = 0.0
+        public var gain8k = 0.0
 
-        var gains: [Double] { [gain250, gain500, gain1k, gain2k, gain4k, gain8k] }
+        public var gains: [Double] { [gain250, gain500, gain1k, gain2k, gain4k, gain8k] }
 
-        init() {}
+        public init() {}
 
-        init(gains: [Double]) {
+        public init(gains: [Double]) {
             let g = gains + Array(repeating: 0, count: max(0, 6 - gains.count))
             gain250 = g[0]; gain500 = g[1]; gain1k = g[2]; gain2k = g[3]; gain4k = g[4]; gain8k = g[5]
         }
     }
 
     /// Cuts a band only while it is loud: proximity boom from leaning in.
-    struct DynamicBand: Codable, Sendable, Equatable {
-        var isEnabled = false
-        var frequency = 160.0
-        var q = 1.0
-        var thresholdDB = -30.0
-        var rangeDB = 6.0
+    public struct DynamicBand: Codable, Sendable, Equatable {
+        public var isEnabled = false
+        public var frequency = 160.0
+        public var q = 1.0
+        public var thresholdDB = -30.0
+        public var rangeDB = 6.0
     }
 
-    struct DeEsser: Codable, Sendable, Equatable {
-        var isEnabled = false
-        var frequency = 6_500.0
-        var thresholdDB = -32.0
-        var rangeDB = 8.0
+    public struct DeEsser: Codable, Sendable, Equatable {
+        public var isEnabled = false
+        public var frequency = 6_500.0
+        public var thresholdDB = -32.0
+        public var rangeDB = 8.0
     }
 
     /// Gentle downward expander: lowers what falls under the threshold, so
     /// the room between words does not rise with the compressor.
-    struct Expander: Codable, Sendable, Equatable {
-        var isEnabled = false
-        var thresholdDB = -45.0
-        var ratio = 2.0
-        var rangeDB = 8.0
-        var releaseMilliseconds = 150.0
+    public struct Expander: Codable, Sendable, Equatable {
+        public var isEnabled = false
+        public var thresholdDB = -45.0
+        public var ratio = 2.0
+        public var rangeDB = 8.0
+        public var releaseMilliseconds = 150.0
     }
 
-    struct Compressor: Codable, Sendable, Equatable {
-        var isEnabled = false
-        var thresholdDB = -24.0
-        var ratio = 3.0
-        var kneeDB = 6.0
-        var attackMilliseconds = 10.0
-        var releaseMilliseconds = 100.0
-        var makeupDB = 0.0
+    public struct Compressor: Codable, Sendable, Equatable {
+        public var isEnabled = false
+        public var thresholdDB = -24.0
+        public var ratio = 3.0
+        public var kneeDB = 6.0
+        public var attackMilliseconds = 10.0
+        public var releaseMilliseconds = 100.0
+        public var makeupDB = 0.0
     }
 
     /// Soft saturation, run at four times the sample rate so its harmonics
     /// do not fold back as aliasing. Warmth biases the curve for even
     /// harmonics, the tube-like part of "character".
-    struct Saturation: Codable, Sendable, Equatable {
-        var isEnabled = false
-        var driveDB = 6.0
-        var mix = 0.3
-        var warmth = 0.3
+    public struct Saturation: Codable, Sendable, Equatable {
+        public var isEnabled = false
+        public var driveDB = 6.0
+        public var mix = 0.3
+        public var warmth = 0.3
     }
 
     /// Level into the chain, so thresholds mean the same thing for a quiet
     /// and a hot microphone. Loudness analysis will set it.
-    var inputTrimDB = 0.0
-    var highPass = HighPass()
-    var lowShelf = Band(kind: .lowShelf, frequency: 150)
-    var lowMid = Band(kind: .peak, frequency: 300, q: 1.2)
-    var mid = Band(kind: .peak, frequency: 900, q: 1.4)
-    var presence = Band(kind: .peak, frequency: 4_500, q: 1.4)
-    var highShelf = Band(kind: .highShelf, frequency: 10_000)
-    var match = MatchEQ()
-    var dynamicLow = DynamicBand()
-    var expander = Expander()
-    var deEsser = DeEsser()
-    var compressor = Compressor()
-    var saturation = Saturation()
+    public var inputTrimDB = 0.0
+    public var highPass = HighPass()
+    public var lowShelf = Band(kind: .lowShelf, frequency: 150)
+    public var lowMid = Band(kind: .peak, frequency: 300, q: 1.2)
+    public var mid = Band(kind: .peak, frequency: 900, q: 1.4)
+    public var presence = Band(kind: .peak, frequency: 4_500, q: 1.4)
+    public var highShelf = Band(kind: .highShelf, frequency: 10_000)
+    public var match = MatchEQ()
+    public var dynamicLow = DynamicBand()
+    public var expander = Expander()
+    public var deEsser = DeEsser()
+    public var compressor = Compressor()
+    public var saturation = Saturation()
 
-    init() {}
+    public init() {}
 
-    var bands: [Band] { [lowShelf, lowMid, mid, presence, highShelf] }
+    public var bands: [Band] { [lowShelf, lowMid, mid, presence, highShelf] }
 }
 
 // MARK: Presets
 
 nonisolated extension VoiceChainSettings {
-    nonisolated enum Preset: String, CaseIterable, Identifiable, Sendable {
+    public nonisolated enum Preset: String, CaseIterable, Identifiable, Sendable {
         case neutral
         case usbCondenser
 
-        var id: Self { self }
+        public var id: Self { self }
 
-        var title: String {
+        public var title: String {
             switch self {
             case .neutral: "Neutral"
             case .usbCondenser: "USB Condenser"
             }
         }
 
-        var help: String {
+        public var help: String {
             switch self {
             case .neutral:
                 "A gentle high-pass and the limiter, nothing else"
@@ -154,7 +154,7 @@ nonisolated extension VoiceChainSettings {
             }
         }
 
-        var settings: VoiceChainSettings {
+        public var settings: VoiceChainSettings {
             switch self {
             case .neutral: VoiceChainSettings()
             case .usbCondenser: .usbCondenser
@@ -163,7 +163,7 @@ nonisolated extension VoiceChainSettings {
     }
 
     /// Every stage off: the chain passes the voice through untouched.
-    static var flat: VoiceChainSettings {
+    public static var flat: VoiceChainSettings {
         var settings = VoiceChainSettings()
         settings.highPass.isEnabled = false
         return settings
@@ -171,7 +171,7 @@ nonisolated extension VoiceChainSettings {
 
     /// The starting curve for a USB condenser (HyperX QuadCast class) a
     /// hand's width from the mouth, at a desk in an untreated room.
-    static var usbCondenser: VoiceChainSettings {
+    public static var usbCondenser: VoiceChainSettings {
         var settings = VoiceChainSettings()
         settings.highPass = HighPass(isEnabled: true, frequency: 90, isSteep: true)
         // Body as a bell rather than a shelf: lift the voice, not the room.
@@ -190,7 +190,7 @@ nonisolated extension VoiceChainSettings {
         return settings
     }
 
-    var matchingPreset: Preset? {
+    public var matchingPreset: Preset? {
         Preset.allCases.first { $0.settings == self }
     }
 }
@@ -200,7 +200,7 @@ nonisolated extension VoiceChainSettings {
 // Every field falls back to its default, so projects saved before a field
 // existed (or by a later build with fields this one lacks) still open.
 nonisolated extension KeyedDecodingContainer {
-    func value<T: Decodable>(_ key: Key, default fallback: T) -> T {
+    public func value<T: Decodable>(_ key: Key, default fallback: T) -> T {
         ((try? decodeIfPresent(T.self, forKey: key)) ?? nil) ?? fallback
     }
 }
@@ -211,7 +211,7 @@ nonisolated extension VoiceChainSettings {
         case dynamicLow, expander, deEsser, compressor, saturation
     }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let defaults = VoiceChainSettings()
         inputTrimDB = c.value(.inputTrimDB, default: defaults.inputTrimDB)
@@ -233,7 +233,7 @@ nonisolated extension VoiceChainSettings {
 nonisolated extension VoiceChainSettings.HighPass {
     private enum CodingKeys: String, CodingKey { case isEnabled, frequency, isSteep }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = Self()
         self.init(
@@ -247,7 +247,7 @@ nonisolated extension VoiceChainSettings.HighPass {
 nonisolated extension VoiceChainSettings.Band {
     private enum CodingKeys: String, CodingKey { case kind, frequency, gainDB, q }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         self.init(
             kind: c.value(.kind, default: .peak),
@@ -261,7 +261,7 @@ nonisolated extension VoiceChainSettings.Band {
 nonisolated extension VoiceChainSettings.MatchEQ {
     private enum CodingKeys: String, CodingKey { case gain250, gain500, gain1k, gain2k, gain4k, gain8k }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         self.init(gains: [
             c.value(.gain250, default: 0.0), c.value(.gain500, default: 0.0), c.value(.gain1k, default: 0.0),
@@ -273,7 +273,7 @@ nonisolated extension VoiceChainSettings.MatchEQ {
 nonisolated extension VoiceChainSettings.DynamicBand {
     private enum CodingKeys: String, CodingKey { case isEnabled, frequency, q, thresholdDB, rangeDB }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = Self()
         self.init(
@@ -289,7 +289,7 @@ nonisolated extension VoiceChainSettings.DynamicBand {
 nonisolated extension VoiceChainSettings.Expander {
     private enum CodingKeys: String, CodingKey { case isEnabled, thresholdDB, ratio, rangeDB, releaseMilliseconds }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = Self()
         self.init(
@@ -305,7 +305,7 @@ nonisolated extension VoiceChainSettings.Expander {
 nonisolated extension VoiceChainSettings.DeEsser {
     private enum CodingKeys: String, CodingKey { case isEnabled, frequency, thresholdDB, rangeDB }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = Self()
         self.init(
@@ -322,7 +322,7 @@ nonisolated extension VoiceChainSettings.Compressor {
         case isEnabled, thresholdDB, ratio, kneeDB, attackMilliseconds, releaseMilliseconds, makeupDB
     }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = Self()
         self.init(
@@ -340,7 +340,7 @@ nonisolated extension VoiceChainSettings.Compressor {
 nonisolated extension VoiceChainSettings.Saturation {
     private enum CodingKeys: String, CodingKey { case isEnabled, driveDB, mix, warmth }
 
-    init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = Self()
         self.init(
@@ -358,7 +358,7 @@ nonisolated extension VoiceChainSettings {
     /// The static filters' coefficients: high-pass (two stages), the five
     /// bands, and the six match bells. The processor and the response curve
     /// both use this, so the drawn curve is what plays.
-    func staticCoefficients(sampleRate rate: Double) -> (highPass: [Biquad.Coefficients], bands: [Biquad.Coefficients], match: [Biquad.Coefficients]) {
+    public func staticCoefficients(sampleRate rate: Double) -> (highPass: [Biquad.Coefficients], bands: [Biquad.Coefficients], match: [Biquad.Coefficients]) {
         let hp = highPass
         let highPassCoefficients: [Biquad.Coefficients] = !hp.isEnabled ? [.identity, .identity]
             : hp.isSteep
@@ -380,7 +380,7 @@ nonisolated extension VoiceChainSettings {
 
     /// The static EQ's gain at `frequency`, in dB (input trim, dynamics,
     /// and saturation excluded).
-    func responseDB(at frequency: Double, sampleRate: Double = 48_000) -> Double {
+    public func responseDB(at frequency: Double, sampleRate: Double = 48_000) -> Double {
         let filters = staticCoefficients(sampleRate: sampleRate)
         return (filters.highPass + filters.bands + filters.match)
             .reduce(0) { $0 + $1.magnitudeDB(at: frequency, sampleRate: sampleRate) }
@@ -391,15 +391,15 @@ nonisolated extension VoiceChainSettings {
 
 /// Runs the chain on up to two channels. Create it off the render thread
 /// (it allocates); `process` never does.
-nonisolated struct VoiceChainProcessor {
-    static let maximumChannels = 2
+public nonisolated struct VoiceChainProcessor {
+    public static let maximumChannels = 2
 
     /// Frames of delay the chain adds, the same with any settings, so
     /// switching stages or bypass never moves the voice in time.
-    static var latency: Int { Oversampler.latency }
+    public static var latency: Int { Oversampler.latency }
 
-    let sampleRate: Double
-    let channelCount: Int
+    public let sampleRate: Double
+    public let channelCount: Int
 
     private var settingsVersion = -1
     private var settings = VoiceChainSettings()
@@ -444,7 +444,7 @@ nonisolated struct VoiceChainProcessor {
     private let powerSmoothing: Double
     private let fastSmoothing: Double
 
-    init(sampleRate: Double, channelCount: Int) {
+    public init(sampleRate: Double, channelCount: Int) {
         self.sampleRate = sampleRate
         self.channelCount = min(Self.maximumChannels, max(1, channelCount))
         let channels = self.channelCount
@@ -467,7 +467,7 @@ nonisolated struct VoiceChainProcessor {
 
     /// Recomputes coefficients when the settings change; filter state is
     /// kept, so a moving control does not restart the filters.
-    mutating func apply(_ newSettings: VoiceChainSettings, version: Int) {
+    public mutating func apply(_ newSettings: VoiceChainSettings, version: Int) {
         guard version != settingsVersion else { return }
         settingsVersion = version
         settings = newSettings
@@ -493,7 +493,7 @@ nonisolated struct VoiceChainProcessor {
 
     /// Processes in place. `enabled` false plays the dry voice, matched
     /// to the processed level, with a short crossfade either way.
-    mutating func process(
+    public mutating func process(
         frameCount: Int,
         enabled: Bool,
         read: (Int, Int) -> Float,
@@ -641,9 +641,9 @@ nonisolated struct VoiceChainProcessor {
     }
 
     /// Current gain reductions in dB (zero or negative), for meters.
-    var compressorReductionDB: Double { settings.compressor.isEnabled ? compressorGainDB : 0 }
-    var expanderReductionDB: Double { settings.expander.isEnabled ? expanderGainDB : 0 }
-    var deEsserReductionDB: Double { settings.deEsser.isEnabled ? -deEssCutDB : 0 }
+    public var compressorReductionDB: Double { settings.compressor.isEnabled ? compressorGainDB : 0 }
+    public var expanderReductionDB: Double { settings.expander.isEnabled ? expanderGainDB : 0 }
+    public var deEsserReductionDB: Double { settings.deEsser.isEnabled ? -deEssCutDB : 0 }
 
     private func compressionGain(_ input: Double, _ c: VoiceChainSettings.Compressor) -> Double {
         let over = input - c.thresholdDB
@@ -676,14 +676,14 @@ nonisolated struct VoiceChainProcessor {
 
 /// Transposed direct form II biquad in double precision, so low corners
 /// at 48 kHz stay stable and quiet.
-nonisolated struct Biquad {
-    struct Coefficients {
-        var b0 = 1.0, b1 = 0.0, b2 = 0.0, a1 = 0.0, a2 = 0.0
+public nonisolated struct Biquad {
+    public struct Coefficients {
+        public var b0 = 1.0, b1 = 0.0, b2 = 0.0, a1 = 0.0, a2 = 0.0
 
-        static let identity = Coefficients()
+        public static let identity = Coefficients()
 
         /// |H(e^jw)| in dB.
-        func magnitudeDB(at frequency: Double, sampleRate: Double) -> Double {
+        public func magnitudeDB(at frequency: Double, sampleRate: Double) -> Double {
             let w = 2 * .pi * frequency / sampleRate
             let (c1, s1, c2, s2) = (cos(w), sin(w), cos(2 * w), sin(2 * w))
             let numeratorRe = b0 + b1 * c1 + b2 * c2
@@ -701,27 +701,27 @@ nonisolated struct Biquad {
         }
 
         // RBJ Audio EQ Cookbook.
-        static func highPass(_ rate: Double, _ frequency: Double, q: Double) -> Coefficients {
+        public static func highPass(_ rate: Double, _ frequency: Double, q: Double) -> Coefficients {
             let w = 2 * .pi * min(frequency, rate * 0.49) / rate
             let alpha = sin(w) / (2 * q), c = cos(w)
             return normalized((1 + c) / 2, -(1 + c), (1 + c) / 2, 1 + alpha, -2 * c, 1 - alpha)
         }
 
         /// Constant 0 dB peak gain.
-        static func bandPass(_ rate: Double, _ frequency: Double, q: Double) -> Coefficients {
+        public static func bandPass(_ rate: Double, _ frequency: Double, q: Double) -> Coefficients {
             let w = 2 * .pi * min(frequency, rate * 0.49) / rate
             let alpha = sin(w) / (2 * q), c = cos(w)
             return normalized(alpha, 0, -alpha, 1 + alpha, -2 * c, 1 - alpha)
         }
 
-        static func peak(_ rate: Double, _ frequency: Double, q: Double, gainDB: Double) -> Coefficients {
+        public static func peak(_ rate: Double, _ frequency: Double, q: Double, gainDB: Double) -> Coefficients {
             let a = pow(10, gainDB / 40)
             let w = 2 * .pi * min(frequency, rate * 0.49) / rate
             let alpha = sin(w) / (2 * q), c = cos(w)
             return normalized(1 + alpha * a, -2 * c, 1 - alpha * a, 1 + alpha / a, -2 * c, 1 - alpha / a)
         }
 
-        static func lowShelf(_ rate: Double, _ frequency: Double, q: Double, gainDB: Double) -> Coefficients {
+        public static func lowShelf(_ rate: Double, _ frequency: Double, q: Double, gainDB: Double) -> Coefficients {
             let a = pow(10, gainDB / 40)
             let w = 2 * .pi * min(frequency, rate * 0.49) / rate
             let alpha = sin(w) / (2 * q), c = cos(w), s = 2 * sqrt(a) * alpha
@@ -731,7 +731,7 @@ nonisolated struct Biquad {
             )
         }
 
-        static func highShelf(_ rate: Double, _ frequency: Double, q: Double, gainDB: Double) -> Coefficients {
+        public static func highShelf(_ rate: Double, _ frequency: Double, q: Double, gainDB: Double) -> Coefficients {
             let a = pow(10, gainDB / 40)
             let w = 2 * .pi * min(frequency, rate * 0.49) / rate
             let alpha = sin(w) / (2 * q), c = cos(w), s = 2 * sqrt(a) * alpha
@@ -742,11 +742,11 @@ nonisolated struct Biquad {
         }
     }
 
-    var coefficients = Coefficients.identity
+    public var coefficients = Coefficients.identity
     private var z1 = 0.0
     private var z2 = 0.0
 
-    mutating func process(_ x: Double) -> Double {
+    public mutating func process(_ x: Double) -> Double {
         let c = coefficients
         let y = c.b0 * x + z1
         z1 = c.b1 * x - c.a1 * y + z2
@@ -755,33 +755,33 @@ nonisolated struct Biquad {
     }
 }
 
-nonisolated struct EnvelopeFollower {
+public nonisolated struct EnvelopeFollower {
     private let attack: Double
     private let release: Double
     private var value = 0.0
 
-    init(sampleRate: Double, attackMilliseconds: Double, releaseMilliseconds: Double) {
+    public init(sampleRate: Double, attackMilliseconds: Double, releaseMilliseconds: Double) {
         attack = exp(-1 / (attackMilliseconds / 1_000 * sampleRate))
         release = exp(-1 / (releaseMilliseconds / 1_000 * sampleRate))
     }
 
-    mutating func process(_ level: Double) -> Double {
+    public mutating func process(_ level: Double) -> Double {
         value = level + (value - level) * (level > value ? attack : release)
         return value
     }
 }
 
 /// Removes the DC the warmth bias leaves behind (5 Hz corner).
-nonisolated struct DCBlocker {
+public nonisolated struct DCBlocker {
     private let pole: Double
     private var previousInput = 0.0
     private var previousOutput = 0.0
 
-    init(sampleRate: Double) {
+    public init(sampleRate: Double) {
         pole = exp(-2 * .pi * 5 / sampleRate)
     }
 
-    mutating func process(_ x: Double) -> Double {
+    public mutating func process(_ x: Double) -> Double {
         let y = x - previousInput + pole * previousOutput
         previousInput = x
         previousOutput = y
@@ -789,20 +789,20 @@ nonisolated struct DCBlocker {
     }
 }
 
-nonisolated struct DelayLine {
+public nonisolated struct DelayLine {
     private var buffer: [Float]
     private let frames: Int
     private let channels: Int
     private var position = 0
 
-    init(frames: Int, channels: Int) {
+    public init(frames: Int, channels: Int) {
         self.frames = max(1, frames)
         self.channels = channels
         buffer = [Float](repeating: 0, count: self.frames * channels)
     }
 
     /// Stores this frame's sample and returns the one `frames` ago.
-    mutating func push(_ value: Float, channel: Int) -> Float {
+    public mutating func push(_ value: Float, channel: Int) -> Float {
         let index = position * channels + channel
         let delayed = buffer[index]
         buffer[index] = value
@@ -810,12 +810,12 @@ nonisolated struct DelayLine {
     }
 
     /// Call once per frame, after every channel was pushed.
-    mutating func advance() {
+    public mutating func advance() {
         position += 1
         if position == frames { position = 0 }
     }
 
-    mutating func reset() {
+    public mutating func reset() {
         for index in buffer.indices { buffer[index] = 0 }
         position = 0
     }
@@ -824,14 +824,14 @@ nonisolated struct DelayLine {
 /// 4x polyphase oversampling around a per-sample function: windowed-sinc
 /// interpolation up, the function at the high rate, the same filter down.
 /// A 49-tap kernel puts the round trip at exactly 12 frames.
-nonisolated struct Oversampler {
-    static let factor = 4
+public nonisolated struct Oversampler {
+    public static let factor = 4
     /// Flat to 18 kHz (-1.7 dB at 20 kHz) through the round trip, and more
     /// than 200 dB down on the images above 26 kHz. An earlier 49-tap
     /// Blackman kernel cut at 0.45 of Nyquist took 4.5 dB off 8 kHz and 9 dB
     /// off 10 kHz whenever saturation was on, dulling the whole voice.
-    static let kernel: [Double] = makeKernel(length: 161, cutoff: 0.9, kaiserBeta: 10)
-    static let latency = (kernel.count - 1) / factor
+    public static let kernel: [Double] = makeKernel(length: 161, cutoff: 0.9, kaiserBeta: 10)
+    public static let latency = (kernel.count - 1) / factor
     private static let historyLength = (kernel.count + factor - 1) / factor
 
     private var input: [Double]
@@ -843,7 +843,7 @@ nonisolated struct Oversampler {
     /// samples after its newest one are already written.
     private static let outputLength = kernel.count + factor - 1
 
-    init() {
+    public init() {
         input = [Double](repeating: 0, count: Self.historyLength)
         output = [Double](repeating: 0, count: Self.outputLength)
     }
@@ -851,7 +851,7 @@ nonisolated struct Oversampler {
     /// Windowed sinc with unity DC gain; `cutoff` is a fraction of the
     /// base-rate Nyquist. Blackman window, or Kaiser when `kaiserBeta` is set
     /// (sharper transition for the same length).
-    static func makeKernel(length: Int, cutoff: Double, kaiserBeta: Double? = nil) -> [Double] {
+    public static func makeKernel(length: Int, cutoff: Double, kaiserBeta: Double? = nil) -> [Double] {
         let center = Double(length - 1) / 2
         let fc = cutoff / Double(factor) / 2
         var taps = (0..<length).map { n -> Double in
@@ -885,7 +885,7 @@ nonisolated struct Oversampler {
         return sum
     }
 
-    mutating func process(_ x: Double, _ function: (Double) -> Double) -> Double {
+    public mutating func process(_ x: Double, _ function: (Double) -> Double) -> Double {
         let kernel = Self.kernel
         let length = kernel.count
         let history = Self.historyLength
