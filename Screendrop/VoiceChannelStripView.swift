@@ -12,9 +12,9 @@ import SwiftUI
 import VoiceKit
 
 struct VoiceChannelStripView: View {
-    let model: RecordingStudioModel
+    let voice: RecordingVoiceController
 
-    private var chain: VoiceChainSettings { model.voiceChain }
+    private var chain: VoiceChainSettings { voice.voiceChain }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -22,12 +22,12 @@ struct VoiceChannelStripView: View {
                 Text("Channel Strip")
                     .font(.dsHeadline)
                 Spacer()
-                if model.isVoiceChainCustom {
-                    Button("Reset to Profile") { model.resetVoiceChainToProfile() }
+                if voice.isVoiceChainCustom {
+                    Button("Reset to Profile") { voice.resetVoiceChainToProfile() }
                         .controlSize(.small)
                 }
             }
-            Text(model.isVoiceChainCustom
+            Text(voice.isVoiceChainCustom
                  ? "Custom chain. Profile changes will not alter it until you reset."
                  : "Following the voice profile. Any change here makes the chain custom.")
                 .font(.inspectorLabel)
@@ -37,7 +37,7 @@ struct VoiceChannelStripView: View {
             EQResponseCurve(chain: chain)
                 .frame(height: 110)
 
-            VoiceMetersView(meters: model.voiceMeters, targetLUFS: model.voiceProfile.loudnessTarget.lufs)
+            VoiceMetersView(meters: voice.voiceMeters, targetLUFS: voice.voiceProfile.loudnessTarget.lufs)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: InspectorMetrics.rowSpacing) {
@@ -59,15 +59,15 @@ struct VoiceChannelStripView: View {
                         InspectorToggleRow(
                             "Match Target EQ",
                             isOn: Binding(
-                                get: { model.voiceProfile.matchesTarget },
-                                set: { model.setMatchesTarget($0) }
+                                get: { voice.voiceProfile.matchesTarget },
+                                set: { voice.setMatchesTarget($0) }
                             )
                         )
                         .font(.inspectorLabel.weight(.semibold))
                         .help("Measures the voice's balance and gently corrects it toward a reference narration curve")
                     }
                     .padding(.top, 4)
-                    if model.voiceProfile.matchesTarget {
+                    if voice.voiceProfile.matchesTarget {
                         slider("250 Hz", \.match.gain250, -6...4.5, .decibels)
                         slider("500 Hz", \.match.gain500, -6...4.5, .decibels)
                         slider("1 kHz", \.match.gain1k, -6...4.5, .decibels)
@@ -111,7 +111,7 @@ struct VoiceChannelStripView: View {
         }
         .padding(16)
         .frame(width: 340)
-        .disabled(!model.voiceProcessingEnabled)
+        .disabled(!voice.voiceProcessingEnabled)
     }
 
     // MARK: Building blocks
@@ -156,8 +156,8 @@ struct VoiceChannelStripView: View {
         InspectorSlider(
             title,
             value: Binding(
-                get: { CGFloat(model.voiceChain[keyPath: path]) },
-                set: { value in model.editVoiceChain { $0[keyPath: path] = Double(value) } }
+                get: { CGFloat(voice.voiceChain[keyPath: path]) },
+                set: { value in voice.editVoiceChain { $0[keyPath: path] = Double(value) } }
             ),
             range: CGFloat(range.lowerBound)...CGFloat(range.upperBound),
             format: format
@@ -170,8 +170,8 @@ struct VoiceChannelStripView: View {
 
     private func boolBinding(_ path: WritableKeyPath<VoiceChainSettings, Bool>) -> Binding<Bool> {
         Binding(
-            get: { model.voiceChain[keyPath: path] },
-            set: { value in model.editVoiceChain { $0[keyPath: path] = value } }
+            get: { voice.voiceChain[keyPath: path] },
+            set: { value in voice.editVoiceChain { $0[keyPath: path] = value } }
         )
     }
 }

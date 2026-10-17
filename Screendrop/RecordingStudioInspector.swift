@@ -13,7 +13,6 @@
 import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
-import VoiceKit
 
 private extension ZoomAnchorMode {
     var inspectorTitle: String {
@@ -52,9 +51,6 @@ struct StudioInspector: View {
     @State private var stylePresetStore = RecordingStudioStylePresetStore.shared
     @State private var transcriptTab: StudioTranscriptTab = .captions
     @State private var isAudioExportOptionsPresented = false
-    @State private var isChannelStripPresented = false
-    /// Meters stay folded away until asked for; the choice is remembered.
-    @AppStorage("studioShowsVoiceMeters") private var showsVoiceMeters = false
     @State private var page: StudioInspectorPage?
     @Environment(\.colorScheme) private var colorScheme
 
@@ -1012,74 +1008,6 @@ struct StudioInspector: View {
 
     // MARK: Audio
 
-    /// Character, intensity, and loudness: the voice profile the chain is
-    /// resolved from. Match EQ is always on; its switch lives in the channel
-    /// strip with the rest of the detail.
-    private var voiceProfileControls: some View {
-        VStack(alignment: .leading, spacing: InspectorMetrics.rowSpacing) {
-            Group {
-                InspectorRow("Character") {
-                    InspectorSegmented(
-                        options: VoiceProfileSettings.Character.allCases,
-                        isSelected: { $0 == model.voiceProfile.character },
-                        onTap: { model.voiceProfile.character = $0 },
-                        label: { option in
-                            Text(option.title).font(.inspectorSegment).lineLimit(1).minimumScaleFactor(0.7).help(option.help)
-                        }
-                    )
-                }
-                InspectorSlider(
-                    "Intensity",
-                    value: Binding(
-                        get: { CGFloat(model.voiceProfile.intensity) },
-                        set: { model.voiceProfile.intensity = Double($0) }
-                    ),
-                    range: 0...1,
-                    format: .percent()
-                )
-            }
-            .disabled(model.isVoiceChainCustom)
-
-            InspectorRow("Loudness") {
-                InspectorSegmented(
-                    options: VoiceProfileSettings.LoudnessTarget.allCases,
-                    isSelected: { $0 == model.voiceProfile.loudnessTarget },
-                    onTap: { model.voiceProfile.loudnessTarget = $0 },
-                    label: { option in
-                        Text(option.title).font(.inspectorSegment).lineLimit(1).minimumScaleFactor(0.7).help(option.help)
-                    }
-                )
-            }
-            if let status = model.voiceProfileStatus {
-                InspectorHint(status)
-            }
-            if model.isVoiceChainCustom {
-                InspectorHint("Custom chain: the profile above is on hold", tint: .orange)
-            }
-
-            InspectorActionButton("Channel Strip…", systemImage: "slider.vertical.3") {
-                isChannelStripPresented = true
-            }
-            .help("Every stage of the voice chain, with live meters and the EQ curve")
-            .popover(isPresented: $isChannelStripPresented, arrowEdge: .leading) {
-                VoiceChannelStripView(model: model)
-            }
-
-            DisclosureGroup(isExpanded: $showsVoiceMeters) {
-                VoiceMetersView(meters: model.voiceMeters, targetLUFS: model.voiceProfile.loudnessTarget.lufs)
-                    .padding(.top, 4)
-            } label: {
-                Text("Meters")
-                    .font(.inspectorLabel)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private static func range(_ range: ClosedRange<Double>) -> ClosedRange<CGFloat> {
-        CGFloat(range.lowerBound)...CGFloat(range.upperBound)
-    }
-
     /// The round trip around tools that clean up speech but offer no API:
     /// write the cut's soundtrack out, run it through the tool, bring the
     /// result back in as the project's audio. Two buttons and a file chip -
@@ -1088,52 +1016,7 @@ struct StudioInspector: View {
         VStack(alignment: .leading, spacing: InspectorMetrics.rowSpacing) {
             // A silent recording has nothing to send out, but it can still
             // be given a soundtrack - so only the export half is withheld.
-            if model.hasVoiceAudio {
-                InspectorSlider(
-                    "Voice",
-                    value: $model.voiceGainDB,
-                    range: Self.range(RecordingAudioSettings.voiceGainRange),
-                    format: .decibels
-                )
-            }
-            if model.hasSystemAudio {
-                InspectorSlider(
-                    "System Audio",
-                    value: $model.systemGainDB,
-                    range: Self.range(RecordingAudioSettings.systemGainRange),
-                    format: .decibels
-                )
-                .help("Drag to the bottom to mute system audio")
-            }
-            if model.canIsolateVoice {
-                InspectorRow("Isolate") {
-                    InspectorSegmented(
-                        options: VoiceIsolationSettings.amounts,
-                        isSelected: { $0 == model.voiceIsolationAmount },
-                        onTap: { amount in model.voiceIsolationAmount = amount },
-                        label: { amount in
-                            Text(amount == 0 ? "Off" : "\(amount)%")
-                                .font(.inspectorSegment)
-                                .lineLimit(1)
-                        }
-                    )
-                }
-                .help("Removes room, noise, and typing from the narration on this Mac. Lower amounts keep some of the room for a more natural sound.")
-
-                if let progress = model.voiceIsolationProgress {
-                    InspectorHint("Isolating voice… \(Int(progress * 100))%")
-                } else if let message = model.voiceIsolationError {
-                    InspectorHint(message, tint: .orange)
-                }
-            }
-
-            if model.hasVoiceAudio {
-                InspectorToggleRow("Voice Processing", isOn: $model.voiceProcessingEnabled)
-                    .help("Turn off to hear the voice without processing, at the same loudness, then back on to compare")
-
-                voiceProfileControls
-                    .disabled(!model.voiceProcessingEnabled)
-            }
+            VoiceAudioControls(voice: model.voice)
 
             HStack(spacing: InspectorMetrics.rowSpacing) {
                 if model.hasAudio {

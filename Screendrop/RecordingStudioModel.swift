@@ -213,142 +213,12 @@ final class RecordingStudioModel {
     /// live progress and the history card mirrors the state.
     private(set) var shareItemID: UUID?
 
-    /// Narration and system audio gains in dB, shared by playback and
-    /// every export; 0 preserves the source.
-    var voiceGainDB: CGFloat = 0 {
-        didSet {
-            audioSettingsDidChange()
-            // Moving the slider by hand takes the level back from the
-            // loudness target.
-            if !isApplyingDocument, !isApplyingAutomaticGain, voiceGainDB != oldValue,
-               voiceProfile.loudnessTarget != .off {
-                voiceProfile.loudnessTarget = .off
-            }
-        }
-    }
-    var systemGainDB: CGFloat = 0 {
-        didSet { audioSettingsDidChange() }
-    }
-    /// Off is the "before" of an A/B: the voice with its gain alone.
-    var voiceProcessingEnabled = true {
-        didSet { audioSettingsDidChange() }
-    }
-    /// The narration channel strip.
-    var voiceChain = VoiceChainSettings() {
-        didSet { audioSettingsDidChange() }
-    }
+    /// The narration's gains, chain, isolation, and voice profile.
+    let voice = RecordingVoiceController()
 
-    /// Share of the isolated voice, in percent; 0 is off. Changing it
-    /// renders the narration again (about 90x real time).
-    var voiceIsolationAmount = VoiceIsolationSettings.projectDefault.amount {
-        didSet {
-            guard voiceIsolationAmount != oldValue else { return }
-            audioSettingsDidChange()
-            refreshVoiceIsolation()
-        }
-    }
-    /// Render progress while the isolated narration is being prepared.
-    private(set) var voiceIsolationProgress: Double?
-    private(set) var voiceIsolationError: String?
-    /// The master with its narration swapped for the isolated render.
-    private var isolatedSourceAsset: AVAsset?
-    private var voiceIsolationTask: Task<Void, Never>?
-
-    /// Isolation works on a recorded microphone inside a project package;
-    /// an imported soundtrack is assumed to be cleaned already.
-    var canIsolateVoice: Bool {
-        session != nil && recordedAudioRoles.contains(.voice) && replacementAudio == nil
-    }
-
-    /// What the voice should sound like. The chain follows from it and
-    /// the take's analysis; with a loudness target, so does the voice gain.
-    var voiceProfile = VoiceProfileSettings() {
-        didSet {
-            guard voiceProfile != oldValue else { return }
-            audioSettingsDidChange()
-            guard !isApplyingDocument else { return }
-            VoiceProfileStore.remember(voiceProfile, forMicrophone: manifest?.microphoneDeviceID)
-            refreshVoiceProfile(after: .milliseconds(400))
-        }
-    }
-    /// Live levels and gain reduction from the voice tap.
-    var voiceMeters: RecordingAudioMeters { audioParameters.meters }
-
-    var isVoiceChainCustom: Bool { voiceProfile.customChain != nil }
-
-    /// Edits the chain by hand. The first edit freezes the resolved chain
-    /// as the starting point; from then on the profile stops resolving it.
-    func editVoiceChain(_ edit: (inout VoiceChainSettings) -> Void) {
-        var chain = voiceProfile.customChain ?? voiceChain
-        edit(&chain)
-        voiceProfile.customChain = chain
-    }
-
-    func resetVoiceChainToProfile() {
-        voiceProfile.customChain = nil
-    }
-
-    /// Match EQ on or off. A custom chain keeps its own match gains, so it
-    /// gets the measured ones back (or flat ones) here too.
-    func setMatchesTarget(_ matches: Bool) {
-        voiceProfile.matchesTarget = matches
-        guard voiceProfile.customChain != nil else { return }
-        editVoiceChain { chain in
-            chain.match = matches
-                ? voiceAnalysis.map { VoiceProfileResolver.matchEQ(measured: $0.thirdOctave) } ?? .init()
-                : .init()
-        }
-    }
-
-    /// The narration's measured loudness and balance, saved with the project.
-    private(set) var voiceAnalysis: VoiceAnalysisResult?
-    /// What the profile did, or what it is doing, for the inspector.
-    private(set) var voiceProfileStatus: String?
-    private(set) var isOptimizingVoice = false
-    private var voiceProfileTask: Task<Void, Never>?
-    private var isApplyingAutomaticGain = false
-    /// What the recording's own tracks carry, for the inspector.
-    private(set) var recordedAudioRoles: Set<RecordingAudioRole> = []
-    /// Read by the playback taps on the audio thread.
-    private let audioParameters = RecordingAudioParameters()
-
-    var audioSettings: RecordingAudioSettings {
-        RecordingAudioSettings(
-            voiceGainDB: Double(voiceGainDB),
-            systemGainDB: Double(systemGainDB),
-            voiceProcessingEnabled: voiceProcessingEnabled,
-            voiceChain: voiceChain,
-            voiceIsolation: VoiceIsolationSettings(amount: voiceIsolationAmount),
-            voiceProfile: voiceProfile
-        )
-    }
-
-    /// An imported soundtrack stands in for all the recorded audio and is
-    /// treated as narration.
-    var hasVoiceAudio: Bool {
-        replacementAudio != nil || recordedAudioRoles.contains(.voice)
-    }
-
-    var hasSystemAudio: Bool {
-        replacementAudio == nil && recordedAudioRoles.contains(.system)
-    }
-
-    private func audioSettingsDidChange() {
-        audioParameters.update(audioSettings)
-        scheduleProjectSave()
-    }
-
-    /// Gives the current player item's tracks their taps. Settings reach
-    /// them through `audioParameters`, so this runs only when the item is
-    /// rebuilt, never while a slider drags.
-    private func installPlaybackAudioMix() {
+    private func updatePlaybackVolume() {
         guard let item = screenPlayer.currentItem else { return }
-        let tracks = item.asset.tracks(withMediaType: .audio)
-        item.audioMix = RecordingAudioProcessing.makeMix(
-            tracks: tracks,
-            roles: RecordingAudioProcessing.rolesSynchronously(for: tracks, isReplacement: replacementAudio != nil),
-            parameters: audioParameters
-        )
+        voice.installPlaybackAudioMix(on: item)
     }
 
     /// Format the audio-only export writes.
@@ -403,6 +273,7 @@ final class RecordingStudioModel {
         } else {
             session = nil
         }
+        voice.host = self
     }
 
     var screenURL: URL {
@@ -451,7 +322,7 @@ final class RecordingStudioModel {
                 isReplacement: false
             )
             guard !isTornDown, !Task.isCancelled else { return }
-            recordedAudioRoles = Set(roles)
+            voice.recordedAudioRoles = Set(roles)
         } catch {
             guard !isTornDown, !Task.isCancelled else { return }
             loadError = "Could not open the recording: \(error.localizedDescription)"
@@ -518,14 +389,7 @@ final class RecordingStudioModel {
                 appliedStylePresetID = defaultPreset.id
             }
         }
-        if document?.audioSettings?.voiceProfile == nil {
-            // A new recording, or one from before profiles: start from what
-            // this microphone used last time, or the defaults.
-            isApplyingDocument = true
-            voiceProfile = VoiceProfileStore.profile(forMicrophone: manifest?.microphoneDeviceID)
-                ?? VoiceProfileSettings()
-            isApplyingDocument = false
-        }
+        voice.adoptMicrophoneProfile(unlessIn: document)
 
         if let storedClips = document?.clips, !storedClips.isEmpty {
             clipTimeline = RecordingClipTimeline(segments: storedClips)
@@ -566,7 +430,7 @@ final class RecordingStudioModel {
         rebuildViewportTimeline()
         installObservers()
         isLoaded = true
-        refreshVoiceIsolation()
+        voice.refreshIsolation()
         rebuildPreviewReframe()
         loadTimelineThumbnails()
 
@@ -625,16 +489,7 @@ final class RecordingStudioModel {
         exportAspectMode = document.exportAspectContentMode
         videoCropRect = document.normalizedVideoCropRect
         audioExportFormat = document.audioExportFormatValue
-        let audio = document.resolvedAudioSettings
-        voiceGainDB = CGFloat(audio.voiceGainDB)
-        systemGainDB = CGFloat(audio.systemGainDB)
-        voiceProcessingEnabled = audio.voiceProcessingEnabled
-        voiceChain = audio.voiceChain
-        voiceIsolationAmount = audio.voiceIsolation.amount
-        if let profile = audio.voiceProfile {
-            voiceProfile = profile
-        }
-        voiceAnalysis = document.voiceAnalysis
+        voice.apply(document)
     }
 
     func teardown() {
@@ -670,11 +525,7 @@ final class RecordingStudioModel {
         cameraPlayer.replaceCurrentItem(with: nil)
         screenAsset?.cancelLoading()
         screenAsset = nil
-        voiceIsolationTask?.cancel()
-        voiceIsolationTask = nil
-        isolatedSourceAsset = nil
-        voiceProfileTask?.cancel()
-        voiceProfileTask = nil
+        voice.teardown()
         screenVideoTrack = nil
         replacementAudio = nil
         editUndoManager.removeAllActions()
@@ -1001,14 +852,14 @@ final class RecordingStudioModel {
             )
         } else {
             playbackAsset = try RecordingCompositionBuilder.makeAsset(
-                from: isolatedSourceAsset ?? screenAsset,
+                from: voice.isolatedSourceAsset ?? screenAsset,
                 timeline: clipTimeline,
                 sourceDuration: sourceDuration
             )
         }
 
         screenPlayer.replaceCurrentItem(with: AVPlayerItem(asset: playbackAsset))
-        installPlaybackAudioMix()
+        updatePlaybackVolume()
         screenPlayer.actionAtItemEnd = .pause
         currentTime = min(max(editorTime, 0), duration)
         movePlayers(to: currentTime)
@@ -1358,8 +1209,8 @@ final class RecordingStudioModel {
             replacementAudioFileName: replacementAudio?.url.lastPathComponent,
             replacementAudioDisplayName: replacementAudio?.displayName,
             audioExportFormat: audioExportFormat,
-            audioSettings: audioSettings,
-            voiceAnalysis: voiceAnalysis
+            audioSettings: voice.audioSettings,
+            voiceAnalysis: voice.voiceAnalysis
         )
     }
 
@@ -1499,7 +1350,7 @@ final class RecordingStudioModel {
         rebuildPointerTimeline()
         rebuildViewportTimeline()
         rebuildPreviewReframe()
-        refreshVoiceIsolation()
+        voice.refreshIsolation()
         editUndoManager.removeAllActions()
         undoRevision += 1
     }
@@ -1987,7 +1838,7 @@ final class RecordingStudioModel {
             clipTimeline: clipTimeline,
             exportSettings: exportSettings,
             audioReplacementURL: replacementAudio?.url,
-            audioSettings: audioSettings,
+            audioSettings: voice.audioSettings,
             reframe: reframe,
             fitContentAspect: fitContentAspect,
             usesUniformPadding: exportAspect == .original
@@ -2229,7 +2080,7 @@ final class RecordingStudioModel {
             clipTimeline: clipTimeline,
             replacementURL: replacementAudio?.url,
             format: audioExportFormat,
-            audioSettings: audioSettings
+            audioSettings: voice.audioSettings
         )
         let suggestedFileName = audioExportSuggestedFileName
         let dockProgressID = DockExportProgressCoordinator.shared.start()
@@ -2350,72 +2201,7 @@ final class RecordingStudioModel {
             loadError = "Could not update the recording timeline: \(error.localizedDescription)"
         }
         scheduleProjectSave()
-        refreshVoiceIsolation()
-    }
-
-    // MARK: - Voice isolation
-
-    /// Brings playback in line with the isolation setting: uses the render
-    /// in the package if it is there, renders it otherwise, or goes back to
-    /// the master. Playback keeps running on what it has meanwhile.
-    private func refreshVoiceIsolation() {
-        guard isLoaded else { return }
-        voiceIsolationTask?.cancel()
-        voiceIsolationError = nil
-        let settings = VoiceIsolationSettings(amount: voiceIsolationAmount)
-
-        guard settings.isEnabled, canIsolateVoice, let session else {
-            voiceIsolationProgress = nil
-            if isolatedSourceAsset != nil {
-                isolatedSourceAsset = nil
-                try? rebuildScreenPlayerItem(preserving: currentTime)
-            }
-            refreshVoiceProfile()
-            return
-        }
-
-        let screenURL = session.screenURL
-        let directory = session.directoryURL
-        let renderURL = RecordingVoiceIsolation.renderURL(in: directory, settings: settings)
-        voiceIsolationTask = Task { [weak self] in
-            do {
-                if !FileManager.default.fileExists(atPath: renderURL.path) {
-                    self?.voiceIsolationProgress = 0
-                    // Off the main actor; cancelling this task cancels it.
-                    let render = Task.detached(priority: .userInitiated) {
-                        try await RecordingVoiceIsolation.render(
-                            screenURL: screenURL, to: renderURL, settings: settings
-                        ) { progress in
-                            Task { @MainActor [weak self] in
-                                guard self?.voiceIsolationProgress != nil else { return }
-                                self?.voiceIsolationProgress = progress
-                            }
-                        }
-                    }
-                    try await withTaskCancellationHandler {
-                        try await render.value
-                    } onCancel: {
-                        render.cancel()
-                    }
-                }
-                try Task.checkCancellation()
-                let asset = try await RecordingVoiceIsolation.asset(screenURL: screenURL, isolatedURL: renderURL)
-                try Task.checkCancellation()
-                guard let self, !self.isTornDown else { return }
-                RecordingVoiceIsolation.removeRenders(in: directory, keeping: renderURL)
-                self.voiceIsolationProgress = nil
-                self.isolatedSourceAsset = asset
-                try? self.rebuildScreenPlayerItem(preserving: self.currentTime)
-                // The voice changed, so its analysis and loudness do too.
-                self.refreshVoiceProfile()
-            } catch is CancellationError {
-                return
-            } catch {
-                guard let self, !Task.isCancelled else { return }
-                self.voiceIsolationProgress = nil
-                self.voiceIsolationError = error.localizedDescription
-            }
-        }
+        voice.refreshIsolation()
     }
 
     private func removeStoredReplacementAudio(in session: RecordingSession) {
@@ -2428,92 +2214,6 @@ final class RecordingStudioModel {
                 at: session.directoryURL.appendingPathComponent(name)
             )
         }
-    }
-
-    // MARK: - Voice profile
-
-    /// Resolves the chain from the profile, analyzing the narration the
-    /// project plays if it has not been analyzed yet, and with a loudness
-    /// target sets the voice gain that reaches it. Profile changes apply at
-    /// once when the analysis is current; only the loudness pass (and a
-    /// first analysis) runs in the background.
-    private func refreshVoiceProfile(after delay: Duration = .zero) {
-        guard isLoaded else { return }
-        voiceProfileTask?.cancel()
-        let profile = voiceProfile
-
-        guard let session, replacementAudio == nil, recordedAudioRoles.contains(.voice) else {
-            // An imported soundtrack, or nothing recorded to measure.
-            voiceChain = VoiceProfileResolver.chain(for: profile, analysis: nil)
-            isOptimizingVoice = false
-            voiceProfileStatus = nil
-            return
-        }
-
-        let isolation = VoiceIsolationSettings(amount: voiceIsolationAmount)
-        let key = VoiceAnalysisResult.sourceKey(for: isolation)
-        let current = voiceAnalysis?.sourceKey == key ? voiceAnalysis : nil
-        let target = profile.loudnessTarget.lufs
-        if let current {
-            voiceChain = VoiceProfileResolver.chain(for: profile, analysis: current)
-            if target == nil {
-                isOptimizingVoice = false
-                voiceProfileStatus = Self.voiceSummary(current, gain: nil, target: nil)
-                return
-            }
-        }
-
-        let screenURL = session.screenURL
-        isOptimizingVoice = true
-        voiceProfileStatus = current == nil ? "Analyzing the voice…" : "Matching loudness…"
-        voiceProfileTask = Task { [weak self] in
-            do {
-                if delay > .zero { try await Task.sleep(for: delay) }
-                let work = Task.detached(priority: .userInitiated) { () throws -> (VoiceAnalysisResult, Double?) in
-                    let samples = try await RecordingVoiceAnalysis.readVoice(screenURL: screenURL, isolation: isolation)
-                    try Task.checkCancellation()
-                    let analysis = try current ?? RecordingVoiceAnalysis.analyze(samples, sourceKey: key)
-                    let chain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
-                    let gain = try target.flatMap {
-                        try RecordingVoiceAnalysis.normalizationGain(samples, chain: chain, targetLUFS: $0)
-                    }
-                    return (analysis, gain)
-                }
-                let (analysis, gain) = try await withTaskCancellationHandler {
-                    try await work.value
-                } onCancel: {
-                    work.cancel()
-                }
-                guard let self, !Task.isCancelled, !self.isTornDown else { return }
-                self.voiceAnalysis = analysis
-                self.voiceChain = VoiceProfileResolver.chain(for: profile, analysis: analysis)
-                if let gain {
-                    self.isApplyingAutomaticGain = true
-                    self.voiceGainDB = CGFloat(gain)
-                    self.isApplyingAutomaticGain = false
-                }
-                self.isOptimizingVoice = false
-                self.voiceProfileStatus = Self.voiceSummary(analysis, gain: gain, target: target)
-                self.scheduleProjectSave()
-            } catch is CancellationError {
-                return
-            } catch {
-                guard let self, !Task.isCancelled else { return }
-                self.isOptimizingVoice = false
-                self.voiceProfileStatus = error.localizedDescription
-            }
-        }
-    }
-
-    private static func voiceSummary(_ analysis: VoiceAnalysisResult, gain: Double?, target: Double?) -> String {
-        var parts: [String] = []
-        if let loudness = analysis.integratedLUFS {
-            parts.append(String(format: "Voice %.1f LUFS, trim %+.1f dB", loudness, VoiceProfileResolver.inputTrimDB(for: analysis)))
-        }
-        if let gain, let target {
-            parts.append(String(format: "out %.0f LUFS (%+.1f dB)", target, gain))
-        }
-        return parts.joined(separator: " · ")
     }
 
     // MARK: - Share to cloud
@@ -2656,4 +2356,9 @@ struct RecordingZoomTimelineBlock: Identifiable, Equatable, Sendable {
     var id: UUID {
         cue.id
     }
+}
+
+extension RecordingStudioModel: RecordingVoiceHost {
+    func voiceSettingsDidChange() { scheduleProjectSave() }
+    func voiceSourceDidChange() { try? rebuildScreenPlayerItem(preserving: currentTime) }
 }
