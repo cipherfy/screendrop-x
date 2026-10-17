@@ -2,9 +2,9 @@ import AVFoundation
 import CoreMedia
 import Foundation
 
-// Compile with RecordingAudioGain.swift and VoiceMeasurement.swift:
+// Compile with RecordingAudioProcessing.swift and VoiceMeasurement.swift:
 //
-//   xcrun swiftc -O Screendrop/RecordingAudioGain.swift Screendrop/VoiceMeasurement.swift \
+//   xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceMeasurement.swift \
 //     scripts/check-microphone-capture.swift -o build/check-microphone-capture
 //   build/check-microphone-capture build/voice-bank/variants/paulina-clean.wav
 //
@@ -89,11 +89,11 @@ struct MicrophoneCaptureCheck {
         precondition(losslessError < -130, "lossless capture must be within 24-bit quantization")
         print(String(format: "ok  deviation from source: lossless %.1f dB, previous AAC 96 kbps %.1f dB", losslessError, previousError))
 
-        // 4. Playback and export read it through the gain mix, above unity too.
-        for volume in [1.0, 0.5, 1.5] {
-            let mixed = try await readMix(asset: asset, tracks: tracks, volume: volume)
+        // 4. Playback and export read it through the per-track taps.
+        for gain in [0.0, -6.0, 6.0] {
+            let mixed = try await readMix(asset: asset, tracks: tracks, voiceGainDB: gain)
             precondition(mixed.count >= source.count - 1024, "mix output is truncated")
-            print("ok  gain mix at \(Int(volume * 100))% reads \(mixed.count) stereo frames")
+            print(String(format: "ok  processing mix at voice %+.0f dB reads %d stereo frames", gain, mixed.count))
         }
 
         // 5. The narration M4A export transcription relies on still works.
@@ -212,13 +212,17 @@ struct MicrophoneCaptureCheck {
         return drain(reader, output)
     }
 
-    static func readMix(asset: AVAsset, tracks: [AVAssetTrack], volume: Double) async throws -> [Float] {
+    static func readMix(asset: AVAsset, tracks: [AVAssetTrack], voiceGainDB: Double) async throws -> [Float] {
         let reader = try AVAssetReader(asset: asset)
         var settings = floatSettings
         settings[AVSampleRateKey] = 48_000
         settings[AVNumberOfChannelsKey] = 2
         let output = AVAssetReaderAudioMixOutput(audioTracks: tracks, audioSettings: settings)
-        output.audioMix = RecordingAudioGain.makeMix(tracks: tracks, volume: volume)
+        output.audioMix = RecordingAudioProcessing.makeMix(
+            tracks: tracks,
+            roles: try await RecordingAudioProcessing.roles(for: tracks, isReplacement: false),
+            parameters: RecordingAudioParameters(RecordingAudioSettings(voiceGainDB: voiceGainDB))
+        )
         reader.add(output)
         let interleaved = drain(reader, output)
         return stride(from: 0, to: interleaved.count, by: 2).map { interleaved[$0] }

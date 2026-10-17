@@ -61,12 +61,32 @@ build/voice-bank/bin/voice-bank tone <sine-1k|intersample> out.wav
 
 ## Microphone capture check
 
-Screendrop records the microphone track as 24-bit mono LPCM at 48 kHz (system audio stays AAC). `scripts/check-microphone-capture.swift` writes a bank file the way the recorder does, with both the current and the previous AAC 96 kbps settings, and reads it back through Studio's paths: the mono-track rule transcription uses, the gain mix behind playback and export (including above 100%), and the M4A export the speech transcriber reads.
+Screendrop records the microphone track as 24-bit mono LPCM at 48 kHz (system audio stays AAC). `scripts/check-microphone-capture.swift` writes a bank file the way the recorder does, with both the current and the previous AAC 96 kbps settings, and reads it back through Studio's paths: the mono-track rule transcription uses, the per-track processing mix behind playback and export, and the M4A export the speech transcriber reads.
 
 ```bash
-xcrun swiftc -O Screendrop/RecordingAudioGain.swift Screendrop/VoiceMeasurement.swift \
+xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceMeasurement.swift \
   scripts/check-microphone-capture.swift -o build/check-microphone-capture
 build/check-microphone-capture build/voice-bank/variants/paulina-clean.wav
 ```
 
 The lossless track is bit-identical to its source; AAC at 96 kbps deviated by -42 dB on the same take. The cost is size: about 9.7 MB per minute with system audio, against 1.8 MB before (video not included).
+
+## Audio processing check
+
+Every audio track gets its own processing tap (`Screendrop/RecordingAudioProcessing.swift`): the mono narration track (or an imported replacement) and the stereo system track carry separate gains in dB, a look-ahead peak limiter at -1 dBFS replaces the old hard clip at full scale, and the exporters limit the summed mix as well. `scripts/check-audio-processing.swift` renders a two-track recording the way the exporters do and checks:
+
+- track roles, and migration of the old single 0-200% volume to both gains;
+- that 0 dB renders the exact sum of the tracks, and -60 dB system audio is muted;
+- that voice gain moves only the voice (+6 dB reads +6.00 LU);
+- that at +24 dB the peak holds at -1 dBFS with voice processing on or off;
+- that a +12 dB change mid-render glides without a click and lands at +12 dB.
+
+```bash
+xcrun swiftc -O Screendrop/RecordingAudioProcessing.swift Screendrop/VoiceMeasurement.swift \
+  scripts/check-audio-processing.swift -o build/check-audio-processing
+build/check-audio-processing build/voice-bank/variants/paulina-clean.wav
+```
+
+Latency: each look-ahead delays audio by 3 ms. Playback runs one (the track tap), exports two (the tap and the mix limiter), so exported audio lands 6 ms after the picture, well below what can be perceived. Later stages that need look-ahead should compensate rather than add to this.
+
+The limiters control sample peaks; true peak can still read a few tenths of a dB higher (-0.9 dBTP at +24 dB of gain). A true-peak limiter comes with the voice chain.
