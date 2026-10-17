@@ -1,6 +1,6 @@
-# Screendrop Voice: funciones de audio
+# Screendrop X: funciones de audio
 
-Screendrop Voice es un fork de [Screendrop](https://github.com/fayazara/screendrop) centrado en la calidad de la voz grabada para tutoriales, recorridos y presentaciones de herramientas. Este documento resume lo que el fork añade sobre el original.
+Screendrop X es un fork de [Screendrop](https://github.com/fayazara/screendrop) centrado en la calidad de la voz grabada para tutoriales, recorridos y presentaciones de herramientas. Este documento resume lo que el fork añade sobre el original.
 
 Todo el procesamiento ocurre en el Mac. La voz no se envía a ningún servicio, y los másters originales de cada grabación nunca se modifican: los ajustes viven en el documento del proyecto y se aplican al reproducir y al exportar.
 
@@ -127,11 +127,11 @@ Se recuerda el último perfil (carácter, intensidad, loudness) usado con cada m
 
 ## 6. Convivencia con el Screendrop original
 
-| | Original | Screendrop Voice |
+| | Original | Screendrop X |
 |---|---|---|
-| Bundle ID | `com.fayazahmed.Screendrop` | `com.cipherfy.ScreendropVoice` |
-| Datos | `Application Support/Screendrop/` | `Application Support/Screendrop Voice/` |
-| Exports | `Pictures/Screendrop/` | `Pictures/Screendrop Voice/` |
+| Bundle ID | `com.fayazahmed.Screendrop` | `com.cipherfy.ScreendropX` |
+| Datos | `Application Support/Screendrop/` | `Application Support/Screendrop X/` |
+| Exports | `Pictures/Screendrop/` | `Pictures/Screendrop X/` |
 | Atajos | ⌥1–⌥5 | ⌥⇧1–⌥⇧5 |
 | Actualizaciones | Sparkle (feed del autor) | Desactivadas hasta tener un feed propio |
 
