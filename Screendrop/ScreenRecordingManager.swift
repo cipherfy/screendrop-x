@@ -1053,7 +1053,7 @@ nonisolated private final class ScreenRecordingWriter: @unchecked Sendable {
 
         var microphoneInput: AVAssetWriterInput?
         if includesMicrophone {
-            let audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: Self.audioSettings(channels: 1))
+            let audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: Self.microphoneAudioSettings)
             audioInput.expectsMediaDataInRealTime = true
             writer.add(audioInput)
             microphoneInput = audioInput
@@ -1097,6 +1097,22 @@ nonisolated private final class ScreenRecordingWriter: @unchecked Sendable {
             AVSampleRateKey: 48_000,
             AVNumberOfChannelsKey: channels,
             AVEncoderBitRateKey: channels > 1 ? 192_000 : 96_000
+        ]
+    }
+
+    /// Narration is captured lossless: it is what voice processing works
+    /// on, and EQ and compression would bring AAC artifacts forward. Still
+    /// mono, which is how transcription tells it from system audio. About
+    /// 8.6 MB per minute.
+    private static var microphoneAudioSettings: [String: Any] {
+        [
+            AVFormatIDKey: kAudioFormatLinearPCM,
+            AVSampleRateKey: 48_000,
+            AVNumberOfChannelsKey: 1,
+            AVLinearPCMBitDepthKey: 24,
+            AVLinearPCMIsFloatKey: false,
+            AVLinearPCMIsBigEndianKey: false,
+            AVLinearPCMIsNonInterleaved: false
         ]
     }
 
