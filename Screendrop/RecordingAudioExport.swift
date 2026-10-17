@@ -102,7 +102,12 @@ nonisolated final class RecordingAudioExporter: @unchecked Sendable {
         _ configuration: Configuration,
         progress: @escaping @Sendable (Double) -> Void
     ) async throws -> URL {
-        let sourceAsset = AVURLAsset(url: configuration.screenURL)
+        let sourceAsset = try await RecordingVoiceIsolation.sourceAsset(
+            screenURL: configuration.screenURL,
+            settings: configuration.replacementURL == nil
+                ? configuration.audioSettings.voiceIsolation
+                : VoiceIsolationSettings()
+        )
         let sourceDuration = try await sourceAsset.load(.duration).seconds
         let timeline = configuration.clipTimeline.normalized(to: sourceDuration)
         let duration = timeline.duration

@@ -34,21 +34,26 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
     /// A/B comparison. Exports follow it, so they match what was heard.
     var voiceProcessingEnabled: Bool = true
     var voiceChain = VoiceChainSettings()
+    /// Rendered ahead of playback rather than in the tap; see
+    /// RecordingVoiceIsolation.
+    var voiceIsolation = VoiceIsolationSettings()
 
     init(
         voiceGainDB: Double = 0,
         systemGainDB: Double = 0,
         voiceProcessingEnabled: Bool = true,
-        voiceChain: VoiceChainSettings = VoiceChainSettings()
+        voiceChain: VoiceChainSettings = VoiceChainSettings(),
+        voiceIsolation: VoiceIsolationSettings = VoiceIsolationSettings()
     ) {
         self.voiceGainDB = voiceGainDB
         self.systemGainDB = systemGainDB
         self.voiceProcessingEnabled = voiceProcessingEnabled
         self.voiceChain = voiceChain
+        self.voiceIsolation = voiceIsolation
     }
 
     private enum CodingKeys: String, CodingKey {
-        case voiceGainDB, systemGainDB, voiceProcessingEnabled, voiceChain
+        case voiceGainDB, systemGainDB, voiceProcessingEnabled, voiceChain, voiceIsolation
     }
 
     init(from decoder: any Decoder) throws {
@@ -57,7 +62,8 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
             voiceGainDB: c.value(.voiceGainDB, default: 0),
             systemGainDB: c.value(.systemGainDB, default: 0),
             voiceProcessingEnabled: c.value(.voiceProcessingEnabled, default: true),
-            voiceChain: c.value(.voiceChain, default: VoiceChainSettings())
+            voiceChain: c.value(.voiceChain, default: VoiceChainSettings()),
+            voiceIsolation: c.value(.voiceIsolation, default: VoiceIsolationSettings())
         )
     }
 
@@ -72,7 +78,8 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
             voiceGainDB: Self.clamp(voiceGainDB, to: Self.voiceGainRange),
             systemGainDB: Self.clamp(systemGainDB, to: Self.systemGainRange),
             voiceProcessingEnabled: voiceProcessingEnabled,
-            voiceChain: voiceChain
+            voiceChain: voiceChain,
+            voiceIsolation: voiceIsolation
         )
     }
 
@@ -87,6 +94,30 @@ nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
 
     private static func clamp(_ value: Double, to range: ClosedRange<Double>) -> Double {
         value.isFinite ? min(range.upperBound, max(range.lowerBound, value)) : 0
+    }
+}
+
+/// Voice isolation is rendered ahead of playback rather than run in a
+/// tap; see RecordingVoiceIsolation.
+nonisolated struct VoiceIsolationSettings: Codable, Sendable, Equatable {
+    /// How much of the isolated voice replaces the original, in percent.
+    /// The blend is linear, so 75% lowers the room by about 12 dB and 90% by
+    /// about 20 dB; keeping a little can sound more natural than none.
+    static let amounts = [0, 75, 90, 100]
+
+    var amount = 0
+
+    var isEnabled: Bool { amount > 0 }
+
+    init(amount: Int = 0) {
+        self.amount = min(100, max(0, amount))
+    }
+
+    private enum CodingKeys: String, CodingKey { case amount }
+
+    init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(amount: c.value(.amount, default: 0))
     }
 }
 

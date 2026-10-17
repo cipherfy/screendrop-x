@@ -1037,6 +1037,28 @@ struct StudioInspector: View {
                 )
                 .help("Drag to the bottom to mute system audio")
             }
+            if model.canIsolateVoice {
+                InspectorRow("Isolate") {
+                    InspectorSegmented(
+                        options: VoiceIsolationSettings.amounts,
+                        isSelected: { $0 == model.voiceIsolationAmount },
+                        onTap: { amount in model.voiceIsolationAmount = amount },
+                        label: { amount in
+                            Text(amount == 0 ? "Off" : "\(amount)%")
+                                .font(.inspectorSegment)
+                                .lineLimit(1)
+                        }
+                    )
+                }
+                .help("Removes room, noise, and typing from the narration on this Mac. Lower amounts keep some of the room for a more natural sound.")
+
+                if let progress = model.voiceIsolationProgress {
+                    InspectorHint("Isolating voice… \(Int(progress * 100))%")
+                } else if let message = model.voiceIsolationError {
+                    InspectorHint(message, tint: .orange)
+                }
+            }
+
             if model.hasVoiceAudio {
                 InspectorToggleRow("Voice Processing", isOn: $model.voiceProcessingEnabled)
                     .help("Turn off to hear the voice without processing, at the same loudness, then back on to compare")

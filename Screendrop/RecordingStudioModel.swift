@@ -229,6 +229,28 @@ final class RecordingStudioModel {
         didSet { audioSettingsDidChange() }
     }
 
+    /// Share of the isolated voice, in percent; 0 is off. Changing it
+    /// renders the narration again (about 90x real time).
+    var voiceIsolationAmount = 0 {
+        didSet {
+            guard voiceIsolationAmount != oldValue else { return }
+            audioSettingsDidChange()
+            refreshVoiceIsolation()
+        }
+    }
+    /// Render progress while the isolated narration is being prepared.
+    private(set) var voiceIsolationProgress: Double?
+    private(set) var voiceIsolationError: String?
+    /// The master with its narration swapped for the isolated render.
+    private var isolatedSourceAsset: AVAsset?
+    private var voiceIsolationTask: Task<Void, Never>?
+
+    /// Isolation works on a recorded microphone inside a project package;
+    /// an imported soundtrack is assumed to be cleaned already.
+    var canIsolateVoice: Bool {
+        session != nil && recordedAudioRoles.contains(.voice) && replacementAudio == nil
+    }
+
     /// Nil once the chain has been edited away from every preset.
     var voiceChainPreset: VoiceChainSettings.Preset? {
         get { voiceChain.matchingPreset }
@@ -244,7 +266,8 @@ final class RecordingStudioModel {
             voiceGainDB: Double(voiceGainDB),
             systemGainDB: Double(systemGainDB),
             voiceProcessingEnabled: voiceProcessingEnabled,
-            voiceChain: voiceChain
+            voiceChain: voiceChain,
+            voiceIsolation: VoiceIsolationSettings(amount: voiceIsolationAmount)
         )
     }
 
@@ -483,6 +506,7 @@ final class RecordingStudioModel {
         rebuildViewportTimeline()
         installObservers()
         isLoaded = true
+        refreshVoiceIsolation()
         rebuildPreviewReframe()
         loadTimelineThumbnails()
 
@@ -546,6 +570,7 @@ final class RecordingStudioModel {
         systemGainDB = CGFloat(audio.systemGainDB)
         voiceProcessingEnabled = audio.voiceProcessingEnabled
         voiceChain = audio.voiceChain
+        voiceIsolationAmount = audio.voiceIsolation.amount
     }
 
     func teardown() {
@@ -581,6 +606,9 @@ final class RecordingStudioModel {
         cameraPlayer.replaceCurrentItem(with: nil)
         screenAsset?.cancelLoading()
         screenAsset = nil
+        voiceIsolationTask?.cancel()
+        voiceIsolationTask = nil
+        isolatedSourceAsset = nil
         screenVideoTrack = nil
         replacementAudio = nil
         editUndoManager.removeAllActions()
@@ -907,7 +935,7 @@ final class RecordingStudioModel {
             )
         } else {
             playbackAsset = try RecordingCompositionBuilder.makeAsset(
-                from: screenAsset,
+                from: isolatedSourceAsset ?? screenAsset,
                 timeline: clipTimeline,
                 sourceDuration: sourceDuration
             )
@@ -1404,6 +1432,7 @@ final class RecordingStudioModel {
         rebuildPointerTimeline()
         rebuildViewportTimeline()
         rebuildPreviewReframe()
+        refreshVoiceIsolation()
         editUndoManager.removeAllActions()
         undoRevision += 1
     }
@@ -2254,6 +2283,69 @@ final class RecordingStudioModel {
             loadError = "Could not update the recording timeline: \(error.localizedDescription)"
         }
         scheduleProjectSave()
+        refreshVoiceIsolation()
+    }
+
+    // MARK: - Voice isolation
+
+    /// Brings playback in line with the isolation setting: uses the render
+    /// in the package if it is there, renders it otherwise, or goes back to
+    /// the master. Playback keeps running on what it has meanwhile.
+    private func refreshVoiceIsolation() {
+        guard isLoaded else { return }
+        voiceIsolationTask?.cancel()
+        voiceIsolationError = nil
+        let settings = VoiceIsolationSettings(amount: voiceIsolationAmount)
+
+        guard settings.isEnabled, canIsolateVoice, let session else {
+            voiceIsolationProgress = nil
+            if isolatedSourceAsset != nil {
+                isolatedSourceAsset = nil
+                try? rebuildScreenPlayerItem(preserving: currentTime)
+            }
+            return
+        }
+
+        let screenURL = session.screenURL
+        let directory = session.directoryURL
+        let renderURL = RecordingVoiceIsolation.renderURL(in: directory, settings: settings)
+        voiceIsolationTask = Task { [weak self] in
+            do {
+                if !FileManager.default.fileExists(atPath: renderURL.path) {
+                    self?.voiceIsolationProgress = 0
+                    // Off the main actor; cancelling this task cancels it.
+                    let render = Task.detached(priority: .userInitiated) {
+                        try await RecordingVoiceIsolation.render(
+                            screenURL: screenURL, to: renderURL, settings: settings
+                        ) { progress in
+                            Task { @MainActor [weak self] in
+                                guard self?.voiceIsolationProgress != nil else { return }
+                                self?.voiceIsolationProgress = progress
+                            }
+                        }
+                    }
+                    try await withTaskCancellationHandler {
+                        try await render.value
+                    } onCancel: {
+                        render.cancel()
+                    }
+                }
+                try Task.checkCancellation()
+                let asset = try await RecordingVoiceIsolation.asset(screenURL: screenURL, isolatedURL: renderURL)
+                try Task.checkCancellation()
+                guard let self, !self.isTornDown else { return }
+                RecordingVoiceIsolation.removeRenders(in: directory, keeping: renderURL)
+                self.voiceIsolationProgress = nil
+                self.isolatedSourceAsset = asset
+                try? self.rebuildScreenPlayerItem(preserving: self.currentTime)
+            } catch is CancellationError {
+                return
+            } catch {
+                guard let self, !Task.isCancelled else { return }
+                self.voiceIsolationProgress = nil
+                self.voiceIsolationError = error.localizedDescription
+            }
+        }
     }
 
     private func removeStoredReplacementAudio(in session: RecordingSession) {

@@ -177,7 +177,12 @@ nonisolated final class RecordingStudioExporter: @unchecked Sendable {
         progress: @escaping @Sendable (Double) -> Void
     ) async throws -> URL {
         let timing = RecordingExportTiming(settings: configuration.exportSettings)
-        let sourceAsset = AVURLAsset(url: configuration.screenURL)
+        let sourceAsset = try await RecordingVoiceIsolation.sourceAsset(
+            screenURL: configuration.screenURL,
+            settings: configuration.audioReplacementURL == nil
+                ? configuration.audioSettings.voiceIsolation
+                : VoiceIsolationSettings()
+        )
         let sourceDuration = try await sourceAsset.load(.duration).seconds
         let clipTimeline = configuration.clipTimeline.normalized(to: sourceDuration)
         guard clipTimeline.duration >= RecordingClipSegment.minimumDuration else {
