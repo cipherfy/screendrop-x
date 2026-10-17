@@ -40,7 +40,51 @@ struct VoiceBank {
 
     struct Entry: Codable {
         let file: String
-        let measurement: VoiceMeasurement
+        let measurement: Summary
+    }
+
+    /// What the baseline keeps of a measurement: the summary numbers and
+    /// the octave bands, rounded to 0.01. The third-octave spectrum is
+    /// left out; nothing compares it, and it was most of the file.
+    struct Summary: Codable {
+        var sampleRate: Double
+        var channelCount: Int
+        var duration: Double
+        var integratedLUFS: Double?
+        var momentaryMaxLUFS: Double?
+        var shortTermMaxLUFS: Double?
+        var loudnessRangeLU: Double?
+        var samplePeakDBFS: Double
+        var truePeakDBTP: Double
+        var speechLevelDBFS: Double
+        var noiseFloorDBFS: Double
+        var clippedSamples: Int
+        var dcOffset: Double
+        /// Level per voice band, by name.
+        var bands: [String: Double]
+
+        init(_ m: VoiceMeasurement) {
+            func r(_ value: Double) -> Double { (value * 100).rounded() / 100 }
+            sampleRate = m.sampleRate
+            channelCount = m.channelCount
+            duration = r(m.duration)
+            integratedLUFS = m.integratedLUFS.map(r)
+            momentaryMaxLUFS = m.momentaryMaxLUFS.map(r)
+            shortTermMaxLUFS = m.shortTermMaxLUFS.map(r)
+            loudnessRangeLU = m.loudnessRangeLU.map(r)
+            samplePeakDBFS = r(m.samplePeakDBFS)
+            truePeakDBTP = r(m.truePeakDBTP)
+            speechLevelDBFS = r(m.speechLevelDBFS)
+            noiseFloorDBFS = r(m.noiseFloorDBFS)
+            clippedSamples = m.clippedSamples
+            dcOffset = (m.dcOffset * 1e6).rounded() / 1e6
+            bands = Dictionary(uniqueKeysWithValues: m.bands.map { ($0.name, r($0.levelDB)) })
+        }
+
+        /// The meter's rule: nil when the pauses are digital silence.
+        var signalToNoiseDB: Double? {
+            noiseFloorDBFS > -140 ? speechLevelDBFS - noiseFloorDBFS : nil
+        }
     }
 
     static func analyze(_ arguments: [String]) throws {
@@ -56,7 +100,7 @@ struct VoiceBank {
         for path in files {
             let audio = try AudioData.read(path)
             let measurement = VoiceAnalyzer.measure(channels: audio.channels, sampleRate: audio.sampleRate)
-            entries.append(Entry(file: URL(fileURLWithPath: path).lastPathComponent, measurement: measurement))
+            entries.append(Entry(file: URL(fileURLWithPath: path).lastPathComponent, measurement: Summary(measurement)))
         }
 
         printSummary(entries)
@@ -95,8 +139,7 @@ struct VoiceBank {
         print("\nspectral balance (dB per octave vs. 100 Hz-10 kHz average)")
         print(pad("file", width) + "  " + names.map { String($0.prefix(6)).leftPadded(7) }.joined())
         for entry in entries {
-            let levels = Dictionary(uniqueKeysWithValues: entry.measurement.bands.map { ($0.name, $0.levelDB) })
-            print(pad(entry.file, width) + "  " + names.map { num(levels[$0], 7) }.joined())
+            print(pad(entry.file, width) + "  " + names.map { num(entry.measurement.bands[$0], 7) }.joined())
         }
     }
 
@@ -104,7 +147,7 @@ struct VoiceBank {
 
     /// Differences beyond these are reported; a file newly over -1 dBTP or
     /// with more clipping than before is a failure.
-    static let tolerances: [(label: String, limit: Double, value: (VoiceMeasurement) -> Double?)] = [
+    static let tolerances: [(label: String, limit: Double, value: (Summary) -> Double?)] = [
         ("LUFS-I", 0.5, { $0.integratedLUFS }),
         ("LRA", 1.0, { $0.loudnessRangeLU }),
         ("true peak", 0.5, { $0.truePeakDBTP }),
@@ -134,10 +177,9 @@ struct VoiceBank {
                     lines.append("\(tolerance.label) \(fmt(old)) -> \(fmt(new)) (\(signed(new - old)))")
                 }
             }
-            let oldBands = Dictionary(uniqueKeysWithValues: before.bands.map { ($0.name, $0.levelDB) })
-            for band in now.bands {
-                if let old = oldBands[band.name], abs(band.levelDB - old) > 1 {
-                    lines.append("\(band.name) \(fmt(old)) -> \(fmt(band.levelDB)) dB (\(signed(band.levelDB - old)))")
+            for name in SpectrumAnalyzer.voiceBands.map(\.name) {
+                if let old = before.bands[name], let new = now.bands[name], abs(new - old) > 1 {
+                    lines.append("\(name) \(fmt(old)) -> \(fmt(new)) dB (\(signed(new - old)))")
                 }
             }
             // Only a regression fails: the "hot" variants are over on purpose.
