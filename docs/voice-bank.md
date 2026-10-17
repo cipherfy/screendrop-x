@@ -143,7 +143,7 @@ A voice profile (`Screendrop/VoiceProfile.swift`) is what the inspector asks for
 - **Match EQ** pulls the long-term balance toward a target curve with six octave bells, at 70% of the measured difference, limited to -6 / +4.5 dB, and leaves alone bands with no content to speak of.
 - **Loudness**: the voice gain that lands chain, fader, and true-peak limiter on the target, refined until what the limiter takes off is added back.
 
-`Screendrop/RecordingVoiceAnalysis.swift` does the measuring offline, on at most the first ten minutes of the narration the project plays (the isolation render when isolation is on). The analysis is saved in the project. The last profile used with each microphone is remembered, and a microphone never seen before starts on USB Condenser when its name says it is one (QuadCast, Yeti, and others).
+`Screendrop/RecordingVoiceAnalysis.swift` does the measuring offline on the narration the project plays (the isolation render when isolation is on): all of it up to three minutes, or six 30-second stretches spread from start to end of a longer recording. That keeps analysis and loudness matching near two seconds at any length (in a Release build; Debug runs the DSP 20-30x slower), and on a deliberately uneven 10- and 30-minute recording the sampled gain landed the whole recording within 0.25 LU of target. The analysis is saved in the project. The last profile used with each microphone is remembered, and a microphone never seen before starts on USB Condenser when its name says it is one (QuadCast, Yeti, and others).
 
 The target curve is the average of the bank's clean studio voices, a starting point. Rebuild it from narration you like and paste the output into `VoiceTargetCurve`:
 
