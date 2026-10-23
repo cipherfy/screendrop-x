@@ -495,3 +495,33 @@ enum ScreenshotFileActions {
             .appendingPathExtension(pathExtension)
     }
 }
+
+// MARK: - Library analysis
+
+extension ScreendropPreferences {
+    /// The master switch for reading and sorting captures in the background.
+    static let libraryAnalyzeCapturesKey = "libraryAnalyzeCaptures"
+    /// Whether captures from before `libraryAutoSortSince` are sorted by the
+    /// model too. Off until the user opts in, since it can take hours.
+    static let librarySortExistingKey = "librarySortExistingCaptures"
+    static let librarySortOfferDismissedKey = "librarySortOfferDismissed"
+    private static let libraryAutoSortSinceKey = "libraryAutoSortSince"
+
+    static var libraryAnalyzeCaptures: Bool {
+        UserDefaults.standard.object(forKey: libraryAnalyzeCapturesKey) as? Bool ?? true
+    }
+
+    static var librarySortExisting: Bool {
+        UserDefaults.standard.bool(forKey: librarySortExistingKey)
+    }
+
+    /// Captures made from this moment on are sorted automatically; older ones
+    /// wait for the opt-in. Fixed the first time it's read.
+    static var libraryAutoSortSince: Date {
+        let stored = UserDefaults.standard.double(forKey: libraryAutoSortSinceKey)
+        if stored > 0 { return Date(timeIntervalSinceReferenceDate: stored) }
+        let now = Date()
+        UserDefaults.standard.set(now.timeIntervalSinceReferenceDate, forKey: libraryAutoSortSinceKey)
+        return now
+    }
+}

@@ -27,7 +27,7 @@ final class CaptureCoordinator {
     /// Set by the App to open the preview window. Returns the URL the
     /// capture was imported to in history, so awaitable capture callers
     /// (App Intents) can hand the finished file to their result.
-    var onShowPreview: ((URL, CGDirectDisplayID?) -> URL)?
+    var onShowPreview: ((URL, CGDirectDisplayID?, CaptureSource?) -> URL)?
     
     private init() {}
     
@@ -90,32 +90,40 @@ final class CaptureCoordinator {
             seconds: ScreendropPreferences.captureDelaySeconds,
             displayID: displayID
         ) else { return nil }
+        let probe = CaptureSourceProbe(tracksPointer: false)
+        let source = probe.finish(.display(displayID))
         guard let url = await ScreenshotManager.shared.captureFullscreen(displayID: displayID) else { return nil }
-        return finishCapture(url: url, displayID: displayID)
+        return finishCapture(url: url, displayID: displayID, source: source)
     }
 
     @discardableResult
     private func performCaptureWindow() async -> URL? {
         // The self-timer is handled by screencapture's `-T` so the delay
         // happens *after* the window is picked, not before.
-        guard let url = await ScreenshotManager.shared.captureWindow(
+        let probe = CaptureSourceProbe(tracksPointer: true)
+        let captured = await ScreenshotManager.shared.captureWindow(
             includeShadow: ScreendropPreferences.captureWindowShadow,
             delaySeconds: ScreendropPreferences.captureDelaySeconds
-        ) else { return nil }
+        )
+        let source = probe.finish(.window)
+        guard let url = captured else { return nil }
         let displayID = ActiveDisplayResolver.activeDisplayID(preferPointer: true)
-        return finishCapture(url: url, displayID: displayID)
+        return finishCapture(url: url, displayID: displayID, source: source)
     }
 
     @discardableResult
     private func performCaptureArea() async -> URL? {
         // The self-timer is handled by screencapture's `-T` so the delay
         // happens *after* the area is drawn, not before.
-        guard let url = await ScreenshotManager.shared.captureArea(
+        let probe = CaptureSourceProbe(tracksPointer: true)
+        let captured = await ScreenshotManager.shared.captureArea(
             includeShadow: ScreendropPreferences.captureWindowShadow,
             delaySeconds: ScreendropPreferences.captureDelaySeconds
-        ) else { return nil }
+        )
+        let source = probe.finish(.area)
+        guard let url = captured else { return nil }
         let displayID = ActiveDisplayResolver.activeDisplayID(preferPointer: true)
-        return finishCapture(url: url, displayID: displayID)
+        return finishCapture(url: url, displayID: displayID, source: source)
     }
 
     /// Capture Text is the odd one out: it recognizes the text inside the drawn
@@ -196,17 +204,17 @@ final class CaptureCoordinator {
 
     @discardableResult
     @MainActor
-    private func finishCapture(url: URL, displayID: CGDirectDisplayID?) -> URL {
+    private func finishCapture(url: URL, displayID: CGDirectDisplayID?, source: CaptureSource?) -> URL {
         if ScreendropPreferences.playSounds {
             CaptureFeedbackSound.play()
         }
-        return showPreview(url: url, displayID: displayID)
+        return showPreview(url: url, displayID: displayID, source: source)
     }
 
     @discardableResult
-    private func showPreview(url: URL, displayID: CGDirectDisplayID?) -> URL {
+    private func showPreview(url: URL, displayID: CGDirectDisplayID?, source: CaptureSource?) -> URL {
         guard let onShowPreview else {
-            let historyURL = ScreenshotHistoryStore.shared.importScreenshot(from: url)
+            let historyURL = ScreenshotHistoryStore.shared.importScreenshot(from: url, source: source)
             CaptureShelf.shared.add(url: historyURL)
             if AfterCaptureActions.isEnabled(.showOverlay, for: .screenshot) {
                 CaptureShelfPresenter.shared.show(displayID: displayID)
@@ -214,7 +222,7 @@ final class CaptureCoordinator {
             return historyURL
         }
 
-        return onShowPreview(url, displayID)
+        return onShowPreview(url, displayID, source)
     }
 }
 

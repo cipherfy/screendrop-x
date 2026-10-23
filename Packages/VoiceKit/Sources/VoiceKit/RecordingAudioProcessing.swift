@@ -20,6 +20,10 @@ import Synchronization
 public nonisolated enum RecordingAudioRole: Sendable {
     case voice
     case system
+    /// Audio placed in the editor (music, effects). It keeps the volume and
+    /// fades its own mix parameters give it; the tap only delays it like
+    /// every other track, so it stays in time, and limits it.
+    case added
 }
 
 /// The project's audio settings, saved in the project document.
@@ -105,6 +109,8 @@ public nonisolated struct RecordingAudioSettings: Codable, Sendable, Equatable {
             Float(pow(10, voiceGainDB / 20))
         case .system:
             systemGainDB <= Self.systemGainRange.lowerBound ? 0 : Float(pow(10, systemGainDB / 20))
+        case .added:
+            1
         }
     }
 
@@ -183,6 +189,7 @@ public nonisolated final class RecordingAudioParameters: Sendable {
         switch role {
         case .voice: Float(bitPattern: voiceGain.load(ordering: .relaxed))
         case .system: Float(bitPattern: systemGain.load(ordering: .relaxed))
+        case .added: 1
         }
     }
 
@@ -343,12 +350,30 @@ public nonisolated enum RecordingAudioProcessing {
     ) -> AVAudioMix? {
         guard !tracks.isEmpty, tracks.count == roles.count else { return nil }
         let mix = AVMutableAudioMix()
-        mix.inputParameters = zip(tracks, roles).map { track, role in
+        mix.inputParameters = inputParameters(tracks: tracks, roles: roles, parameters: parameters)
+        return mix
+    }
+
+    /// The per-track parameters `makeMix` builds, for a mix that also
+    /// carries tracks with parameters of their own.
+    public static func inputParameters(
+        tracks: [AVAssetTrack],
+        roles: [RecordingAudioRole],
+        parameters: RecordingAudioParameters
+    ) -> [AVMutableAudioMixInputParameters] {
+        guard tracks.count == roles.count else { return [] }
+        return zip(tracks, roles).map { track, role in
             let input = AVMutableAudioMixInputParameters(track: track)
             input.audioTapProcessor = makeTap(role: role, parameters: parameters)
             return input
         }
-        return mix
+    }
+
+    /// Joins added audio, with the volume and fades its own parameters
+    /// already carry, to a VoiceKit mix: the `.added` tap keeps it aligned
+    /// with the other tracks' latency and limits it.
+    public static func joinAdded(_ added: AVMutableAudioMixInputParameters, parameters: RecordingAudioParameters) {
+        added.audioTapProcessor = makeTap(role: .added, parameters: parameters)
     }
 
     /// Reader settings for mixes the exporters limit before encoding.
@@ -464,7 +489,7 @@ public nonisolated enum RecordingAudioProcessing {
                     }
                     context.chain = chain
                     context.loudness = ShortTermLoudness(sampleRate: description.mSampleRate, channelCount: channels)
-                case .system:
+                case .system, .added:
                     context.systemDelay = DelayLine(frames: VoiceChainProcessor.latency, channels: channels)
                 }
             },
@@ -539,7 +564,7 @@ public nonisolated enum RecordingAudioProcessing {
             }
         }
 
-        // 1. The voice chain, or for system audio an equal delay.
+        // 1. The voice chain, or for every other track an equal delay.
         switch context.role {
         case .voice:
             if let current = context.parameters.voiceChainIfAvailable() {
@@ -551,7 +576,7 @@ public nonisolated enum RecordingAudioProcessing {
                 read: read,
                 write: write
             )
-        case .system:
+        case .system, .added:
             if context.systemDelay != nil {
                 for frame in 0..<frameCount {
                     for channel in 0..<channels {

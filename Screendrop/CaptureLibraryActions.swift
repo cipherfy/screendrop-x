@@ -7,6 +7,10 @@ extension CaptureLibraryModel {
         let selected = selectedItems
         guard !selected.isEmpty else { return }
         switch action {
+        case .open:
+            // Previewing a video renders its export first, so opening one
+            // goes to the editor instead.
+            perform(selected.count == 1 && selected.first?.isVideo == true ? .edit : .preview)
         case .preview:
             guard selected.count == 1, let item = selected.first else { return }
             if QuickLookPreviewPresenter.isShown, let current = QuickLookPreviewPresenter.currentURL {

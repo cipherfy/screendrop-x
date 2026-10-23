@@ -16,6 +16,8 @@
 //
 
 import AppKit
+import AVFoundation
+import Combine
 import ScreenCaptureKit
 import SwiftUI
 
@@ -41,6 +43,7 @@ extension RecordingBarPresenter {
 struct RecordingPickerControls: View {
     @State private var sources = RecordingSourceCatalog.shared
     @State private var target = RecordingSourceTargetPresenter.shared
+    @State private var cameras = RecordingDeviceCatalog.cameras()
     @AppStorage(ScreendropPreferences.recordingCameraDeviceIDKey) private var cameraID = ""
     @AppStorage(ScreendropPreferences.recordingMicrophoneDeviceIDKey) private var microphoneID = ""
     @AppStorage(ScreendropPreferences.recordingSystemAudioKey) private var systemAudio = false
@@ -66,19 +69,7 @@ struct RecordingPickerControls: View {
 
             BarDivider()
 
-            inputToggle(
-                id: .camera,
-                title: cameraID.isEmpty ? "Camera off" : "Camera on",
-                isOn: !cameraID.isEmpty,
-                onIcon: "video.fill",
-                offIcon: "video.slash",
-                accessibility: cameraAccessibilityLabel
-            ) {
-                toggleCamera()
-            }
-            .contextMenu {
-                cameraDeviceMenu
-            }
+            cameraPicker
 
             microphonePicker
 
@@ -120,7 +111,16 @@ struct RecordingPickerControls: View {
             }
         }
         .task {
+            cameras = RecordingDeviceCatalog.cameras()
             await sources.refresh()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasConnectedNotification)
+            .receive(on: RunLoop.main)) { _ in
+            cameras = RecordingDeviceCatalog.cameras()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: AVCaptureDevice.wasDisconnectedNotification)
+            .receive(on: RunLoop.main)) { _ in
+            cameras = RecordingDeviceCatalog.cameras()
         }
     }
 
@@ -229,23 +229,20 @@ struct RecordingPickerControls: View {
 
     // MARK: Input toggles
 
-    private func toggleCamera() {
-        if cameraID.isEmpty {
-            selectCamera(RecordingDeviceCatalog.cameras().first?.uniqueID)
-        } else {
-            cameraID = ""
-            Task { await CameraRecordingManager.shared.stopPreview() }
-        }
+    private var cameraTooltip: String {
+        guard !cameraID.isEmpty else { return "Camera off" }
+        guard let camera = cameras.first(where: { $0.uniqueID == cameraID }) else { return "Camera unavailable" }
+        return "Camera: \(camera.localizedName)"
     }
 
     private var cameraAccessibilityLabel: String {
         guard !cameraID.isEmpty else {
-            return "Camera off - click to record your camera, right-click to pick one"
+            return "Camera off - click to choose a camera"
         }
-        guard let camera = RecordingDeviceCatalog.cameras().first(where: { $0.uniqueID == cameraID }) else {
-            return "Camera unavailable - right-click to choose another camera"
+        guard let camera = cameras.first(where: { $0.uniqueID == cameraID }) else {
+            return "Camera unavailable - click to choose another camera"
         }
-        return "Camera on - \(camera.localizedName), right-click to switch"
+        return "Camera on - \(camera.localizedName), click to switch"
     }
 
     /// The pill only has room for the state, so an attached-but-missing
@@ -269,23 +266,40 @@ struct RecordingPickerControls: View {
         return "Microphone on - \(microphone.localizedName)"
     }
 
-    @ViewBuilder
-    private var cameraDeviceMenu: some View {
-        ForEach(RecordingDeviceCatalog.cameras(), id: \.uniqueID) { device in
-            Toggle(isOn: Binding(
-                get: { cameraID == device.uniqueID },
-                set: { selected in
-                    if selected {
-                        selectCamera(device.uniqueID)
-                    } else {
-                        cameraID = ""
-                        Task { await CameraRecordingManager.shared.stopPreview() }
-                    }
-                }
-            )) {
-                Text(device.localizedName)
+    private var cameraPicker: some View {
+        Menu {
+            Button {
+                cameraID = ""
+                Task { await CameraRecordingManager.shared.stopPreview() }
+            } label: {
+                menuSelectionLabel("Off", isSelected: cameraID.isEmpty)
             }
+
+            Divider()
+
+            if cameras.isEmpty {
+                Text("No cameras available")
+            }
+
+            ForEach(cameras, id: \.uniqueID) { device in
+                Button {
+                    selectCamera(device.uniqueID)
+                } label: {
+                    menuSelectionLabel(device.localizedName, isSelected: cameraID == device.uniqueID)
+                }
+            }
+        } label: {
+            BarActionLabel(
+                id: .camera,
+                title: cameraTooltip,
+                systemImage: cameraID.isEmpty ? "video.slash" : "video.fill",
+                tint: cameraID.isEmpty ? BarMetrics.inactiveTint : BarMetrics.activeTint
+            )
         }
+        .menuStyle(.button)
+        .buttonStyle(BarButtonStyle())
+        .menuIndicator(.hidden)
+        .accessibilityLabel(cameraAccessibilityLabel)
     }
 
     private var microphonePicker: some View {

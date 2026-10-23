@@ -8,8 +8,11 @@ A beautiful screenshot + screen recording + Loom alternative - all native, self 
   </a>
 </p>
 
-<img width="3494" height="2206" alt="Screendrop_2026-08-17-09-17-20-compressed-550B05" src="https://github.com/user-attachments/assets/e4c2ef6c-97af-4ad4-8885-442c7fbb07b7" />
+https://github.com/user-attachments/assets/c8d5636a-b03d-4b97-9ef1-e775df75117a
 
+
+
+<img width="2500" height="1622" alt="Screendrop_2026-10-17-15-27-03" src="https://github.com/user-attachments/assets/d438df03-cbf9-4e85-ae18-07397fa02fb6" />
 
 
 <br />

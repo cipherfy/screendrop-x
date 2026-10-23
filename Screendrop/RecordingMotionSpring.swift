@@ -13,6 +13,7 @@ nonisolated struct SpringConstant: Sendable {
     var tension: Double
     var friction: Double
     var inertia: Double
+    var clampsOvershoot: Bool = false
 }
 
 nonisolated struct DampedSpring: Sendable {
@@ -30,10 +31,19 @@ nonisolated struct DampedSpring: Sendable {
             velocity = 0
             return
         }
-        let acceleration = (
-            constant.tension * (target - position) - constant.friction * velocity
-        ) / constant.inertia
-        velocity += acceleration * dt
-        position += velocity * dt
+        var remaining = dt
+        while remaining > 0 {
+            let step = constant.clampsOvershoot ? min(remaining, 0.001) : remaining
+            let distance = target - position
+            var friction = constant.friction
+            if constant.clampsOvershoot, velocity * distance > 0,
+               abs(velocity) > abs(distance) * sqrt(constant.tension / constant.inertia) {
+                friction = max(friction, 2 * sqrt(constant.inertia * constant.tension))
+            }
+            let acceleration = (constant.tension * distance - friction * velocity) / constant.inertia
+            velocity += acceleration * step
+            position += velocity * step
+            remaining -= step
+        }
     }
 }

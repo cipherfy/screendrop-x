@@ -11,15 +11,24 @@ import CoreGraphics
 import Foundation
 import VoiceKit
 
-/// The floating talking-head bubble composited over the recording.
+/// The talking-head camera composited with the recording.
 struct RecordingCameraBubbleSettings: Equatable {
     var isVisible = true
-    /// Normalized (0...1, top-left origin) bubble center on the canvas.
-    var center = CGPoint(x: 0.85, y: 0.82)
-    /// Bubble diameter as a fraction of the canvas's smaller dimension.
-    var size: CGFloat = 0.26
-    /// 0.5 = circle, smaller values square the bubble off.
+    /// Corner rounding of rectangular cameras as a fraction of their
+    /// shorter side; 0.5 rounds them into a pill.
     var roundness: CGFloat = 0.25
+    /// The arrangement outside any layout cue on the timeline.
+    var layout = RecordingCameraLayout()
+    /// A corner camera steps back a little while the screen is zoomed, so
+    /// the eye goes where the action is.
+    var shrinksDuringZoom = true
+    /// How much smaller it gets once a zoom lands, as a fraction of its size.
+    var zoomShrinkAmount: CGFloat = RecordingCameraBubbleSettings.defaultZoomShrinkAmount
+    /// Face light and skin smoothing, applied to the camera's picture.
+    var beauty = StudioCameraBeauty()
+
+    static let defaultZoomShrinkAmount: CGFloat = 0.1
+    static let zoomShrinkAmountRange: ClosedRange<CGFloat> = 0.05...0.4
 }
 
 struct RecordingEditDocument: Codable, Equatable {
@@ -27,6 +36,18 @@ struct RecordingEditDocument: Codable, Equatable {
     var style: StoredRecordingStudioStyle
     var zoomEnabled: Bool
     var zoomCues: [ZoomCue]
+    /// Stretches shown in a layout other than the style's default. Optional
+    /// so projects saved before camera layouts decode with none.
+    var cameraLayoutCues: [RecordingCameraLayoutCue]?
+    /// Text over the recording and pixelated regions of it, both on the
+    /// source clock. Optional so older projects decode with none.
+    var textOverlays: [RecordingTextOverlay]?
+    var redactions: [RecordingRedaction]?
+    /// Images and GIFs over the canvas (source clock) and audio clips
+    /// under the video (edited clock); their files live in the project's
+    /// media folder.
+    var imageOverlays: [RecordingImageOverlay]?
+    var audioClips: [RecordingAudioClip]?
     /// Ordered source ranges that make up the edited movie. Optional so v1
     /// projects continue to decode through their single trim range.
     var clips: [RecordingClipSegment]?
@@ -81,6 +102,11 @@ struct RecordingEditDocument: Codable, Equatable {
         case style
         case zoomEnabled
         case zoomCues
+        case cameraLayoutCues
+        case textOverlays
+        case redactions
+        case imageOverlays
+        case audioClips
         case clips
         case trimStart
         case trimEnd
@@ -114,6 +140,11 @@ struct RecordingEditDocument: Codable, Equatable {
         style: RecordingStudioStyle,
         zoomEnabled: Bool,
         zoomCues: [ZoomCue],
+        cameraLayoutCues: [RecordingCameraLayoutCue]? = nil,
+        textOverlays: [RecordingTextOverlay]? = nil,
+        redactions: [RecordingRedaction]? = nil,
+        imageOverlays: [RecordingImageOverlay]? = nil,
+        audioClips: [RecordingAudioClip]? = nil,
         clipTimeline: RecordingClipTimeline? = nil,
         trimSelection: VideoTrimSelection? = nil,
         exportSettings: VideoCompressionSettings? = nil,
@@ -138,6 +169,11 @@ struct RecordingEditDocument: Codable, Equatable {
         self.style = StoredRecordingStudioStyle(style)
         self.zoomEnabled = zoomEnabled
         self.zoomCues = zoomCues
+        self.cameraLayoutCues = cameraLayoutCues
+        self.textOverlays = textOverlays
+        self.redactions = redactions
+        self.imageOverlays = imageOverlays
+        self.audioClips = audioClips
         clips = clipTimeline?.segments
         if let clip = clipTimeline?.segments.only {
             // Keep the legacy envelope populated for older Screendrop builds.
@@ -215,6 +251,14 @@ struct RecordingEditDocument: Codable, Equatable {
         style = try container.decode(StoredRecordingStudioStyle.self, forKey: .style)
         zoomEnabled = try container.decodeIfPresent(Bool.self, forKey: .zoomEnabled) ?? true
         zoomCues = try container.decodeIfPresent([ZoomCue].self, forKey: .zoomCues) ?? []
+        cameraLayoutCues = try container.decodeIfPresent(
+            [RecordingCameraLayoutCue].self,
+            forKey: .cameraLayoutCues
+        )
+        textOverlays = try container.decodeIfPresent([RecordingTextOverlay].self, forKey: .textOverlays)
+        redactions = try container.decodeIfPresent([RecordingRedaction].self, forKey: .redactions)
+        imageOverlays = try container.decodeIfPresent([RecordingImageOverlay].self, forKey: .imageOverlays)
+        audioClips = try container.decodeIfPresent([RecordingAudioClip].self, forKey: .audioClips)
         clips = try container.decodeIfPresent([RecordingClipSegment].self, forKey: .clips)
         trimStart = try container.decodeIfPresent(TimeInterval.self, forKey: .trimStart)
         trimEnd = try container.decodeIfPresent(TimeInterval.self, forKey: .trimEnd)
@@ -272,6 +316,11 @@ struct RecordingEditDocument: Codable, Equatable {
         try container.encode(style, forKey: .style)
         try container.encode(zoomEnabled, forKey: .zoomEnabled)
         try container.encode(zoomCues, forKey: .zoomCues)
+        try container.encodeIfPresent(cameraLayoutCues, forKey: .cameraLayoutCues)
+        try container.encodeIfPresent(textOverlays, forKey: .textOverlays)
+        try container.encodeIfPresent(redactions, forKey: .redactions)
+        try container.encodeIfPresent(imageOverlays, forKey: .imageOverlays)
+        try container.encodeIfPresent(audioClips, forKey: .audioClips)
         try container.encodeIfPresent(clips, forKey: .clips)
         try container.encodeIfPresent(trimStart, forKey: .trimStart)
         try container.encodeIfPresent(trimEnd, forKey: .trimEnd)
@@ -322,6 +371,17 @@ struct StoredRecordingStudioStyle: Codable, Equatable {
     var cameraCenterY: Double
     var cameraSize: Double
     var cameraRoundness: Double
+    /// Optional so projects saved before camera layouts migrate their
+    /// free-form bubble. The legacy center and size are still written for
+    /// older builds.
+    var cameraLayout: RecordingCameraLayout?
+    /// Optional so projects saved before it decode with it on.
+    var cameraShrinksDuringZoom: Bool?
+    var cameraZoomShrinkAmount: Double?
+    /// Optional so projects saved before touch-ups decode with them off;
+    /// nil while off.
+    var cameraFaceLight: Double?
+    var cameraSkinSmoothing: Double?
 
     init(_ style: RecordingStudioStyle) {
         switch style.background {
@@ -340,10 +400,18 @@ struct StoredRecordingStudioStyle: Codable, Equatable {
         cursorScale = Double(style.cursorScale)
         hidesCursor = style.hidesCursor ? true : nil
         cameraIsVisible = style.camera.isVisible
-        cameraCenterX = Double(style.camera.center.x)
-        cameraCenterY = Double(style.camera.center.y)
-        cameraSize = Double(style.camera.size)
+        let legacyCenter = style.camera.layout.legacyCenter
+        cameraCenterX = Double(legacyCenter.x)
+        cameraCenterY = Double(legacyCenter.y)
+        cameraSize = style.camera.layout.size
         cameraRoundness = Double(style.camera.roundness)
+        cameraLayout = style.camera.layout
+        cameraShrinksDuringZoom = style.camera.shrinksDuringZoom ? nil : false
+        cameraZoomShrinkAmount = style.camera.zoomShrinkAmount == RecordingCameraBubbleSettings.defaultZoomShrinkAmount
+            ? nil
+            : Double(style.camera.zoomShrinkAmount)
+        cameraFaceLight = style.camera.beauty.faceLight > 0 ? Double(style.camera.beauty.faceLight) : nil
+        cameraSkinSmoothing = style.camera.beauty.skinSmoothing > 0 ? Double(style.camera.beauty.skinSmoothing) : nil
     }
 
     var value: RecordingStudioStyle {
@@ -368,9 +436,23 @@ struct StoredRecordingStudioStyle: Codable, Equatable {
             hidesCursor: hidesCursor ?? false,
             camera: RecordingCameraBubbleSettings(
                 isVisible: cameraIsVisible,
-                center: CGPoint(x: cameraCenterX, y: cameraCenterY),
-                size: CGFloat(cameraSize),
-                roundness: CGFloat(cameraRoundness)
+                // A legacy circle becomes the circle shape; rectangular
+                // layouts get the default rounding instead of a pill.
+                roundness: CGFloat(cameraLayout == nil && cameraRoundness >= 0.49 ? 0.25 : cameraRoundness),
+                layout: cameraLayout ?? .migrated(
+                    center: CGPoint(x: cameraCenterX, y: cameraCenterY),
+                    size: cameraSize,
+                    roundness: cameraRoundness
+                ),
+                shrinksDuringZoom: cameraShrinksDuringZoom ?? true,
+                zoomShrinkAmount: cameraZoomShrinkAmount.map {
+                    min(max(CGFloat($0), RecordingCameraBubbleSettings.zoomShrinkAmountRange.lowerBound),
+                        RecordingCameraBubbleSettings.zoomShrinkAmountRange.upperBound)
+                } ?? RecordingCameraBubbleSettings.defaultZoomShrinkAmount,
+                beauty: StudioCameraBeauty(
+                    faceLight: CGFloat(min(max(cameraFaceLight ?? 0, 0), 1)),
+                    skinSmoothing: CGFloat(min(max(cameraSkinSmoothing ?? 0, 0), 1))
+                )
             )
         )
     }
@@ -450,8 +532,10 @@ enum RecordingStudioDefaults {
 }
 
 /// Deterministic canvas layout shared by the preview and the exporter.
-/// All rects are in the given canvas space with a top-left origin.
-nonisolated struct RecordingStudioLayout: Sendable {
+/// All rects are in the given canvas space with a top-left origin. `make`
+/// produces the resting card; a camera layout frame then moves the card and
+/// places the camera (RecordingCameraLayoutResolver).
+nonisolated struct RecordingStudioLayout: Sendable, Equatable {
     /// Original follows the visible source, then adds an equal border without
     /// stretching the video. Padding remains a fraction of the canvas's short side.
     static func originalCanvasSize(
@@ -481,6 +565,15 @@ nonisolated struct RecordingStudioLayout: Sendable {
     /// reframe export renders into a different aspect, this is the
     /// aspect-fill size so the content covers the card without stretching.
     let contentFillSize: CGSize
+    /// Source region the layout frames, before any animated zoom.
+    var contentCropRect: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1)
+    /// Set by a camera layout frame; the resting layout shows the screen
+    /// and no camera until a frame is applied.
+    var screenOpacity: CGFloat = 1
+    var cameraOpacity: CGFloat = 1
+    /// How far the camera is cut out of its background; see
+    /// RecordingCameraLayoutFrame.cameraCutout.
+    var cameraCutout: CGFloat = 0
 
     /// How content occupies a card whose aspect differs from the video's.
     enum ContentMode: Sendable {
@@ -491,7 +584,7 @@ nonisolated struct RecordingStudioLayout: Sendable {
         case fit
     }
 
-    /// Gap kept between the camera bubble and the canvas edge.
+    /// Gap kept between a corner camera and the edge of the card.
     static func bubbleMargin(forMinDimension minDimension: CGFloat) -> CGFloat {
         (minDimension * 0.03).rounded()
     }
@@ -499,7 +592,6 @@ nonisolated struct RecordingStudioLayout: Sendable {
     static func make(
         canvasSize: CGSize,
         style: RecordingStudioStyle,
-        includeBubble: Bool,
         usesUniformPadding: Bool = false,
         contentAspect: CGFloat? = nil,
         contentMode: ContentMode = .fill,
@@ -554,50 +646,18 @@ nonisolated struct RecordingStudioLayout: Sendable {
         )
         let cardCornerRadius = style.cornerRadius * minDimension
 
-        var bubbleRect = CGRect.zero
-        var bubbleCornerRadius: CGFloat = 0
-        if includeBubble, style.camera.isVisible {
-            let diameter = max(24, style.camera.size * minDimension)
-            var center = CGPoint(
-                x: style.camera.center.x * canvasSize.width,
-                y: style.camera.center.y * canvasSize.height
-            )
-            // Keep a little air between the bubble and the canvas edge so it
-            // never sits jammed into a corner.
-            let margin = Self.bubbleMargin(forMinDimension: minDimension)
-            let halfX = min(diameter / 2 + margin, canvasSize.width / 2)
-            let halfY = min(diameter / 2 + margin, canvasSize.height / 2)
-            center.x = min(max(center.x, halfX), canvasSize.width - halfX)
-            center.y = min(max(center.y, halfY), canvasSize.height - halfY)
-            bubbleRect = CGRect(
-                x: center.x - diameter / 2,
-                y: center.y - diameter / 2,
-                width: diameter,
-                height: diameter
-            )
-            bubbleCornerRadius = max(4, style.camera.roundness * diameter)
-        }
-
         var contentFillSize = cardRect.size
         if hasContentCrop {
             // Draw the full source behind the card at the scale where the
             // selected source rectangle fills it exactly. The viewport anchor
             // then positions that rectangle without touching other layers.
-            if usesUniformPadding {
-                // Even-pixel export rounding can slightly change the canvas
-                // aspect. Fill that fraction of a pixel instead of exposing
-                // wallpaper at zero padding or stretching the source.
-                let fillHeight = max(
-                    cardRect.height / crop.height,
-                    cardRect.width / (crop.width * sourceAspect)
-                )
-                contentFillSize = CGSize(width: sourceAspect * fillHeight, height: fillHeight)
-            } else {
-                contentFillSize = CGSize(
-                    width: cardRect.width / crop.width,
-                    height: cardRect.height / crop.height
-                )
-            }
+            // Pixel rounding can slightly change the card's aspect. Use one
+            // uniform source scale for every output mode, including Fit.
+            let fillHeight = max(
+                cardRect.height / crop.height,
+                cardRect.width / (crop.width * sourceAspect)
+            )
+            contentFillSize = CGSize(width: sourceAspect * fillHeight, height: fillHeight)
         } else if let contentAspect, contentAspect > 0, cardRect.height > 0 {
             let fillHeight = max(cardRect.height, cardRect.width / contentAspect)
             contentFillSize = CGSize(
@@ -610,9 +670,11 @@ nonisolated struct RecordingStudioLayout: Sendable {
             canvasSize: canvasSize,
             cardRect: cardRect,
             cardCornerRadius: cardCornerRadius,
-            bubbleRect: bubbleRect,
-            bubbleCornerRadius: bubbleCornerRadius,
-            contentFillSize: contentFillSize
+            bubbleRect: .zero,
+            bubbleCornerRadius: 0,
+            contentFillSize: contentFillSize,
+            contentCropRect: crop,
+            cameraOpacity: 0
         )
     }
 

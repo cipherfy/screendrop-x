@@ -14,6 +14,8 @@ struct GeneralSettingsPane: View {
     @AppStorage(ScreendropPreferences.showMenuBarIconKey) private var showMenuBarIcon = true
     @AppStorage(ScreendropPreferences.includeAppWindowsInCapturesKey)
     private var includeAppWindowsInCaptures = false
+    @AppStorage(ScreendropPreferences.libraryAnalyzeCapturesKey) private var analyzeCaptures = true
+    @AppStorage(ScreendropPreferences.librarySortExistingKey) private var sortExistingCaptures = false
     @State private var launchAtLoginStatus = LaunchAtLoginController.status
     @State private var launchAtLoginError: String?
 
@@ -80,6 +82,30 @@ struct GeneralSettingsPane: View {
                 }
                 .toggleStyle(.ink)
             }
+
+            Section("Library") {
+                Toggle(isOn: $analyzeCaptures) {
+                    SettingsControlLabel(
+                        "Analyze captures",
+                        detail: "Read the text in screenshots and recordings so search can find it, and sort new captures into categories. Everything runs on this Mac."
+                    )
+                }
+                .toggleStyle(.ink)
+
+                if analyzeCaptures, CaptureLibraryAnalyzer.isModelAvailable {
+                    Toggle(isOn: $sortExistingCaptures) {
+                        SettingsControlLabel(
+                            "Sort existing captures",
+                            detail: "Use Apple Intelligence on captures taken before sorting was turned on. It works in the background and can take an hour or more for a large Library."
+                        )
+                    }
+                    .toggleStyle(.ink)
+                    .transition(.blurPop)
+                }
+            }
+            .motion(value: analyzeCaptures)
+            .onChange(of: analyzeCaptures) { _, _ in CaptureLibraryIndex.shared.settingsDidChange() }
+            .onChange(of: sortExistingCaptures) { _, _ in CaptureLibraryIndex.shared.settingsDidChange() }
 
             Section("System") {
                 Toggle(isOn: launchAtLoginBinding) {

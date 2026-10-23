@@ -263,18 +263,22 @@ struct StudioStylePreview: View {
             let size = proxy.size
             let short = min(size.width, size.height)
             // The canvas pads the video whether or not there is a fill.
-            let inset = style.padding * short
-            let available = CGSize(
-                width: max(1, size.width - inset * 2),
-                height: max(1, size.height - inset * 2)
+            let base = RecordingStudioLayout.make(
+                canvasSize: size,
+                style: style,
+                contentAspect: max(0.1, contentAspect),
+                contentMode: .fit
             )
-            let aspect = max(0.1, contentAspect)
-            let card = available.width / available.height > aspect
-                ? CGSize(width: available.height * aspect, height: available.height)
-                : CGSize(width: available.width, height: available.width / aspect)
+            let frame = RecordingCameraLayoutResolver(
+                base: base,
+                style: style,
+                showsCamera: showsCamera && style.camera.isVisible
+            ).frame(for: style.camera.layout)
+            let card = frame.screenRect
 
-            ZStack {
+            ZStack(alignment: .topLeading) {
                 BackgroundSwatch(style: style.background)
+                    .frame(width: size.width, height: size.height)
 
                 Group {
                     if let poster {
@@ -292,19 +296,28 @@ struct StudioStylePreview: View {
                     radius: short * 0.05 * style.shadow,
                     y: short * 0.02 * style.shadow
                 )
+                .opacity(frame.screenOpacity)
+                .offset(x: card.minX, y: card.minY)
 
-                if showsCamera, style.camera.isVisible {
-                    let diameter = style.camera.size * short
-                    RoundedRectangle(cornerRadius: diameter * style.camera.roundness, style: .continuous)
+                if frame.cameraOpacity > 0.001, frame.cameraCutout > 0.5 {
+                    let camera = frame.cameraRect
+                    StudioPersonSilhouette()
+                        .fill(Color(white: 0.7))
+                        .shadow(color: .black.opacity(0.25), radius: short * 0.012, y: short * 0.004)
+                        .frame(width: camera.width, height: camera.height)
+                        .offset(x: camera.minX, y: camera.minY)
+                } else if frame.cameraOpacity > 0.001 {
+                    let camera = frame.cameraRect
+                    RoundedRectangle(cornerRadius: frame.cameraCornerRadius, style: .continuous)
                         .fill(Color(white: 0.78))
                         .overlay {
                             Image(systemName: "person.fill")
-                                .font(.system(size: diameter * 0.45))
+                                .font(.system(size: min(camera.width, camera.height) * 0.45))
                                 .foregroundStyle(Color(white: 0.55))
                         }
-                        .frame(width: diameter, height: diameter)
-                        .clipShape(RoundedRectangle(cornerRadius: diameter * style.camera.roundness, style: .continuous))
-                        .position(x: style.camera.center.x * size.width, y: style.camera.center.y * size.height)
+                        .clipShape(RoundedRectangle(cornerRadius: frame.cameraCornerRadius, style: .continuous))
+                        .frame(width: camera.width, height: camera.height)
+                        .offset(x: camera.minX, y: camera.minY)
                 }
             }
             .frame(width: size.width, height: size.height)

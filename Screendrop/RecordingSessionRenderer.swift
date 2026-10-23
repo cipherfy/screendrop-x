@@ -70,11 +70,13 @@ enum RecordingSessionRenderer {
             throw RecordingStudioExporter.ExportError.noVideoTrack
         }
 
+        var cameraAspect: CGFloat?
         if session.hasCamera {
             let cameraAsset = AVURLAsset(url: session.cameraURL)
             guard try await !cameraAsset.loadTracks(withMediaType: .video).isEmpty else {
                 throw RenderError.missingCameraTrack
             }
+            cameraAspect = await RecordingCameraVideo.aspect(of: session.cameraURL)
         }
 
         let canvasSize = try await outputSize(for: asset, manifest: manifest)
@@ -110,6 +112,11 @@ enum RecordingSessionRenderer {
         let viewportTimeline = zoomEnabled
             ? ViewportTimeline.build(cues: zoomCues, capture: capture, clipTimeline: clipTimeline)
             : .identity
+        let cameraLayoutTimeline = RecordingCameraLayoutTimeline.build(
+            defaultLayout: style.camera.layout,
+            cues: document?.cameraLayoutCues ?? [],
+            clipTimeline: clipTimeline
+        )
         let showsPressEffects = pointerSynthesized
             && manifest?.pressEffectsBaked == false
             && (document?.showsClickEffects ?? manifest?.pressEffectsEnabled ?? true)
@@ -148,12 +155,36 @@ enum RecordingSessionRenderer {
             (aspect == .original || aspectMode == .fit) && canvasSize.height > 0
                 ? canvasSize.width / canvasSize.height
                 : nil
+        let exportCanvasSize = aspect == .original
+            ? RecordingStudioLayout.originalCanvasSize(
+                sourceSize: canvasSize,
+                style: style,
+                contentCropRect: document?.normalizedVideoCropRect ?? RecordingVideoCropGeometry.unit
+            )
+            : aspect.canvasSize(for: canvasSize)
+        let videoCropRect = document?.normalizedVideoCropRect ?? CGRect(x: 0, y: 0, width: 1, height: 1)
+        let motionTimeline = RecordingStudioMotionTimeline.build(
+            canvasSize: exportCanvasSize,
+            style: style,
+            usesUniformPadding: aspect == .original,
+            contentAspect: reframe?.sourceAspect ?? fitContentAspect,
+            contentMode: fitContentAspect != nil && reframe == nil ? .fit : .fill,
+            contentCropRect: videoCropRect,
+            showsCamera: style.camera.isVisible,
+            cameraAspect: cameraAspect ?? RecordingCameraLayoutResolver.defaultCameraAspect,
+            layoutTimeline: cameraLayoutTimeline,
+            cues: zoomEnabled ? zoomCues : [],
+            capture: capture,
+            clipTimeline: clipTimeline
+        )
 
         return RecordingStudioExporter.Configuration(
             screenURL: session.screenURL,
-            cameraURL: session.hasCamera ? session.cameraURL : nil,
+            cameraURL: style.camera.isVisible && cameraLayoutTimeline.usesCamera ? session.cameraURL : nil,
             cameraOffset: manifest?.cameraLeadIn ?? 0,
+            cameraAspect: cameraAspect,
             style: style,
+            cameraLayoutTimeline: cameraLayoutTimeline,
             viewportTimeline: viewportTimeline,
             pointerTimeline: pointerSynthesized ? pointerTimeline : nil,
             showsPressEffects: showsPressEffects,
@@ -172,21 +203,20 @@ enum RecordingSessionRenderer {
             karaokeTimeline: showsSubtitles && !cues.isEmpty && !words.isEmpty
                 ? KaraokeTimeline(cues: cues, words: words)
                 : nil,
-            canvasSize: aspect == .original
-                ? RecordingStudioLayout.originalCanvasSize(
-                    sourceSize: canvasSize,
-                    style: style,
-                    contentCropRect: document?.normalizedVideoCropRect ?? RecordingVideoCropGeometry.unit
-                )
-                : aspect.canvasSize(for: canvasSize),
-            videoCropRect: document?.normalizedVideoCropRect
-                ?? CGRect(x: 0, y: 0, width: 1, height: 1),
+            canvasSize: exportCanvasSize,
+            videoCropRect: videoCropRect,
             clipTimeline: clipTimeline,
             exportSettings: document?.exportSettings ?? VideoCompressionSettings(),
             audioSettings: document?.resolvedAudioSettings ?? RecordingAudioSettings(),
             reframe: reframe,
             fitContentAspect: fitContentAspect,
-            usesUniformPadding: aspect == .original
+            usesUniformPadding: aspect == .original,
+            motionTimeline: motionTimeline,
+            textOverlays: document?.textOverlays ?? [],
+            redactions: document?.redactions ?? [],
+            imageOverlays: document?.imageOverlays ?? [],
+            audioClips: document?.audioClips ?? [],
+            mediaDirectory: session.directoryURL.appendingPathComponent("media", isDirectory: true)
         )
     }
 

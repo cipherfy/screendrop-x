@@ -16,6 +16,9 @@ nonisolated struct RecordingSession: Sendable, Equatable {
     static let directoryExtension = "screendroprec"
     static let screenFileName = "screen.mov"
     static let cameraFileName = "camera.mov"
+    /// The person mattes a cutout draws through, made once from the camera
+    /// in the background; derived data, rebuilt whenever it's missing.
+    static let cameraMatteFileName = "camera-matte-v1.mov"
     static let pointerCaptureFileName = "input.json"
     static let captureManifestFileName = "capture.json"
     static let editDocumentFileName = "edit.json"
@@ -313,6 +316,8 @@ nonisolated struct CaptureManifest: Codable, Sendable, Equatable {
     /// whose pixels may already contain the configured mouse indicators.
     var pressEffectsBaked: Bool?
     var pressEffectsEnabled: Bool?
+    /// The app being recorded, for the Library. Nil in older manifests.
+    var source: CaptureSource?
 
     static let encoder: JSONEncoder = {
         let encoder = JSONEncoder()

@@ -27,6 +27,8 @@ struct ScreenshotHistoryItem: Identifiable, Codable, Equatable {
     var recordingSessionPath: String?
     /// A Library title, kept separate from the file name and editable sidecars.
     var displayName: String?
+    /// The app the screenshot was taken from, when it could be told.
+    var source: CaptureSource?
 
     var recordingSession: RecordingSession? {
         guard let recordingSessionPath else { return nil }
@@ -63,6 +65,7 @@ struct ScreenshotHistoryItem: Identifiable, Codable, Equatable {
         hasEdits = try container.decodeIfPresent(Bool.self, forKey: .hasEdits) ?? false
         recordingSessionPath = try container.decodeIfPresent(String.self, forKey: .recordingSessionPath)
         displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+        source = try container.decodeIfPresent(CaptureSource.self, forKey: .source)
     }
 
     init(
@@ -77,7 +80,8 @@ struct ScreenshotHistoryItem: Identifiable, Codable, Equatable {
         cloudURL: String? = nil,
         hasEdits: Bool = false,
         recordingSessionPath: String? = nil,
-        displayName: String? = nil
+        displayName: String? = nil,
+        source: CaptureSource? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
@@ -91,6 +95,7 @@ struct ScreenshotHistoryItem: Identifiable, Codable, Equatable {
         self.hasEdits = hasEdits
         self.recordingSessionPath = recordingSessionPath
         self.displayName = displayName
+        self.source = source
     }
 }
 
@@ -154,7 +159,7 @@ final class ScreenshotHistoryStore {
     }
 
     @discardableResult
-    func importScreenshot(from sourceURL: URL) -> URL {
+    func importScreenshot(from sourceURL: URL, source: CaptureSource? = nil) -> URL {
         do {
             try FileManager.default.createDirectory(at: Self.historyDirectory, withIntermediateDirectories: true)
             let destinationURL = uniqueHistoryURL(for: sourceURL)
@@ -173,7 +178,8 @@ final class ScreenshotHistoryStore {
                 updatedAt: Date(),
                 fileName: destinationURL.lastPathComponent,
                 pixelWidth: Int(imageSize.width),
-                pixelHeight: Int(imageSize.height)
+                pixelHeight: Int(imageSize.height),
+                source: source
             )
             items.insert(item, at: 0)
             saveMetadata()

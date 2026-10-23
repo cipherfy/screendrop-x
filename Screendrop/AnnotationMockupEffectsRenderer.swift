@@ -8,7 +8,7 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 
 enum AnnotationMockupEffectsError: Error {
-    case progressiveBlurFailed
+    case progressiveBlurFailed  
     case cameraProjectionFailed
 }
 

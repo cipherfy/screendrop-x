@@ -280,8 +280,8 @@ private struct BackgroundPickerPopover: View {
 }
 
 /// The background fill browser shared by the annotator and Studio: Color,
-/// Gradient and Wallpaper tile grids, with recent wallpapers, built-in packs
-/// and an add tile, laid out one under another. Both editors show it in a
+/// Gradient and Wallpaper tile grids, with recent wallpapers, built-in packs,
+/// an add tile and Unsplash search, laid out one under another. Both editors show it in a
 /// popover from their background row.
 struct InspectorBackgroundFillPicker: View {
     @Binding var style: AnnotationBackgroundStyle
@@ -381,6 +381,10 @@ struct InspectorBackgroundFillPicker: View {
                     packHeader(pack)
                     packContent(pack, limit: expandedPackIDs.contains(pack.id) ? nil : Self.packPreviewCount)
                 }
+            }
+
+            UnsplashBackgroundSection(selectedURL: customWallpaper?.url) { url in
+                selectWallpaper(AnnotationCustomWallpaper(url: url))
             }
         }
     }

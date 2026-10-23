@@ -463,8 +463,8 @@ nonisolated private struct EditedPointerEvent {
 }
 
 nonisolated private enum PointerSpring {
-    static let glide = SpringConstant(tension: 470, friction: 70, inertia: 3)
-    static let intercept = SpringConstant(tension: 538, friction: 40, inertia: 1)
-    static let track = SpringConstant(tension: 1_000, friction: 40, inertia: 1)
+    static let glide = SpringConstant(tension: 470, friction: 70, inertia: 3, clampsOvershoot: true)
+    static let intercept = SpringConstant(tension: 538, friction: 40, inertia: 1, clampsOvershoot: true)
+    static let track = SpringConstant(tension: 1_000, friction: 40, inertia: 1, clampsOvershoot: true)
     static let settle = SpringConstant(tension: 300, friction: 30, inertia: 0.3)
 }

@@ -202,44 +202,6 @@ struct GlassConfirmButton: View {
     }
 }
 
-// MARK: - Tabs
-
-/// Tabs that fill their width, which AppKit's segmented control won't do.
-/// The selected segment is a glass pill on a quiet track; it jumps to the
-/// next segment rather than sliding. Ported from Periscope's navigator.
-struct SegmentedTabs<Value: Hashable>: View {
-    let options: [(String, Value)]
-    @Binding var selection: Value
-    /// The height of each segment's button. The bar is this plus the inset
-    /// around it.
-    var segmentHeight: CGFloat = 24
-    private static var inset: CGFloat { 3 }
-
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(options, id: \.1) { title, value in
-                let selected = selection == value
-                Button {
-                    selection = value
-                } label: {
-                    Text(title)
-                        .font(.system(size: 11.5, weight: selected ? .semibold : .medium))
-                        .foregroundStyle(selected ? Palette.label : Palette.secondaryLabel)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .contentShape(Capsule())
-                        .glassEffect(selected ? .regular.interactive() : .identity, in: Capsule())
-                }
-                .buttonStyle(.plain)
-                .focusEffectDisabled()
-                .accessibilityAddTraits(selected ? .isSelected : [])
-            }
-        }
-        .padding(Self.inset)
-        .frame(height: segmentHeight + Self.inset * 2)
-        .background(Capsule().fill(Palette.fill))
-    }
-}
-
 // MARK: - Action capsule
 
 /// A primary action that carries its own job. Idle it reads as a button;

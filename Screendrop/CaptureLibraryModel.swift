@@ -20,6 +20,22 @@ nonisolated enum CaptureLibraryFilter: String, CaseIterable, Identifiable {
     }
 }
 
+/// What the sidebar has selected: a kind of capture, a smart category, or
+/// the app captures came from (by `CaptureSource.appKey`).
+nonisolated enum CaptureLibraryScope: Hashable, Sendable {
+    case kind(CaptureLibraryFilter)
+    case category(CaptureCategory)
+    case app(String)
+}
+
+/// One row of the sidebar's Apps section.
+nonisolated struct CaptureLibraryAppFacet: Identifiable, Equatable, Sendable {
+    let id: String
+    let name: String
+    let bundleIdentifier: String?
+    let count: Int
+}
+
 nonisolated enum CaptureLibrarySort: String, CaseIterable, Identifiable {
     case newest, oldest, name, modified
     var id: Self { self }
@@ -54,6 +70,7 @@ nonisolated struct CaptureLibraryItem: Identifiable, Equatable, Sendable {
     let hasEdits: Bool
     let hasDraft: Bool
     let cloudURL: String?
+    let source: CaptureSource?
     let thumbnailKey: String
 
     var ownedURL: URL { session?.directoryURL ?? fileURL }
@@ -88,6 +105,7 @@ nonisolated struct CaptureLibraryHistorySnapshot: Sendable {
     let isVideo: Bool
     let hasEdits: Bool
     let cloudURL: String?
+    let source: CaptureSource?
 
     @MainActor init(_ item: ScreenshotHistoryItem) {
         id = item.id
@@ -102,6 +120,7 @@ nonisolated struct CaptureLibraryHistorySnapshot: Sendable {
         isVideo = item.isVideo
         hasEdits = item.hasEdits
         cloudURL = item.cloudURL
+        source = item.source
     }
 }
 
@@ -109,7 +128,7 @@ nonisolated struct CaptureLibraryHistorySnapshot: Sendable {
 @Observable
 final class CaptureLibraryModel {
     static let shared = CaptureLibraryModel()
-    var filter: CaptureLibraryFilter? = .all { didSet { updateVisibleItems() } }
+    var scope: CaptureLibraryScope? = .kind(.all) { didSet { if scope != oldValue { updateVisibleItems() } } }
     var searchText = "" { didSet { scheduleSearch() } }
     var sortOrder: CaptureLibrarySort = .newest { didSet { updateVisibleItems() } }
     var selection: Set<String> = []
@@ -117,6 +136,10 @@ final class CaptureLibraryModel {
     private(set) var visibleItems: [CaptureLibraryItem] = []
     private(set) var contentRevision = 0
     private(set) var screenshotCount = 0
+    private(set) var categoryFacets: [(category: CaptureCategory, count: Int)] = []
+    private(set) var appFacets: [CaptureLibraryAppFacet] = []
+    /// The folded words of the active search, for highlighting text matches.
+    private(set) var searchTokens: [String] = []
     private(set) var isLoading = false
     var operationTitle: String?
     var errorMessage: String?
@@ -126,6 +149,13 @@ final class CaptureLibraryModel {
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
     @ObservationIgnored private var searchTask: Task<Void, Never>?
     @ObservationIgnored private var visibleIndices: [String: Int] = [:]
+    @ObservationIgnored private var itemsByID: [String: CaptureLibraryItem] = [:]
+    /// Folded search text per capture, rebuilt off the main actor for the
+    /// captures whose metadata or analysis changed.
+    @ObservationIgnored private var corpus: [String: String] = [:]
+    @ObservationIgnored private var corpusItems: [String: CaptureLibraryItem] = [:]
+    @ObservationIgnored private var corpusTask: Task<Void, Never>?
+    @ObservationIgnored private var pendingCorpusIDs: Set<String> = []
     @ObservationIgnored var openWindow: (() -> Void)?
     @ObservationIgnored private var pendingOpen = false
 
@@ -137,9 +167,23 @@ final class CaptureLibraryModel {
     }
     var isBusy: Bool { operationTitle != nil }
 
+    func item(id: String) -> CaptureLibraryItem? { itemsByID[id] }
+
+    /// Selects a capture, widening the browser first if the current scope
+    /// or search hides it.
+    func reveal(_ id: String) {
+        guard itemsByID[id] != nil else { return }
+        if visibleIndices[id] == nil {
+            searchText = ""
+            scope = .kind(.all)
+            updateVisibleItems()
+        }
+        selection = [id]
+    }
+
     func show(filter: CaptureLibraryFilter? = nil) {
         if let filter {
-            self.filter = filter
+            scope = .kind(filter)
             searchText = ""
         }
         guard let openWindow else { pendingOpen = true; return }
@@ -181,10 +225,70 @@ final class CaptureLibraryModel {
             } onCancel: { scan.cancel() }
             guard !Task.isCancelled else { return }
             items = result
+            itemsByID = Dictionary(result.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
             screenshotCount = result.lazy.filter { !$0.isVideo }.count
+            updateFacets()
             updateVisibleItems()
+            rebuildCorpus(changed: [])
             isLoading = false
+            CaptureLibraryIndex.shared.sync(result)
         }
+    }
+
+    /// Called by the index after it publishes a batch of analyses.
+    func indexDidChange(changed: Set<String>) {
+        updateFacets()
+        rebuildCorpus(changed: changed)
+        if case .category = scope { updateVisibleItems() }
+    }
+
+    /// Re-folds search text for captures that are new, changed, or newly
+    /// analyzed; everything else keeps its cached text.
+    private func rebuildCorpus(changed: Set<String>) {
+        pendingCorpusIDs.formUnion(changed)
+        corpusTask?.cancel()
+        let analyses = CaptureLibraryIndex.shared.analyses
+        let live = Set(items.map(\.id))
+        let stale = items.filter { corpusItems[$0.id] != $0 || corpus[$0.id] == nil || pendingCorpusIDs.contains($0.id) }
+        guard !stale.isEmpty || corpus.count != live.count else { return }
+        corpusTask = Task {
+            let built = await Task.detached(priority: .utility) {
+                stale.map { ($0.id, CaptureLibrarySearch.document(for: $0, analysis: analyses[$0.id])) }
+            }.value
+            guard !Task.isCancelled else { return }
+            corpus = corpus.filter { live.contains($0.key) }
+            corpusItems = corpusItems.filter { live.contains($0.key) }
+            for (item, entry) in zip(stale, built) {
+                corpus[entry.0] = entry.1
+                corpusItems[item.id] = item
+            }
+            pendingCorpusIDs.subtract(stale.map(\.id))
+            if !searchText.isEmpty { updateVisibleItems() }
+        }
+    }
+
+    /// Sidebar counts. Categories are listed by size with Other last; apps
+    /// by size, then name.
+    private func updateFacets() {
+        let analyses = CaptureLibraryIndex.shared.analyses
+        var categories: [CaptureCategory: Int] = [:]
+        var apps: [String: (source: CaptureSource, count: Int)] = [:]
+        for item in items {
+            if let category = analyses[item.id]?.category { categories[category, default: 0] += 1 }
+            if let source = item.source {
+                apps[source.appKey, default: (source, 0)].count += 1
+            }
+        }
+        let sortedCategories = categories.map { (category: $0.key, count: $0.value) }.sorted {
+            if ($0.category == .other) != ($1.category == .other) { return $1.category == .other }
+            return $0.count != $1.count ? $0.count > $1.count : $0.category.title < $1.category.title
+        }
+        if !sortedCategories.elementsEqual(categoryFacets, by: { $0 == $1 }) { categoryFacets = sortedCategories }
+        let sortedApps = apps.map {
+            CaptureLibraryAppFacet(id: $0.key, name: $0.value.source.appName,
+                                   bundleIdentifier: $0.value.source.bundleIdentifier, count: $0.value.count)
+        }.sorted { $0.count != $1.count ? $0.count > $1.count : $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        if sortedApps != appFacets { appFacets = sortedApps }
     }
 
     private func scheduleSearch() {
@@ -197,13 +301,32 @@ final class CaptureLibraryModel {
     }
 
     private func updateVisibleItems() {
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let filter = filter ?? .all
-        let visible = items.filter { item in
-            let matchesKind = filter == .all || (filter == .recordings ? item.isVideo : !item.isVideo)
-            return matchesKind && (query.isEmpty || item.name.localizedStandardContains(query)
-                || item.fileURL.lastPathComponent.localizedStandardContains(query))
-        }.sorted { lhs, rhs in
+        searchTask?.cancel()
+        let tokens = CaptureLibrarySearch.tokens(searchText)
+        let analyses = CaptureLibraryIndex.shared.analyses
+        let scoped = items.filter { item in
+            switch scope ?? .kind(.all) {
+            case .kind(let filter): filter == .all || (filter == .recordings ? item.isVideo : !item.isVideo)
+            case .category(let category): analyses[item.id]?.category == category
+            case .app(let key): item.source?.appKey == key
+            }
+        }
+        guard !tokens.isEmpty else { return apply(scoped, tokens: tokens) }
+        let corpus = corpus
+        searchTask = Task {
+            let matches = await Task.detached(priority: .userInitiated) {
+                scoped.filter { item in
+                    let text = corpus[item.id] ?? CaptureLibrarySearch.document(for: item, analysis: analyses[item.id])
+                    return tokens.allSatisfy(text.contains)
+                }
+            }.value
+            guard !Task.isCancelled else { return }
+            apply(matches, tokens: tokens)
+        }
+    }
+
+    private func apply(_ matches: [CaptureLibraryItem], tokens: [String]) {
+        let visible = matches.sorted { lhs, rhs in
             switch sortOrder {
             case .newest where lhs.createdAt != rhs.createdAt: return lhs.createdAt > rhs.createdAt
             case .oldest where lhs.createdAt != rhs.createdAt: return lhs.createdAt < rhs.createdAt
@@ -213,7 +336,8 @@ final class CaptureLibraryModel {
             default: return lhs.id < rhs.id
             }
         }
-        if visible != visibleItems {
+        if visible != visibleItems || tokens != searchTokens {
+            searchTokens = tokens
             visibleItems = visible
             visibleIndices = Dictionary(uniqueKeysWithValues: visible.enumerated().map { ($0.element.id, $0.offset) })
             contentRevision &+= 1
@@ -254,6 +378,7 @@ nonisolated enum CaptureLibraryScanner {
                 duration: manifest?.duration ?? row?.duration,
                 isVideo: true, hasEdits: session.hasSavedProject, hasDraft: session.hasUnsavedDraft,
                 cloudURL: rows.compactMap(\.cloudURL).first,
+                source: manifest?.source ?? rows.compactMap(\.source).first,
                 thumbnailKey: "\(fileURL.path):\(modified.timeIntervalSince1970)"
             ))
         }
@@ -267,7 +392,7 @@ nonisolated enum CaptureLibraryScanner {
                 id: row.id.uuidString, historyIDs: [row.id], name: row.name, fileURL: url, session: nil,
                 createdAt: row.createdAt, modifiedAt: max(modified, row.modifiedAt), pixelWidth: row.width,
                 pixelHeight: row.height, duration: row.duration, isVideo: row.isVideo,
-                hasEdits: row.hasEdits, hasDraft: false, cloudURL: row.cloudURL,
+                hasEdits: row.hasEdits, hasDraft: false, cloudURL: row.cloudURL, source: row.source,
                 thumbnailKey: "\(url.path):\(modified.timeIntervalSince1970)"
             ))
         }

@@ -14,6 +14,10 @@
 //  `-benchmarkResolution`, using the settings' raw values ("HEVC",
 //  "30 fps", "YES", "1080p").
 //
+//  `-benchmarkMatteCache <path to .screendroprec>` instead builds that
+//  project's cutout matte cache, as Studio does in the background, and
+//  prints how long it took.
+//
 
 #if DEBUG
 import AppKit
@@ -25,6 +29,17 @@ enum RecordingExportBenchmark {
     /// Returns true when this launch is a benchmark run; the caller must
     /// then skip normal startup.
     static func runIfRequested() -> Bool {
+        if let path = UserDefaults.standard.string(forKey: "benchmarkMatteCache") {
+            let session = RecordingSession(directoryURL: URL(fileURLWithPath: path).standardizedFileURL)
+            Task {
+                let started = CFAbsoluteTimeGetCurrent()
+                await StudioCameraMatteCache.generate(cameraURL: session.cameraURL)
+                let complete = StudioCameraMatteCache.isComplete(forCamera: session.cameraURL)
+                print("benchmarkMatteCache seconds=\(String(format: "%.2f", CFAbsoluteTimeGetCurrent() - started)) complete=\(complete)")
+                exit(complete ? 0 : 1)
+            }
+            return true
+        }
         guard let path = UserDefaults.standard.string(forKey: argumentKey) else { return false }
         let session = RecordingSession(directoryURL: URL(fileURLWithPath: path).standardizedFileURL)
         Task {

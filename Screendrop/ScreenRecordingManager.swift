@@ -67,6 +67,23 @@ struct ScreenRecordingSource {
 
     let kind: Kind
 
+    /// A window recording knows its app outright; a display or area falls
+    /// back to the frontmost app's window on that display.
+    var captureSource: CaptureSource? {
+        switch kind {
+        case .window(let window):
+            guard let app = window.owningApplication else { return nil }
+            let title = window.title?.trimmingCharacters(in: .whitespacesAndNewlines)
+            return CaptureSource(
+                bundleIdentifier: app.bundleIdentifier.isEmpty ? nil : app.bundleIdentifier,
+                appName: app.applicationName,
+                windowTitle: title?.isEmpty == false ? title : nil
+            )
+        case .fullscreen(let display), .area(let display, _):
+            return CaptureSourceProbe(tracksPointer: false).finish(.display(display.displayID))
+        }
+    }
+
     var displayID: CGDirectDisplayID? {
         switch kind {
         case .fullscreen(let display):
@@ -264,6 +281,7 @@ final class ScreenRecordingManager {
                 manifest.microphoneDeviceID = options.microphoneDeviceID
                 manifest.microphoneName = options.microphoneDeviceID
                     .flatMap(RecordingDeviceCatalog.microphone(withID:))?.localizedName
+                manifest.source = source.captureSource
                 if !cameraStarted {
                     manifest.cameraLeadIn = nil
                 }

@@ -28,7 +28,13 @@ nonisolated struct RecordingExportTiming: Sendable {
     }
 
     func screenSampleRects(at time: TimeInterval, frameRect: (TimeInterval) -> CGRect) -> [CGRect] {
-        guard motionBlurEnabled else { return [frameRect(time)] }
+        sampleTimes(at: time, frameRect: frameRect).map(frameRect)
+    }
+
+    /// The instants a frame averages: one when nothing moves, or up to 24
+    /// spread across the shutter, by how far `frameRect` travels in it.
+    func sampleTimes(at time: TimeInterval, frameRect: (TimeInterval) -> CGRect) -> [TimeInterval] {
+        guard motionBlurEnabled else { return [time] }
 
         // Preserve the one-frame shutter and adaptive 1–24-sample policy.
         // Sampling spans 1/30 s at 30 fps and 1/60 s at 60 fps.
@@ -40,9 +46,9 @@ nonisolated struct RecordingExportTiming: Sendable {
             max(abs(a.maxX - b.maxX), abs(a.maxY - b.maxY))
         )
         let count = displacement > 1.5 ? min(24, max(2, Int((displacement / 2).rounded(.up)))) : 1
+        guard count > 1 else { return [time] }
         return (0..<count).map { sample in
-            let sampleTime = time - shutter / 2 + shutter * (Double(sample) + 0.5) / Double(count)
-            return frameRect(sampleTime)
+            time - shutter / 2 + shutter * (Double(sample) + 0.5) / Double(count)
         }
     }
 }

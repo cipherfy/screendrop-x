@@ -31,6 +31,13 @@ struct RecordingClipTimelineView: NSViewRepresentable {
     let onStep: (TimeInterval) -> Void
     /// A speed picked from a clip's context menu: `(clip, rate)`.
     let onSetSpeed: (UUID, Double) -> Void
+    /// Named along the top of every clip wide enough to carry it.
+    var title: String?
+    /// A press on the clips starts (true) or stops (false) moving the
+    /// playhead, so the timeline can open the playhead's readout.
+    var onScrubbing: ((Bool) -> Void)?
+    /// Offered from the clips' context menu while the cut has edits.
+    var onResetAll: (() -> Void)?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
@@ -66,7 +73,10 @@ struct RecordingClipTimelineView: NSViewRepresentable {
             onStep: onStep,
             onSetSpeed: onSetSpeed
         )
+        nsView.scrubbingDidChange = onScrubbing
+        nsView.resetRequested = onResetAll
         nsView.update(
+            title: title,
             timeline: timeline,
             sourceDuration: sourceDuration,
             thumbnails: thumbnails,
@@ -181,6 +191,8 @@ final class RecordingClipTimelineControl: NSView {
     var zoomRequested: ((Double, TimeInterval) -> Void)?
     var stepRequested: ((TimeInterval) -> Void)?
     var speedRequested: ((UUID, Double) -> Void)?
+    var scrubbingDidChange: ((Bool) -> Void)?
+    var resetRequested: (() -> Void)?
 
     private enum Edge: Equatable {
         case leading
@@ -193,9 +205,8 @@ final class RecordingClipTimelineControl: NSView {
     }
 
     private enum Metrics {
-        static let trackRadius: CGFloat = 10
         static let trackInset: CGFloat = 2
-        static let clipRadius = trackRadius - trackInset
+        static let clipRadius: CGFloat = 6
         static let selectionPadding: CGFloat = 3
         static let splitGap: CGFloat = trackInset * 2
         static let handleHitWidth: CGFloat = 10
@@ -203,6 +214,10 @@ final class RecordingClipTimelineControl: NSView {
         static let selectionHandleGrooveWidth: CGFloat = 3
         static let selectionHandleGrooveHeight: CGFloat = 18
         static let thumbnailWidth: CGFloat = 58
+        /// The dark wash behind the title, fading down into the picture.
+        static let titleShadeHeight: CGFloat = 24
+        /// Narrowest clip that still names itself.
+        static let minimumTitledWidth: CGFloat = 56
         /// Scroll distance that equals one doubling of the timeline scale
         /// under ⌘-scroll.
         static let zoomScrollPointsPerDoubling: CGFloat = 220
@@ -212,6 +227,7 @@ final class RecordingClipTimelineControl: NSView {
     }
 
     private var timeline = RecordingClipTimeline(segments: [])
+    private var title: String?
     private var sourceDuration: TimeInterval = 0
     private var thumbnails: RecordingTimelineThumbnailStore?
     private var selectedClipID: UUID?
@@ -237,6 +253,7 @@ final class RecordingClipTimelineControl: NSView {
     }
 
     func update(
+        title: String?,
         timeline: RecordingClipTimeline,
         sourceDuration: TimeInterval,
         thumbnails: RecordingTimelineThumbnailStore,
@@ -246,6 +263,7 @@ final class RecordingClipTimelineControl: NSView {
         if dragTarget == nil {
             self.timeline = timeline
         }
+        self.title = title
         self.sourceDuration = sourceDuration
         if self.thumbnails !== thumbnails {
             self.thumbnails = thumbnails
@@ -285,7 +303,6 @@ final class RecordingClipTimelineControl: NSView {
         super.draw(dirtyRect)
         guard timelineRect.width > 2, timelineRect.height > 2 else { return }
 
-        drawTrack()
         drawSelectionChrome()
         drawClips(in: dirtyRect)
         drawSelectionGrooves()
@@ -337,6 +354,7 @@ final class RecordingClipTimelineControl: NSView {
             dragStartClip = clip
         } else {
             dragTarget = .scrub
+            scrubbingDidChange?(true)
             playheadTime = time
             playheadDidChange?(time)
         }
@@ -364,6 +382,9 @@ final class RecordingClipTimelineControl: NSView {
            let replacement = timeline.segments.first(where: { $0.id == clipID }),
            replacement != original {
             trimDidCommit?(replacement)
+        }
+        if case .scrub = dragTarget {
+            scrubbingDidChange?(false)
         }
 
         dragTarget = nil
@@ -482,7 +503,23 @@ final class RecordingClipTimelineControl: NSView {
         delete.image = NSImage(systemSymbolName: "trash", accessibilityDescription: nil)
         delete.isEnabled = timeline.segments.count > 1
         menu.addItem(delete)
+
+        if resetRequested != nil {
+            menu.addItem(.separator())
+            let reset = NSMenuItem(
+                title: "Reset All Clip Edits…",
+                action: #selector(resetFromContextMenu),
+                keyEquivalent: ""
+            )
+            reset.target = self
+            reset.image = NSImage(systemSymbolName: "arrow.counterclockwise", accessibilityDescription: nil)
+            menu.addItem(reset)
+        }
         return menu
+    }
+
+    @objc private func resetFromContextMenu() {
+        resetRequested?()
     }
 
     @objc private func speedFromContextMenu(_ sender: NSMenuItem) {
@@ -630,15 +667,6 @@ final class RecordingClipTimelineControl: NSView {
         return Double(fraction) * timeline.duration
     }
 
-    private func drawTrack() {
-        NSColor.labelColor.withAlphaComponent(0.055).setFill()
-        NSBezierPath(
-            roundedRect: timelineRect,
-            xRadius: Metrics.trackRadius,
-            yRadius: Metrics.trackRadius
-        ).fill()
-    }
-
     private func drawClips(in dirtyRect: CGRect) {
         for clip in timeline.segments {
             guard let rect = clipRect(for: clip.id), rect.intersects(dirtyRect) else { continue }
@@ -655,6 +683,9 @@ final class RecordingClipTimelineControl: NSView {
             let isHovered = clip.id == hoveredClipID && dragTarget == nil
             NSColor.black.withAlphaComponent(isSelected ? 0 : isHovered ? 0.06 : 0.16).setFill()
             rect.intersection(dirtyRect).fill()
+            if title != nil, rect.width >= Metrics.minimumTitledWidth {
+                drawTitleShade(in: rect)
+            }
             NSGraphicsContext.restoreGraphicsState()
 
             // A hairline inner edge so neighbouring clips and the track read
@@ -668,6 +699,22 @@ final class RecordingClipTimelineControl: NSView {
             edge.lineWidth = 1
             edge.stroke()
         }
+    }
+
+    /// Darkens the top of a clip so its title reads over any picture.
+    private func drawTitleShade(in rect: CGRect) {
+        let shade = NSGradient(
+            starting: NSColor.black.withAlphaComponent(0.5),
+            ending: NSColor.black.withAlphaComponent(0)
+        )
+        let band = CGRect(
+            x: rect.minX,
+            y: rect.minY,
+            width: rect.width,
+            height: min(rect.height, Metrics.titleShadeHeight)
+        )
+        // The view is flipped, so 90° runs from the top edge downward.
+        shade?.draw(in: band, angle: 90)
     }
 
     private func drawThumbnails(in rect: CGRect, clip: RecordingClipSegment, dirtyRect: CGRect) {
@@ -784,10 +831,26 @@ final class RecordingClipTimelineControl: NSView {
             guard let rect = clipRect(for: clip.id), rect.intersects(dirtyRect) else { continue }
             let content = rect.insetBy(dx: Metrics.selectionHandleInset * 2 + 2, dy: 5)
             var leadingX = content.minX
+            let isSpedUp = abs(clip.speed - 1) > 0.001
+            let speedText = RecordingClipSegment.speedTitle(clip.speed)
 
-            if abs(clip.speed - 1) > 0.001 {
+            // The title gives way to the speed badge after it, truncating
+            // rather than pushing the badge off the clip.
+            if let title, rect.width >= Metrics.minimumTitledWidth {
+                let reserved = isSpedUp ? Self.badgeSize(text: speedText, hasSymbol: true).width + 4 : 0
+                let titleWidth = drawTitle(
+                    title,
+                    at: CGPoint(x: leadingX, y: content.minY + Self.badgeHeight / 2),
+                    maxWidth: content.width - reserved
+                )
+                if titleWidth > 0 {
+                    leadingX += titleWidth + 4
+                }
+            }
+
+            if isSpedUp {
                 let badge = badgeRect(
-                    text: RecordingClipSegment.speedTitle(clip.speed),
+                    text: speedText,
                     symbol: "hare.fill",
                     origin: CGPoint(x: leadingX, y: content.minY),
                     maxX: content.maxX
@@ -811,6 +874,31 @@ final class RecordingClipTimelineControl: NSView {
                 }
             }
         }
+    }
+
+    private static let titleAttributes: [NSAttributedString.Key: Any] = {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineBreakMode = .byTruncatingTail
+        return [
+            .font: NSFont.systemFont(ofSize: 10, weight: .medium),
+            .foregroundColor: NSColor.white,
+            .paragraphStyle: paragraph
+        ]
+    }()
+
+    /// Draws `title` on one line, vertically centred on `origin.y` and cut
+    /// short with an ellipsis past `maxWidth`. Returns the width it took.
+    private func drawTitle(_ title: String, at origin: CGPoint, maxWidth: CGFloat) -> CGFloat {
+        guard maxWidth > 16 else { return 0 }
+        let text = title as NSString
+        let size = text.size(withAttributes: Self.titleAttributes)
+        let width = min(ceil(size.width), maxWidth)
+        text.draw(
+            with: CGRect(x: origin.x, y: origin.y - size.height / 2, width: width, height: size.height),
+            options: [.usesLineFragmentOrigin, .truncatesLastVisibleLine],
+            attributes: Self.titleAttributes
+        )
+        return width
     }
 
     private struct BadgeLayout {

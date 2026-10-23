@@ -80,14 +80,14 @@ struct ScreendropApp: App {
         // through this opener.
         RecordingProjectOpener.shared.openHandler = openVideoEditor
 
-        CaptureCoordinator.shared.onShowPreview = { [openWindow] url, displayID in
+        CaptureCoordinator.shared.onShowPreview = { [openWindow] url, displayID, source in
             // Set the editor openers first so auto-annotate can fire during add.
             CaptureShelfPresenter.shared.onAnnotate = { url in
                 openWindow(id: "ANNOTATION_EDITOR", value: url)
             }
             CaptureShelfPresenter.shared.onEditVideo = openVideoEditor
 
-            let historyURL = ScreenshotHistoryStore.shared.importScreenshot(from: url)
+            let historyURL = ScreenshotHistoryStore.shared.importScreenshot(from: url, source: source)
             CaptureShelf.shared.add(url: historyURL)
 
             if AfterCaptureActions.isEnabled(.showOverlay, for: .screenshot) {
@@ -157,6 +157,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         HotkeyManager.shared.registerHotkeys()
         updaterManager.start()
         RecordingRecoveryCoordinator.recoverInterruptedRecordings()
+        // Indexing is background work; let launch settle first.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            CaptureLibraryIndex.shared.start()
+        }
         let launchEvent = NSAppleEventManager.shared().currentAppleEvent
         let launchReason = launchEvent?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue
         let launchedInBackground = launchReason == keyAELaunchedAsLogInItem

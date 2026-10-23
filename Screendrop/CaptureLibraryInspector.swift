@@ -9,8 +9,11 @@ struct CaptureLibraryInspector: View {
     @State private var byteCount: Int64?
     @State private var pendingCloudDelete: CaptureLibraryItem?
     @State private var pendingCloudUpload: CaptureLibraryItem?
+    @State private var similar: [CaptureLibraryItem] = []
+    @State private var showsAllText = false
     @Namespace private var glass
     private var items: [CaptureLibraryItem] { model.selectedItems }
+    private var index: CaptureLibraryIndex { .shared }
 
     var body: some View {
         Group {
@@ -28,6 +31,8 @@ struct CaptureLibraryInspector: View {
                             header(item)
                             InspectorGroupBreak()
                             information(item)
+                            recognizedText(item)
+                            similarCaptures(item)
                         } else {
                             multipleSelection
                         }
@@ -50,6 +55,13 @@ struct CaptureLibraryInspector: View {
         .motion(.morph, value: items.isEmpty)
         .onChange(of: items.map(\.id)) { _, _ in
             pendingCloudUpload = nil
+            showsAllText = false
+        }
+        .task(id: similarityKey) {
+            guard items.count == 1, let item = items.first else { similar = []; return }
+            let ids = await index.similar(to: item.id, among: model.items.map(\.id), limit: 9)
+            guard !Task.isCancelled else { return }
+            similar = ids.compactMap(model.item(id:))
         }
         .task(id: items.map(\.thumbnailKey)) {
             byteCount = nil
@@ -99,27 +111,107 @@ struct CaptureLibraryInspector: View {
             .accessibilityLabel("Quick Look \(item.name)")
             .help("Quick Look (Space)")
 
-            VStack(alignment: .leading, spacing: Space.s) {
-                Text(item.name)
-                    .font(.dsTitle)
-                    .foregroundStyle(Palette.label)
-                    .lineLimit(3)
-                    .truncationMode(.middle)
-                    .textSelection(.enabled)
-                HStack(spacing: Space.s) {
-                    Tag(text: item.kindTitle, systemImage: item.isVideo ? "film" : "photo")
-                    if item.hasDraft {
-                        Tag(text: "Unsaved Edits", systemImage: "circle.lefthalf.filled", tint: Palette.warning)
-                    } else if item.hasEdits {
-                        Tag(text: "Edited", systemImage: "slider.horizontal.3")
-                    }
-                    if item.cloudURL != nil {
-                        Tag(text: "Shared", systemImage: "link")
-                    }
-                }
+            titleBlock(item)
+
+            if let source = item.source {
+                sourceCard(source)
             }
         }
         .padding(.horizontal, InspectorMetrics.horizontalPadding)
+    }
+
+    /// The capture's name, or the model's title while the name is still the
+    /// default file name, then its tags and keywords.
+    private func titleBlock(_ item: CaptureLibraryItem) -> some View {
+        let analysis = index.analyses[item.id]
+        let hasDefaultName = item.name == item.fileURL.lastPathComponent || item.name.hasPrefix("Screendrop_")
+        let headline = (hasDefaultName ? analysis?.title : nil) ?? item.name
+        let secondary = headline == item.name ? analysis?.title : item.name
+        return VStack(alignment: .leading, spacing: Space.s) {
+            Text(headline)
+                .font(.dsTitle)
+                .foregroundStyle(Palette.label)
+                .lineLimit(3)
+                .truncationMode(.middle)
+                .textSelection(.enabled)
+                .help(headline == item.name ? "" : "Described on this Mac by Apple Intelligence")
+            if let secondary {
+                Text(secondary)
+                    .font(.dsCaption)
+                    .foregroundStyle(Palette.secondaryLabel)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .textSelection(.enabled)
+            }
+            LibraryFlowLayout(spacing: Space.s) {
+                if let category = analysis?.category, category != .other {
+                    Button { show(.category(category)) } label: {
+                        Tag(text: category.title, systemImage: category.symbol)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Show all \(category.title)")
+                }
+                if item.isVideo {
+                    Tag(text: item.kindTitle, systemImage: "film")
+                }
+                if item.hasDraft {
+                    Tag(text: "Unsaved Edits", systemImage: "circle.lefthalf.filled", tint: Palette.warning)
+                } else if item.hasEdits {
+                    Tag(text: "Edited", systemImage: "slider.horizontal.3")
+                }
+                if item.cloudURL != nil {
+                    Tag(text: "Shared", systemImage: "link")
+                }
+                ForEach(analysis?.keywords ?? [], id: \.self) { keyword in
+                    Button { model.searchText = keyword } label: {
+                        Tag(text: keyword)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Search for “\(keyword)”")
+                }
+            }
+            .padding(.top, Space.xxs)
+        }
+    }
+
+    /// Where the capture came from: the app, and the window it showed.
+    /// Choosing it lists every capture from that app.
+    private func sourceCard(_ source: CaptureSource) -> some View {
+        let iconSize: CGFloat = 28
+        let padding: CGFloat = 10
+        return Button { show(.app(source.appKey)) } label: {
+            HStack(spacing: Space.m + 2) {
+                Image(nsImage: LibraryAppIcons.icon(for: source.bundleIdentifier))
+                    .resizable()
+                    .frame(width: iconSize, height: iconSize)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(source.appName)
+                        .font(.dsHeadline)
+                        .foregroundStyle(Palette.label)
+                    if let window = source.windowTitle {
+                        Text(window)
+                            .font(.dsCaption)
+                            .foregroundStyle(Palette.secondaryLabel)
+                            .lineLimit(2)
+                    }
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Palette.tertiaryLabel)
+            }
+            .padding(padding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Palette.fill, in: RoundedRectangle(cornerRadius: Radius.nested(inner: Radius.tile, padding: padding), style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Show all captures from \(source.appName)")
+    }
+
+    private func show(_ scope: CaptureLibraryScope) {
+        model.searchText = ""
+        model.scope = scope
     }
 
     private func information(_ item: CaptureLibraryItem) -> some View {
@@ -129,9 +221,113 @@ struct CaptureLibraryInspector: View {
                 if item.isVideo { detailRow("Duration", value: item.durationText) }
                 detailRow("Size on disk", value: sizeText)
                 detailRow("Created", value: item.createdAt.formatted(date: .abbreviated, time: .shortened))
-                detailRow("Modified", value: item.modifiedAt.formatted(date: .abbreviated, time: .shortened))
+                // Only when it differs from Created at the shown precision.
+                if item.modifiedAt.timeIntervalSince(item.createdAt) >= 60 {
+                    detailRow("Modified", value: item.modifiedAt.formatted(date: .abbreviated, time: .shortened))
+                }
             }
         }
+    }
+
+    /// The text Vision read in the capture, as paragraphs. While searching,
+    /// paragraphs with a match come first and the matched words are marked.
+    @ViewBuilder
+    private func recognizedText(_ item: CaptureLibraryItem) -> some View {
+        if let analysis = index.analyses[item.id], analysis.version == CaptureAnalysis.currentVersion {
+            let paragraphs = orderedParagraphs(analysis)
+            if !paragraphs.isEmpty {
+                let preview = 6
+                InspectorSection("Text") {
+                    InspectorIconButton(systemName: "doc.on.doc", help: "Copy Text") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(analysis.text, forType: .string)
+                    }
+                } content: {
+                    VStack(alignment: .leading, spacing: Space.m) {
+                        ForEach(Array(paragraphs.prefix(showsAllText ? paragraphs.count : preview).enumerated()), id: \.offset) { _, paragraph in
+                            Text(highlighted(paragraph))
+                                // Only code keeps its line breaks.
+                                .font(paragraph.contains("\n") ? .system(size: 11, design: .monospaced) : .dsCallout)
+                                .foregroundStyle(Palette.label)
+                                .lineSpacing(2)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        if paragraphs.count > preview {
+                            Button(showsAllText ? "Show Less" : "Show All Text") {
+                                withAnimation(.fold) { showsAllText.toggle() }
+                            }
+                            .buttonStyle(.plain)
+                            .font(.dsCaption.weight(.medium))
+                            .foregroundStyle(Palette.accent)
+                        }
+                    }
+                    .textSelection(.enabled)
+                }
+            }
+        } else if index.pendingCount > 0 {
+            InspectorSection("Text") {
+                HStack(spacing: Space.s) {
+                    ProgressView().controlSize(.mini)
+                    Text("Reading text…")
+                        .font(.dsCaption)
+                        .foregroundStyle(Palette.secondaryLabel)
+                }
+            }
+        }
+    }
+
+    private func orderedParagraphs(_ analysis: CaptureAnalysis) -> [String] {
+        var paragraphs = CaptureReadableText.paragraphs(from: analysis.lines)
+        if paragraphs.isEmpty, let transcript = analysis.transcript { paragraphs = [transcript] }
+        let tokens = model.searchTokens
+        guard !tokens.isEmpty else { return paragraphs }
+        let matching = paragraphs.filter { paragraph in
+            let folded = CaptureLibrarySearch.fold(paragraph)
+            return tokens.contains { folded.contains($0) }
+        }
+        return matching + paragraphs.filter { !matching.contains($0) }
+    }
+
+    private func highlighted(_ paragraph: String) -> AttributedString {
+        var text = AttributedString(paragraph)
+        for token in model.searchTokens {
+            var searchStart = text.startIndex
+            while searchStart < text.endIndex,
+                  let range = text[searchStart...].range(of: token, options: [.caseInsensitive, .diacriticInsensitive]) {
+                text[range].backgroundColor = Palette.highlight.opacity(0.22)
+                text[range].foregroundColor = Palette.label
+                searchStart = range.upperBound
+            }
+        }
+        return text
+    }
+
+    /// Captures that look alike, by Vision feature print. Choosing one
+    /// selects it in the browser, widening the view if it's filtered out.
+    @ViewBuilder
+    private func similarCaptures(_ item: CaptureLibraryItem) -> some View {
+        if !similar.isEmpty {
+            InspectorSection("Similar") {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: Space.m), count: 3), spacing: Space.m) {
+                    ForEach(similar) { match in
+                        Button { model.reveal(match.id) } label: {
+                            CaptureLibraryThumbnail(item: match)
+                                .aspectRatio(1.3, contentMode: .fit)
+                                .clipShape(.rect(cornerRadius: Radius.tile, style: .continuous))
+                                .hairline(radius: Radius.tile, opacity: 0.08)
+                        }
+                        .buttonStyle(.plain)
+                        .help(match.name)
+                        .accessibilityLabel("Select \(match.name)")
+                    }
+                }
+            }
+        }
+    }
+
+    private var similarityKey: String {
+        guard items.count == 1, let item = items.first else { return "" }
+        return "\(item.id)|\(index.analyses[item.id]?.hasFeaturePrint == true)|\(model.items.count)"
     }
 
     private var multipleSelection: some View {
@@ -293,5 +489,45 @@ struct CaptureLibraryInspector: View {
         .glassEffect(.regular.interactive(), in: .circle)
         .help("More Actions")
         .accessibilityLabel("More capture actions")
+    }
+}
+
+/// Lays children out in rows, wrapping to the next row when one is full.
+struct LibraryFlowLayout: Layout {
+    var spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = rows(width: proposal.width ?? .infinity, subviews: subviews)
+        let height = rows.reduce(0) { $0 + $1.height } + spacing * CGFloat(max(0, rows.count - 1))
+        let width = rows.map(\.width).max() ?? 0
+        return CGSize(width: proposal.width ?? width, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in rows(width: bounds.width, subviews: subviews) {
+            var x = bounds.minX
+            for index in row.indices {
+                let size = subviews[index].sizeThatFits(.unspecified)
+                subviews[index].place(at: CGPoint(x: x, y: y + (row.height - size.height) / 2), proposal: .unspecified)
+                x += size.width + spacing
+            }
+            y += row.height + spacing
+        }
+    }
+
+    private func rows(width: CGFloat, subviews: Subviews) -> [(indices: [Int], width: CGFloat, height: CGFloat)] {
+        var rows: [(indices: [Int], width: CGFloat, height: CGFloat)] = []
+        for index in subviews.indices {
+            let size = subviews[index].sizeThatFits(.unspecified)
+            if let last = rows.last, last.width + spacing + size.width <= width {
+                rows[rows.count - 1].indices.append(index)
+                rows[rows.count - 1].width += spacing + size.width
+                rows[rows.count - 1].height = max(last.height, size.height)
+            } else {
+                rows.append(([index], size.width, size.height))
+            }
+        }
+        return rows
     }
 }

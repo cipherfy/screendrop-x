@@ -1,58 +1,110 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct CaptureLibraryView: View {
     @State private var model = CaptureLibraryModel.shared
     @State private var history = ScreenshotHistoryStore.shared
     @State private var projects = RecordingProjectStore.shared
+    @State private var index = CaptureLibraryIndex.shared
     @State private var libraryWindow: NSWindow?
     @State private var columnVisibility = NavigationSplitViewVisibility.automatic
     @AppStorage("captureLibrary.layout") private var layout: CaptureLibraryLayout = .grid
     @AppStorage("captureLibrary.inspectorVisible") private var inspectorVisible = true
     @AppStorage("captureLibrary.sort") private var savedSort: CaptureLibrarySort = .newest
+    @AppStorage("captureLibrary.categoriesExpanded") private var categoriesExpanded = true
+    @AppStorage("captureLibrary.appsExpanded") private var appsExpanded = true
+    @AppStorage(ScreendropPreferences.libraryAnalyzeCapturesKey) private var analyzeCaptures = true
+    @AppStorage(ScreendropPreferences.librarySortExistingKey) private var sortExisting = false
+    @AppStorage(ScreendropPreferences.librarySortOfferDismissedKey) private var sortOfferDismissed = false
 
-    private var activeFilter: CaptureLibraryFilter { model.filter ?? .all }
+    private static let sidebarFade: CGFloat = 28
+
+    private var scope: CaptureLibraryScope { model.scope ?? .kind(.all) }
+
+    /// The one-time offer to sort older captures with the model.
+    private var showsSortOffer: Bool {
+        analyzeCaptures && !sortExisting && !sortOfferDismissed && index.unsortedExistingCount > 0
+    }
+    private var activeFilter: CaptureLibraryFilter {
+        if case .kind(let filter) = scope { filter } else { .all }
+    }
+    private var scopeTitle: String {
+        switch scope {
+        case .kind(let filter): filter.title
+        case .category(let category): category.title
+        case .app(let key): model.appFacets.first { $0.id == key }?.name ?? "App"
+        }
+    }
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(selection: $model.filter) {
-                Section("Library") {
-                    ForEach(CaptureLibraryFilter.allCases) { filter in
-                        Label {
-                            HStack {
-                                Text(filter.title)
-                                Spacer()
-                                Text(model.count(for: filter), format: .number)
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption.monospacedDigit())
-                                    .contentTransition(.numericText())
+            VStack(spacing: 0) {
+                List(selection: $model.scope) {
+                    Section("Library") {
+                        ForEach(CaptureLibraryFilter.allCases) { filter in
+                            LibrarySidebarRow(title: filter.title, count: model.count(for: filter)) {
+                                Image(systemName: filter.symbol)
                             }
-                        } icon: {
-                            Image(systemName: filter.symbol)
-                                .frame(width: 20, alignment: .center)
+                            .tag(CaptureLibraryScope.kind(filter))
                         }
-                        .tag(filter)
+                    }
+                    if analyzeCaptures, !model.categoryFacets.isEmpty {
+                        Section("Categories", isExpanded: $categoriesExpanded) {
+                            ForEach(model.categoryFacets, id: \.category) { facet in
+                                LibrarySidebarRow(title: facet.category.title, count: facet.count) {
+                                    Image(systemName: facet.category.symbol)
+                                }
+                                .tag(CaptureLibraryScope.category(facet.category))
+                            }
+                        }
+                    }
+                    if !model.appFacets.isEmpty {
+                        Section("Apps", isExpanded: $appsExpanded) {
+                            ForEach(model.appFacets) { app in
+                                LibrarySidebarRow(title: app.name, count: app.count) {
+                                    Image(nsImage: LibraryAppIcons.icon(for: app.bundleIdentifier))
+                                        .resizable()
+                                        .frame(width: 20, height: 20)
+                                }
+                                .tag(CaptureLibraryScope.app(app.id))
+                            }
+                        }
                     }
                 }
-            }
-            .listStyle(.sidebar)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 210, max: 280)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+                .listStyle(.sidebar)
+                // A long list fades out above Settings rather than ending at a
+                // hard edge; the margin lets the last row scroll clear of it.
+                .contentMargins(.bottom, Self.sidebarFade, for: .scrollContent)
+                .mask {
+                    VStack(spacing: 0) {
+                        Rectangle()
+                        LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                            .frame(height: Self.sidebarFade)
+                    }
+                }
                 LibrarySidebarFooter()
             }
-            .modifier(LibrarySidebarSurface())
+            .navigationSplitViewColumnWidth(min: 180, ideal: 210, max: 280)
         } detail: {
             VStack(spacing: 0) {
+                if showsSortOffer {
+                    LibrarySortOffer(count: index.unsortedExistingCount) {
+                        index.sortExistingCaptures()
+                    } onDismiss: {
+                        sortOfferDismissed = true
+                    }
+                    .transition(.opacity)
+                    Divider()
+                }
                 browser
                 Divider()
                 statusBar
             }
-            .modifier(LibraryDetailCorners(showsSidebar: columnVisibility != .detailOnly))
-            .navigationTitle(activeFilter.title)
+            .navigationTitle(scopeTitle)
             .navigationSubtitle("Screendrop X")
         }
         .navigationSplitViewStyle(.balanced)
-        .searchable(text: $model.searchText, placement: .toolbar, prompt: "Search captures")
         .inspector(isPresented: $inspectorVisible) {
             // Keep the inspector's ideal size out of the split view's
             // constraint pass; its width belongs to the split view.
@@ -65,6 +117,8 @@ struct CaptureLibraryView: View {
         .frame(minWidth: 860, minHeight: 540)
         .onAppear {
             AppActivationPolicy.enter()
+            CaptureLibraryIndex.shared.start()
+            UpdaterManager.shared.checkForUpdateInformation()
             model.sortOrder = savedSort
             model.refresh()
         }
@@ -79,6 +133,10 @@ struct CaptureLibraryView: View {
         .onChange(of: history.items) { _, _ in model.refresh() }
         .onChange(of: projects.projects) { _, _ in model.refresh() }
         .onChange(of: model.sortOrder) { _, value in savedSort = value }
+        .onChange(of: analyzeCaptures) { _, enabled in
+            if !enabled, case .category = scope { model.scope = .kind(.all) }
+        }
+        .animation(.morphIfAllowed, value: showsSortOffer)
         .alert("Rename Capture", isPresented: Binding(
             get: { model.renamingItem != nil },
             set: { if !$0 { model.renamingItem = nil } }
@@ -113,12 +171,18 @@ struct CaptureLibraryView: View {
                 EmptyStateView(
                     systemImage: "magnifyingglass",
                     title: "No Results",
-                    message: "Nothing in \(activeFilter.title) matches “\(model.searchText)”."
+                    message: "Nothing in \(scopeTitle) matches “\(model.searchText)”."
                 ) {
                     GlassCapsuleButton(title: "Clear Search", height: GlassMetrics.actionHeight) {
                         model.searchText = ""
                     }
                 }
+            } else if scope != .kind(activeFilter) {
+                EmptyStateView(
+                    systemImage: "square.dashed",
+                    title: "Nothing Here",
+                    message: "No captures are filed under \(scopeTitle) right now."
+                )
             } else {
                 EmptyStateView(
                     systemImage: activeFilter.symbol,
@@ -150,7 +214,7 @@ struct CaptureLibraryView: View {
             }
         } else {
             CaptureLibraryCollection(items: model.visibleItems, revision: model.contentRevision, layout: layout,
-                selection: $model.selection, isBusy: model.isBusy, onAction: model.perform)
+                searchTokens: model.searchTokens, selection: $model.selection, isBusy: model.isBusy, onAction: model.perform)
         }
     }
 
@@ -172,7 +236,19 @@ struct CaptureLibraryView: View {
                 if !model.selection.isEmpty { Text("· \(model.selection.count) selected") }
             }
             Spacer()
-            if model.isLoading { ProgressView().controlSize(.mini).help("Refreshing Library") }
+            if index.pendingCount > 0 {
+                HStack(spacing: 6) {
+                    ProgressView().controlSize(.mini)
+                    if index.readingCount > 0 {
+                        Text("Reading text in \(index.readingCount) \(index.readingCount == 1 ? "capture" : "captures")")
+                    } else {
+                        Text("Sorting \(index.sortingCount) \(index.sortingCount == 1 ? "capture" : "captures")")
+                    }
+                }
+                .help("Screendrop reads the text in each capture so search can find it, then sorts it into a category. All on this Mac.")
+            } else if model.isLoading {
+                ProgressView().controlSize(.mini).help("Refreshing Library")
+            }
         }
         .font(.caption)
         .monospacedDigit()
@@ -182,6 +258,11 @@ struct CaptureLibraryView: View {
     }
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
+        // Not `.searchable`: macOS always puts the system field at the far
+        // right, where the inspector toggle belongs.
+        ToolbarItem(placement: .primaryAction) {
+            LibrarySearchField(text: $model.searchText)
+        }
         ToolbarItem(placement: .primaryAction) {
             Menu {
                 Button("Capture Fullscreen", systemImage: "macwindow") { CaptureCoordinator.shared.captureFullscreen() }
@@ -191,6 +272,7 @@ struct CaptureLibraryView: View {
                 Button("Record Screen", systemImage: "record.circle") { RecordingPickerPresenter.shared.show() }
                     .disabled(ScreenRecordingManager.shared.isActive)
             } label: { Label("New Capture", systemImage: "plus") }
+            .menuIndicator(.hidden)
             .help("New capture")
         }
         ToolbarItem(placement: .primaryAction) {
@@ -211,6 +293,7 @@ struct CaptureLibraryView: View {
                 Button("Refresh", systemImage: "arrow.clockwise") { model.refresh() }
                     .keyboardShortcut("r", modifiers: .command)
             } label: { Label("Sort", systemImage: "arrow.up.arrow.down") }
+            .menuIndicator(.hidden)
             .help("Sort captures")
         }
         ToolbarItem(placement: .primaryAction) {
@@ -223,109 +306,176 @@ struct CaptureLibraryView: View {
     }
 }
 
-/// Settings, plus a reminder of the shortcut that fills the Library.
+private struct LibrarySidebarRow<Icon: View>: View {
+    let title: String
+    let count: Int
+    @ViewBuilder let icon: () -> Icon
+
+    var body: some View {
+        // Not a Label: the sidebar tints Label icons with the accent. These
+        // stay a quiet, filled grey with room between glyph and title.
+        HStack(spacing: 12) {
+            icon()
+                .symbolVariant(.fill)
+                .foregroundStyle(.secondary)
+                .frame(width: 20, alignment: .center)
+            Text(title)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Text(count, format: .number)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 2)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// The toolbar's search field, on the toolbar's own glass. ⌘F focuses it and
+/// Escape clears it.
+private struct LibrarySearchField: View {
+    @Binding var text: String
+    @FocusState private var isFocused: Bool
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(Palette.secondaryLabel)
+            TextField("Search apps and text", text: $text)
+                .textFieldStyle(.plain)
+                .focused($isFocused)
+                .onExitCommand {
+                    text = ""
+                    isFocused = false
+                }
+            Button {
+                text = ""
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(Palette.secondaryLabel)
+            }
+            .buttonStyle(.plain)
+            .opacity(text.isEmpty ? 0 : 1)
+            .disabled(text.isEmpty)
+            .help("Clear Search")
+        }
+        .padding(.horizontal, 8)
+        .frame(width: 220)
+        .background {
+            Button("") { isFocused = true }
+                .keyboardShortcut("f", modifiers: .command)
+                .hidden()
+        }
+    }
+}
+
+/// App icons for the sidebar, resolved once per app.
+@MainActor
+enum LibraryAppIcons {
+    private static var cache: [String: NSImage] = [:]
+
+    static func icon(for bundleIdentifier: String?) -> NSImage {
+        let key = bundleIdentifier ?? ""
+        if let icon = cache[key] { return icon }
+        let icon = bundleIdentifier
+            .flatMap { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) }
+            .map { NSWorkspace.shared.icon(forFile: $0.path) }
+            ?? NSWorkspace.shared.icon(for: .application)
+        cache[key] = icon
+        return icon
+    }
+}
+
+/// Offers, once, to sort captures made before sorting existed. It can take
+/// an hour or more, so it waits for a yes; Settings has the same switch.
+/// Never let its text size the bar (no `fixedSize`): see `frame(height:)`.
+private struct LibrarySortOffer: View {
+    let count: Int
+    let onAccept: () -> Void
+    let onDismiss: () -> Void
+
+    /// The model takes about 1.3s a capture on Apple silicon.
+    private var estimate: String {
+        let minutes = max(5, (Double(count) * 1.3 / 60 / 5).rounded() * 5)
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = minutes >= 60 ? [.hour, .minute] : [.minute]
+        formatter.unitsStyle = .full
+        return formatter.string(from: minutes * 60) ?? "a while"
+    }
+
+    var body: some View {
+        HStack(spacing: Space.l) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Palette.secondaryLabel)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Sort your existing captures?")
+                    .font(.dsHeadline)
+                    .foregroundStyle(Palette.label)
+                Text("Apple Intelligence can sort \(count.formatted()) older \(count == 1 ? "capture" : "captures") into categories, with titles and keywords for search. About \(estimate), on this Mac. New captures are sorted as you take them.")
+                    .font(.dsCallout)
+                    .foregroundStyle(Palette.secondaryLabel)
+                    .lineLimit(2)
+            }
+            Spacer(minLength: Space.l)
+            GlassCapsuleButton(title: "Not Now", action: onDismiss)
+            GlassCapsuleButton(title: "Sort Captures", isProminent: true, action: onAccept)
+        }
+        .padding(.horizontal, Space.xl)
+        // A fixed height: a bar whose height follows its wrapped text sends
+        // the split view's constraint passes into a loop and AppKit aborts.
+        .frame(height: 64)
+    }
+}
+
+/// Settings, plus a blue download button while a newer release is waiting.
 private struct LibrarySidebarFooter: View {
+    @ObservedObject private var updater = UpdaterManager.shared
     @State private var isHovering = false
 
     var body: some View {
-        Button {
-            SettingsWindowController.show(tab: .general)
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .frame(width: 20)
-                Text("Settings")
-                    .font(.system(size: 13))
-                Spacer(minLength: 0)
-                KeyCaps(tokens: ["⌘", ","], isSmall: true)
-                    .opacity(isHovering ? 1 : 0)
+        HStack(spacing: GlassMetrics.gap) {
+            Button {
+                SettingsWindowController.show(tab: .general)
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .frame(width: 20)
+                    Text("Settings")
+                        .font(.system(size: 13))
+                    Spacer(minLength: 0)
+                }
+                .foregroundStyle(Palette.label)
+                .padding(.horizontal, 10)
+                .frame(height: 30)
+                .background(
+                    isHovering ? Palette.hoverFill : .clear,
+                    in: RoundedRectangle(cornerRadius: Radius.field, style: .continuous)
+                )
+                .contentShape(Rectangle())
             }
-            .foregroundStyle(Palette.label)
-            .padding(.horizontal, 10)
-            .frame(height: 30)
-            .background(
-                isHovering ? Palette.hoverFill : .clear,
-                in: RoundedRectangle(cornerRadius: Radius.field, style: .continuous)
-            )
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .onHover { isHovering = $0 }
+            .help("Settings (⌘,)")
+
+            if let version = updater.availableUpdateVersion {
+                GlassIconButton(
+                    systemImage: "arrow.down",
+                    help: "Download Screendrop \(version)",
+                    size: 30,
+                    tint: .blue
+                ) {
+                    updater.checkForUpdates()
+                }
+                .transition(.blurPop)
+            }
         }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
         .motion(.morphQuick, value: isHovering)
+        .motion(.morph, value: updater.availableUpdateVersion)
         .padding(.horizontal, 10)
         .padding(.bottom, 10)
-    }
-}
-
-/// Share one adaptive color between the sidebar and the detail's corner
-/// cutouts; separate visual-effect views can resolve to different tints.
-private struct LibrarySidebarSurface: ViewModifier {
-    static var background: Color { Color(nsColor: .underPageBackgroundColor) }
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if #available(macOS 27.0, *) {
-            content
-                .scrollContentBackground(.hidden)
-                .background {
-                    Self.background.ignoresSafeArea(.container)
-                }
-        } else {
-            content
-        }
-    }
-}
-
-/// Round the entire detail surface, including the native toolbar's safe area.
-/// The browser keeps its normal insets so content doesn't move under controls.
-private struct LibraryDetailCorners: ViewModifier {
-    let showsSidebar: Bool
-    @Environment(\.displayScale) private var displayScale
-
-    private var cornerRadius: CGFloat { showsSidebar ? 16 : 0 }
-
-    private var surface: UnevenRoundedRectangle {
-        UnevenRoundedRectangle(
-            topLeadingRadius: cornerRadius,
-            bottomLeadingRadius: cornerRadius,
-            style: .continuous
-        )
-    }
-
-    @ViewBuilder
-    func body(content: Content) -> some View {
-        if #available(macOS 27.0, *) {
-            content
-                // Only the lower corner intersects the body. The upper corner
-                // belongs to the background extended behind the toolbar below.
-                .clipShape(
-                    UnevenRoundedRectangle(
-                        bottomLeadingRadius: cornerRadius,
-                        style: .continuous
-                    )
-                )
-                .background {
-                    ZStack {
-                        LibrarySidebarSurface.background
-                        surface.fill(Color(nsColor: .controlBackgroundColor))
-                    }
-                    .ignoresSafeArea(.container, edges: .top)
-                }
-                .overlay {
-                    if showsSidebar {
-                        surface
-                            .strokeBorder(Color(nsColor: .separatorColor), lineWidth: 1 / displayScale)
-                            .mask(alignment: .leading) {
-                                Rectangle().frame(width: cornerRadius)
-                            }
-                            .ignoresSafeArea(.container, edges: .top)
-                            .allowsHitTesting(false)
-                    }
-                }
-                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-        } else {
-            content
-        }
     }
 }

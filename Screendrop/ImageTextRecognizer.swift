@@ -48,7 +48,8 @@ enum ImageTextRecognizer {
     /// Done as an explicit grouping pass rather than one clever comparator:
     /// a tolerance-based comparator is not a strict weak ordering, and
     /// `sorted(by:)` gives undefined results when handed one.
-    private static func readingOrder(
+    /// Shared with the Library's indexer, which runs off the main actor.
+    nonisolated static func readingOrder(
         _ observations: [VNRecognizedTextObservation]
     ) -> [VNRecognizedTextObservation] {
         // Vision's normalized origin is bottom-left, so a larger midY sits

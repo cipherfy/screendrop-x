@@ -130,6 +130,24 @@ nonisolated struct ZoomCue: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
+/// How much of the recording a card shows at 1x along each axis. A
+/// viewport at magnification m sees `fraction / m` of the recording, so its
+/// half-extent on an axis is `fraction / (2m)`; the whole frame is (1, 1).
+nonisolated struct VisibleFraction: Sendable {
+    let width: Double
+    let height: Double
+
+    init(_ size: CGSize) {
+        width = min(max(Double(size.width), 0.000_1), 1)
+        height = min(max(Double(size.height), 0.000_1), 1)
+    }
+
+    func halfExtents(magnification: Double) -> (x: Double, y: Double) {
+        let base = 1 / (2 * max(magnification, 1))
+        return (base * width, base * height)
+    }
+}
+
 /// One sampled state of the virtual camera.
 nonisolated struct ViewportFrame: Sendable, Equatable {
     var magnification: Double
@@ -137,6 +155,14 @@ nonisolated struct ViewportFrame: Sendable, Equatable {
     var anchor: CGPoint
 
     static let identity = ViewportFrame(magnification: 1, anchor: CGPoint(x: 0.5, y: 0.5))
+}
+
+/// Original subject coordinates, before viewport bounds or camera clearance
+/// change where that subject can appear on the output canvas.
+nonisolated struct ViewportTarget: Sendable {
+    let magnification: Double
+    let point: CGPoint
+    let boundsBias: Double
 }
 
 // MARK: - Auto-generation from recorded input
@@ -201,24 +227,50 @@ nonisolated struct ViewportTimeline: Sendable {
     /// springs; it only interpolates this immutable source-time timeline.
     static let stepRate: Double = 120
 
-    private static let motionProfile = SpringConstant(tension: 200, friction: 40, inertia: 2.25)
-    /// Longest comfortable pan, measured in visible viewport widths. When the
-    /// remaining travel is longer, the pursuit zoom widens just enough to keep
-    /// the sweep under this and re-tightens on approach (after van Wijk–Nuij,
-    /// "Smooth and efficient zooming and panning"). Landing framing and snap
-    /// targets always use the cue's own magnification.
-    private static let travelComfortWidths = 1.4
-    private static let settleGuardWindow: TimeInterval = 0.15
-    private static let interiorMargin = 0.9
+    static let motionProfile = SpringConstant(tension: 125, friction: 12, inertia: 1.5, clampsOvershoot: true)
+    private static let anticipationWindow: TimeInterval = 0.5
 
     private let frames: [ViewportFrame]
+    /// Per frame, how far the zoom has travelled toward the magnification
+    /// it is heading for (or, zooming out, the one it is leaving): 0 on the
+    /// unzoomed screen, 1 once it lands. Things that react to zooms, like
+    /// the corner camera stepping back, follow this so they arrive with the
+    /// zoom rather than ahead of it.
+    private let zoomProgress: [Double]
     private let duration: TimeInterval
+    private var snapFrames: [Bool] = []
+    private var targets: [ViewportTarget] = []
 
-    static let identity = ViewportTimeline(frames: [.identity], duration: 0)
+    static let identity = ViewportTimeline(frames: [.identity], zoomProgress: [0], duration: 0)
 
-    private init(frames: [ViewportFrame], duration: TimeInterval) {
+    /// Destination intent for the composed Studio track. A bounded viewport
+    /// anchor is a camera center, and must never stand in for the subject.
+    func target(at time: TimeInterval) -> ViewportTarget? {
+        guard !targets.isEmpty else { return nil }
+        let index = min(max(Int((time * Self.stepRate).rounded()), 0), targets.count - 1)
+        return targets[index]
+    }
+
+    func snaps(at time: TimeInterval) -> Bool {
+        guard !snapFrames.isEmpty else { return false }
+        let index = min(max(Int((time * Self.stepRate).rounded()), 0), snapFrames.count - 1)
+        return snapFrames[index]
+    }
+
+    private init(frames: [ViewportFrame], zoomProgress: [Double], duration: TimeInterval) {
         self.frames = frames
+        self.zoomProgress = zoomProgress
         self.duration = duration
+    }
+
+    /// - Parameter time: Editor (edited-timeline) time, not raw source time.
+    func zoomProgress(at time: TimeInterval) -> Double {
+        guard zoomProgress.count > 1, duration > 0 else { return zoomProgress.first ?? 0 }
+        let position = min(max(time, 0), duration) * Self.stepRate
+        let index = Int(position)
+        guard index < zoomProgress.count - 1 else { return zoomProgress[zoomProgress.count - 1] }
+        let fraction = position - Double(index)
+        return zoomProgress[index] + (zoomProgress[index + 1] - zoomProgress[index]) * fraction
     }
 
     /// - Parameter time: Editor (edited-timeline) time, not raw source time.
@@ -254,11 +306,22 @@ nonisolated struct ViewportTimeline: Sendable {
     ///   target is active is resolved through the clip's speed (via
     ///   `clipTimeline.sourceTime(at:)`), so a sped-up clip plays its video
     ///   faster without the pan/zoom itself moving any faster.
+    /// - Parameter visibleFraction: Source width and height visible at 1x.
+    /// - Parameter sourceBounds: The selected source crop, in source units.
+    /// - Parameter smoothsMotion: False supplies destination intent to the
+    ///   Studio motion track, which integrates layout and zoom together.
+    /// - Parameter visibleFractionAtTime: Destination card geometry when
+    ///   the layout or output aspect changes the visible source fraction.
     static func build(
         cues: [ZoomCue],
         capture: PointerCaptureFile,
-        clipTimeline: RecordingClipTimeline
+        clipTimeline: RecordingClipTimeline,
+        visibleFraction: CGSize = CGSize(width: 1, height: 1),
+        sourceBounds: CGRect = CGRect(x: 0, y: 0, width: 1, height: 1),
+        smoothsMotion: Bool = true,
+        visibleFractionAtTime: ((TimeInterval, Double) -> CGSize)? = nil
     ) -> ViewportTimeline {
+        let visible = VisibleFraction(visibleFraction)
         let duration = clipTimeline.duration
         guard duration.isFinite, duration > 0 else { return .identity }
 
@@ -266,117 +329,145 @@ nonisolated struct ViewportTimeline: Sendable {
         let activitySamples = pointerSamples.filter {
             isRetainedSourceEvent($0.time, in: clipTimeline)
         }
+        let restingVisible = visibleFractionAtTime.map { VisibleFraction($0(0, 1)) } ?? visible
+        let restingTargets = activityTargets(
+            for: ZoomCue(start: 0, end: clipTimeline.segments.map(\.sourceEnd).max() ?? duration, zoom: 1),
+            samples: activitySamples,
+            visible: restingVisible,
+            prefersPressGroups: false
+        )
         var activityTargetsByCueID: [UUID: [ActivityTarget]] = [:]
         for cue in cues where cue.anchorMode == .smartAnchor
             && activityTargetsByCueID[cue.id] == nil {
             activityTargetsByCueID[cue.id] = activityTargets(
                 for: cue,
-                samples: activitySamples
+                samples: activitySamples,
+                visible: visible
             )
         }
-        let pressEvents = activitySamples.filter { $0.kind == .press }
+        // Anticipation is in playback seconds, so speeding or cutting footage
+        // cannot desynchronize the camera's lead-in from the displayed cursor.
+        let pressEvents = activitySamples.filter { $0.kind == .press }.compactMap { sample -> PointerSample? in
+            guard let time = clipTimeline.editorTime(forSourceTime: sample.time) else { return nil }
+            return PointerSample(time: time, point: sample.point, kind: sample.kind)
+        }.sorted { $0.time < $1.time }
         let frameCount = max(2, Int((duration * stepRate).rounded(.up)) + 1)
         let dt = 1.0 / stepRate
 
-        // Magnification and translation share one physical response by
-        // integrating the viewport's half-extent alongside its anchor on
-        // each axis.
-        var halfExtentSpring = DampedSpring(position: 0.5)
-        var anchorXSpring = DampedSpring(position: 0.5)
-        var anchorYSpring = DampedSpring(position: 0.5)
+        // Spring the rendered rectangle's scale and translation. Springing
+        // an inverse scale and then multiplying it by a separately sprung
+        // anchor gives pan and zoom different trajectories.
+        var scaleSpring = DampedSpring(position: 1)
+        var translationXSpring = DampedSpring(position: 0.5 - sourceBounds.midX)
+        var translationYSpring = DampedSpring(position: 0.5 - sourceBounds.midY)
         var previousActive: ZoomCue?
         var latestPressIndex = -1
 
         var frames: [ViewportFrame] = []
         frames.reserveCapacity(frameCount)
+        var zoomProgress: [Double] = []
+        zoomProgress.reserveCapacity(frameCount)
+        var snapFrames: [Bool] = []
+        snapFrames.reserveCapacity(frameCount)
+        var targets: [ViewportTarget] = []
+        if !smoothsMotion { targets.reserveCapacity(frameCount) }
+        // The zoom the viewport is heading for, held through the zoom-out.
+        var progressReference = 1.0
 
         for frameIndex in 0..<frameCount {
             let editorTime = min(Double(frameIndex) * dt, duration)
             let time = clipTimeline.sourceTime(at: editorTime)
             while latestPressIndex + 1 < pressEvents.count,
-                  pressEvents[latestPressIndex + 1].time <= time {
+                  pressEvents[latestPressIndex + 1].time <= editorTime {
                 latestPressIndex += 1
             }
             let active = activeCue(at: time, cues: cues)
             let targetMagnification = max(1, active?.zoom ?? 1)
-            let rawTarget = active.map { cue in
+            let visible = visibleFractionAtTime.map {
+                VisibleFraction($0(editorTime, targetMagnification))
+            } ?? visible
+            let isCropped = visible.width < sourceBounds.width - 0.001
+                || visible.height < sourceBounds.height - 0.001
+            var rawTarget = active.map { cue in
                 anchorPoint(
                     for: cue,
                     at: time,
                     samples: pointerSamples,
                     activityTargets: activityTargetsByCueID[cue.id] ?? []
                 )
-            } ?? CGPoint(x: 0.5, y: 0.5)
+            } ?? (isCropped
+                ? activityTarget(at: time, targets: restingTargets)
+                    ?? trackedPointerPosition(at: time, samples: pointerSamples)
+                    ?? CGPoint(x: sourceBounds.midX, y: sourceBounds.midY)
+                : CGPoint(x: sourceBounds.midX, y: sourceBounds.midY))
+            let upcomingIndex = latestPressIndex + 1
+            if (active?.anchorMode == .pointerAnchor || (active == nil && isCropped)),
+               upcomingIndex < pressEvents.count,
+               pressEvents[upcomingIndex].time - editorTime <= anticipationWindow {
+                rawTarget = pressEvents[upcomingIndex].point
+            }
+            if !smoothsMotion {
+                targets.append(ViewportTarget(
+                    magnification: targetMagnification,
+                    point: normalized(rawTarget),
+                    boundsBias: active?.anchorMode == .pinnedAnchor ? 0 : active?.boundsBias ?? 0
+                ))
+            }
             let targetAnchor = boundedAnchor(
                 rawTarget,
                 magnification: targetMagnification,
-                anchorMode: active?.anchorMode ?? .pinnedAnchor,
-                boundsBias: active?.boundsBias ?? 0
+                anchorMode: active?.anchorMode ?? (isCropped ? .pointerAnchor : .pinnedAnchor),
+                boundsBias: active?.boundsBias ?? 0,
+                visible: visible,
+                bounds: sourceBounds
             )
-            let targetHalfExtent = 1 / (2 * targetMagnification)
-            // Comfort widening only reshapes the spring's pursuit target:
-            // a long remaining travel caps the chased magnification so the
-            // sweep stays under travelComfortWidths viewport widths, and the
-            // cap releases continuously as the anchor closes in.
-            let remainingTravel = hypot(
-                targetAnchor.x - anchorXSpring.position,
-                targetAnchor.y - anchorYSpring.position
-            )
-            let pursuitMagnification = remainingTravel > 0.000_1
-                ? min(targetMagnification, max(1, travelComfortWidths / remainingTravel))
-                : targetMagnification
-            let pursuitHalfExtent = 1 / (2 * pursuitMagnification)
+            let targetX = (0.5 - targetAnchor.x) * targetMagnification
+            let targetY = (0.5 - targetAnchor.y) * targetMagnification
 
             let activeChanged = active?.id != previousActive?.id
             let shouldSnap = activeChanged
                 && (active?.skipsEasing == true
                     || previousActive?.skipsEasing == true)
 
-            if shouldSnap {
-                halfExtentSpring.snap(to: targetHalfExtent)
-                anchorXSpring.snap(to: targetAnchor.x)
-                anchorYSpring.snap(to: targetAnchor.y)
+            if shouldSnap || !smoothsMotion {
+                scaleSpring.snap(to: targetMagnification)
+                translationXSpring.snap(to: targetX)
+                translationYSpring.snap(to: targetY)
             } else if frameIndex > 0 {
-                halfExtentSpring.step(toward: pursuitHalfExtent, using: motionProfile, dt: dt)
-                anchorXSpring.step(toward: targetAnchor.x, using: motionProfile, dt: dt)
-                anchorYSpring.step(toward: targetAnchor.y, using: motionProfile, dt: dt)
+                scaleSpring.step(toward: targetMagnification, using: motionProfile, dt: dt)
+                translationXSpring.step(toward: targetX, using: motionProfile, dt: dt)
+                translationYSpring.step(toward: targetY, using: motionProfile, dt: dt)
             }
 
-            let safeHalfExtent = min(max(halfExtentSpring.position, 0.000_001), 0.5)
-            let magnification = max(1, 1 / (2 * safeHalfExtent))
-            var anchor = clampToFrame(
-                CGPoint(x: anchorXSpring.position, y: anchorYSpring.position),
-                magnification: magnification
+            let magnification = max(1, scaleSpring.position)
+            let anchor = clampToFrame(
+                CGPoint(
+                    x: 0.5 - translationXSpring.position / magnification,
+                    y: 0.5 - translationYSpring.position / magnification
+                ),
+                magnification: magnification,
+                visible: visible,
+                bounds: sourceBounds
             )
-
-            // Pointer tracking normally gives the spring enough time to
-            // arrive. This final guard handles very fast/far successive
-            // presses: during the 150 ms press feedback, the pressed source
-            // point is never allowed to sit outside the rendered viewport.
-            // Pinned framing remains authoritative and bypasses this pull.
-            if let active,
-               active.anchorMode != .pinnedAnchor,
-               latestPressIndex >= 0 {
-                let press = pressEvents[latestPressIndex]
-                let elapsed = time - press.time
-                if elapsed >= 0, elapsed <= settleGuardWindow {
-                    anchor = settleWithinMargin(
-                        press.point,
-                        from: anchor,
-                        magnification: magnification,
-                        interiorMargin: interiorMargin
-                    )
-                    // Keep the spring and rendered state coherent so releasing
-                    // the safety constraint cannot create a snap-back frame.
-                    anchorXSpring.position = anchor.x
-                    anchorYSpring.position = anchor.y
-                }
-            }
             frames.append(ViewportFrame(magnification: magnification, anchor: anchor))
+            snapFrames.append(shouldSnap)
+            if targetMagnification > 1 {
+                progressReference = targetMagnification
+            }
+            var progress = progressReference > 1
+                ? min(max((magnification - 1) / (progressReference - 1), 0), 1)
+                : 0
+            // The spring only approaches its target; within half a percent
+            // the zoom has landed, and reacting layers can hold still.
+            if progress > 0.995 { progress = 1 } else if progress < 0.005 { progress = 0 }
+            zoomProgress.append(progress)
             previousActive = active
         }
 
-        return ViewportTimeline(frames: frames, duration: duration)
+        var timeline = ViewportTimeline(frames: frames, zoomProgress: zoomProgress, duration: duration)
+        timeline.snapFrames = snapFrames
+        timeline.targets = targets
+        return timeline
     }
 
     // MARK: Cue selection
@@ -436,7 +527,9 @@ nonisolated struct ViewportTimeline: Sendable {
     /// movement cannot make the camera continually revise its destination.
     private static func activityTargets(
         for cue: ZoomCue,
-        samples: [PointerSample]
+        samples: [PointerSample],
+        visible: VisibleFraction,
+        prefersPressGroups: Bool = true
     ) -> [ActivityTarget] {
         var cueSamples = samples.filter { $0.time >= cue.start && $0.time <= cue.end }
         if cueSamples.isEmpty {
@@ -449,8 +542,8 @@ nonisolated struct ViewportTimeline: Sendable {
         guard let first = cueSamples.first else { return [] }
 
         let magnification = max(cue.zoom, 1)
-        let horizontalLimit = 0.5 / magnification
-        let verticalLimit = 0.7 / magnification
+        let horizontalLimit = 0.5 * visible.width / magnification
+        let verticalLimit = 0.7 * visible.height / magnification
         var group = ActivityGroup(sample: first)
         var groups: [ActivityGroup] = []
 
@@ -472,7 +565,7 @@ nonisolated struct ViewportTimeline: Sendable {
         // between interaction targets. Ignoring them prevents the camera from
         // following the travel path it was introduced to smooth out. A Smart
         // cue without clicks still uses its movement regions.
-        let focusedGroups = groups.contains { $0.firstPressTime != nil }
+        let focusedGroups = prefersPressGroups && groups.contains { $0.firstPressTime != nil }
             ? groups.filter { $0.firstPressTime != nil }
             : groups
         return focusedGroups.map { group in
@@ -593,19 +686,23 @@ nonisolated struct ViewportTimeline: Sendable {
         _ point: CGPoint,
         magnification: Double,
         anchorMode: ZoomAnchorMode,
-        boundsBias: Double
+        boundsBias: Double,
+        visible: VisibleFraction,
+        bounds: CGRect
     ) -> CGPoint {
         let rawCenteredTarget = normalized(point)
         guard anchorMode != .pinnedAnchor else {
-            return clampToFrame(rawCenteredTarget, magnification: magnification)
+            return clampToFrame(rawCenteredTarget, magnification: magnification, visible: visible, bounds: bounds)
         }
 
-        let halfExtent = 1 / (2 * max(magnification, 1))
+        let halfExtent = visible.halfExtents(magnification: magnification)
         // This anchor keeps the subject at its original unzoomed screen
         // position: screen = 0.5 + magnification * (subject - viewportAnchor).
         let screenPositionPreservingTarget = CGPoint(
-            x: halfExtent + rawCenteredTarget.x * (1 - 2 * halfExtent),
-            y: halfExtent + rawCenteredTarget.y * (1 - 2 * halfExtent)
+            x: bounds.minX + halfExtent.x
+                + (rawCenteredTarget.x - bounds.minX) / bounds.width * (bounds.width - 2 * halfExtent.x),
+            y: bounds.minY + halfExtent.y
+                + (rawCenteredTarget.y - bounds.minY) / bounds.height * (bounds.height - 2 * halfExtent.y)
         )
         let bias = unit(boundsBias)
         let blended = CGPoint(
@@ -614,51 +711,20 @@ nonisolated struct ViewportTimeline: Sendable {
             y: rawCenteredTarget.y
                 + (screenPositionPreservingTarget.y - rawCenteredTarget.y) * bias
         )
-        return clampToFrame(blended, magnification: magnification)
+        return clampToFrame(blended, magnification: magnification, visible: visible, bounds: bounds)
     }
 
     /// Final safety invariant: the viewport never exposes space beyond source.
-    private static func clampToFrame(_ point: CGPoint, magnification: Double) -> CGPoint {
-        let halfExtent = 1 / (2 * max(magnification, 1))
-        return CGPoint(
-            x: min(max(point.x, halfExtent), 1 - halfExtent),
-            y: min(max(point.y, halfExtent), 1 - halfExtent)
-        )
-    }
-
-    /// Minimally moves a viewport anchor so `point` remains in a safe interior
-    /// portion of the viewport. Near source edges, where an interior margin is
-    /// geometrically impossible, it falls back to simple full-viewport
-    /// containment while still respecting the source bounds.
-    private static func settleWithinMargin(
+    private static func clampToFrame(
         _ point: CGPoint,
-        from anchor: CGPoint,
         magnification: Double,
-        interiorMargin: Double
+        visible: VisibleFraction,
+        bounds: CGRect
     ) -> CGPoint {
-        let halfExtent = 1 / (2 * max(magnification, 1))
-        let safeHalfExtent = halfExtent * unit(interiorMargin)
-
-        func constrainedAxis(point: Double, anchor: Double) -> Double {
-            let sourceMinimum = halfExtent
-            let sourceMaximum = 1 - halfExtent
-            let safeMinimum = max(sourceMinimum, point - safeHalfExtent)
-            let safeMaximum = min(sourceMaximum, point + safeHalfExtent)
-            if safeMinimum <= safeMaximum {
-                return min(max(anchor, safeMinimum), safeMaximum)
-            }
-
-            let visibleMinimum = max(sourceMinimum, point - halfExtent)
-            let visibleMaximum = min(sourceMaximum, point + halfExtent)
-            guard visibleMinimum <= visibleMaximum else {
-                return min(max(anchor, sourceMinimum), sourceMaximum)
-            }
-            return min(max(anchor, visibleMinimum), visibleMaximum)
-        }
-
+        let halfExtent = visible.halfExtents(magnification: magnification)
         return CGPoint(
-            x: constrainedAxis(point: point.x, anchor: anchor.x),
-            y: constrainedAxis(point: point.y, anchor: anchor.y)
+            x: min(max(point.x, bounds.minX + halfExtent.x), bounds.maxX - halfExtent.x),
+            y: min(max(point.y, bounds.minY + halfExtent.y), bounds.maxY - halfExtent.y)
         )
     }
 

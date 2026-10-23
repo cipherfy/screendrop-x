@@ -27,6 +27,35 @@
     -->
 
     <item>
+      <title>Version 0.36.0</title>
+      <sparkle:version>37</sparkle:version>
+      <sparkle:shortVersionString>0.36.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>26.4</sparkle:minimumSystemVersion>
+      <pubDate>Fri, 23 Oct 2026 07:52:13 +0000</pubDate>
+      <description><![CDATA[
+        <h2>What's New in 0.36.0</h2>
+        <ul>
+          <li>Camera layouts: pick from corner, split, fill split and a new Cutout layout that removes your background, with a Layout lane on the Studio timeline</li>
+          <li>Corner camera shrinks out of the way during zooms, and zooms follow the action inside a split</li>
+          <li>Camera touch-ups: face light and skin smoothing</li>
+          <li>Studio now supports text, pixelate, images, GIFs and audio on the timeline, with a resizable, redesigned timeline</li>
+          <li>Cleaner Studio inspector with foldable sections</li>
+          <li>Library v2: a new grid, smart sidebar, on-device text recognition, automatic categories and Similar captures</li>
+          <li>Search Unsplash for frame backgrounds</li>
+          <li>Double-click or press Space on a recording in the Library to open it in the editor</li>
+          <li>Studio exports default to HEVC and run faster</li>
+          <li>Fixed shadows outlining the screen and camera in exports</li>
+        </ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/fayazara/screendrop/releases/download/v0.36.0/Screendrop.dmg"
+        type="application/octet-stream"
+        sparkle:edSignature="lJBuo5t3H8yFrHmyjVBeI8dP0yJjLbWhGEXyj3QlTStA5v7qnkFYxuA8vlWv7yy3+eMffD7Jz94HTWBnnF2YDA=="
+        length="9156184"
+      />
+    </item>
+
+    <item>
       <title>Version 0.35.3</title>
       <sparkle:version>36</sparkle:version>
       <sparkle:shortVersionString>0.35.3</sparkle:shortVersionString>

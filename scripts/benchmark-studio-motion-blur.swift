@@ -7,6 +7,15 @@ import ImageIO
 import Metal
 import UniformTypeIdentifiers
 
+// The production API separates GPU submission and completion to overlap
+// frames. This isolated spatial-filter benchmark intentionally waits here.
+extension StudioMetalScreenRenderer {
+    func render(screenFrame: CVPixelBuffer, sampleRects: [CGRect], into output: CVPixelBuffer) -> Bool {
+        guard let submission = submit(screenFrame: screenFrame, sampleRects: sampleRects, into: output) else { return false }
+        return Self.wait(for: submission)
+    }
+}
+
 @main
 struct MotionBlurBenchmark {
     static let space = CGColorSpace(name: CGColorSpace.sRGB)!
@@ -161,8 +170,7 @@ struct MotionBlurBenchmark {
                         height: card.height * 1.3 + i * 2)
                 }
                 reference(source: source, backdrop: backdrop, rects: rects, path: path, into: cpuBuffer)
-                // The app retains Core Graphics for light blur when reducing
-                // footage. Do not quietly include those cases in GPU claims.
+                // Extreme discontinuities inside a shutter use the CPU path.
                 guard StudioMetalScreenRenderer.shouldAccelerate(screenFrame: sourceBuffer, sampleRects: rects) else {
                     print("\(width)x\(height) input=\(inputScale)x samples=\(samples): Core Graphics quality fallback")
                     continue

@@ -150,6 +150,18 @@ final class RecordingVoiceController {
 
     /// An imported soundtrack stands in for all the recorded audio and is
     /// treated as narration.
+    /// The audio at a glance, for the inspector's folded section: the
+    /// character and where loudness lands, or the voice gain when no target
+    /// is set; the system gain when there is no narration.
+    var summary: String {
+        guard hasVoiceAudio else {
+            return InspectorValueFormat.decibels.displayString(for: systemGainDB)
+        }
+        let level = voiceProfile.loudnessTarget.lufs.map { String(format: "%.0f LUFS", $0) }
+            ?? InspectorValueFormat.decibels.displayString(for: voiceGainDB)
+        return "\(voiceProfile.character.title) · \(level)"
+    }
+
     var hasVoiceAudio: Bool {
         host?.replacementAudio != nil || recordedAudioRoles.contains(.voice)
     }
@@ -170,11 +182,20 @@ final class RecordingVoiceController {
     /// Gives a player item's tracks their taps. Settings reach them through
     /// `audioParameters`, so this runs only when the item is rebuilt, never
     /// while a slider drags.
-    func installPlaybackAudioMix(on item: AVPlayerItem) {
-        let tracks = item.asset.tracks(withMediaType: .audio)
-        item.audioMix = RecordingAudioProcessing.makeMix(
-            tracks: tracks,
+    /// The recording's tracks through VoiceKit; clips added in Studio keep
+    /// their own volume and fades.
+    func installPlaybackAudioMix(
+        on item: AVPlayerItem,
+        clips: [RecordingAudioClip],
+        clipTrackIDs: [UUID: CMPersistentTrackID]
+    ) {
+        let clipTracks = Set(clipTrackIDs.values)
+        let tracks = item.asset.tracks(withMediaType: .audio).filter { !clipTracks.contains($0.trackID) }
+        item.audioMix = RecordingVoiceMix.mix(
+            recordingTracks: tracks,
             roles: RecordingAudioProcessing.rolesSynchronously(for: tracks, isReplacement: host?.replacementAudio != nil),
+            clips: clips,
+            clipTrackIDs: clipTrackIDs,
             parameters: audioParameters
         )
     }
